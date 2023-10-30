@@ -118,11 +118,11 @@ export class Unparser {
   }
 
   private formatRange(ast: CellRangeAst | ColumnRangeAst | RowRangeAst, baseAddress: SimpleCellAddress): string {
-    let startSheeet = ''
+    let startSheet = ''
     let endSheet = ''
 
     if (ast.start.sheet !== undefined && (ast.sheetReferenceType !== RangeSheetReferenceType.RELATIVE)) {
-      startSheeet = this.unparseSheetName(ast.start.sheet) + '!'
+      startSheet = this.unparseSheetName(ast.start.sheet) + '!'
     }
 
     if (ast.end.sheet !== undefined && ast.sheetReferenceType === RangeSheetReferenceType.BOTH_ABSOLUTE) {
@@ -134,7 +134,7 @@ export class Unparser {
     if (unparsedStart === undefined || unparsedEnd === undefined) {
       return this.config.translationPackage.getErrorTranslation(ErrorType.REF)
     }
-    return `${startSheeet}${unparsedStart}:${endSheet}${unparsedEnd}`
+    return `${startSheet}${unparsedStart}:${endSheet}${unparsedEnd}`
   }
 }
 
