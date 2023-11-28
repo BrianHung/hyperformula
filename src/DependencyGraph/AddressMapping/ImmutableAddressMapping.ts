@@ -14,13 +14,29 @@ import {ArrayVertex, ValueCellVertex} from '../index'
 import {CellVertex} from '../Vertex'
 import {ChooseAddressMapping} from './ChooseAddressMappingPolicy'
 import {AddressMappingStrategy} from './AddressMappingStrategy'
+import {AddressMapping} from '../index'
+import { ImmutableReferenceMapping } from '../ImmutableRefMapping'
 
-export class AddressMapping {
-  mapping: Map<number, AddressMappingStrategy> = new Map()
+export class ImmutableAddressMapping extends AddressMapping {
 
   constructor(
-    public readonly policy: ChooseAddressMapping
+    public readonly policy: ChooseAddressMapping,
+    public readonly immutableReferenceMapping: ImmutableReferenceMapping
   ) {
+    super(policy)
+  }
+
+  public getCellId(address: SimpleCellAddress) {
+    return (this.getCell(address) as any).id
+  }
+
+  public hasCellId(address: SimpleCellAddress) {
+    return (this.getCell(address) as any).id !== undefined
+  }
+
+  setCellId(address: SimpleCellAddress, id: string) {
+    const vertex = this.getCell(address)
+    if (vertex) (vertex as any).id = id
   }
 
   /** @inheritDoc */
@@ -96,6 +112,7 @@ export class AddressMapping {
     if (!sheetMapping) {
       throw Error('Sheet not initialized')
     }
+    if ((newVertex as any).id === undefined) (newVertex as any).id = this.immutableReferenceMapping.getCellId(address)
     sheetMapping.setCell(address, newVertex)
   }
 

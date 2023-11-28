@@ -5,10 +5,11 @@
 
 import {simpleCellRange, SimpleCellRange} from '../AbsoluteCellRange'
 import {simpleCellAddress, SimpleCellAddress} from '../Cell'
+import { ImmutableReferenceMapping } from '../DependencyGraph/ImmutableRefMapping'
 import {Maybe} from '../Maybe'
 import {CellAddress} from './CellAddress'
 import {ColumnAddress} from './ColumnAddress'
-import {ABSOLUTE_OPERATOR, RANGE_OPERATOR, SHEET_NAME_PATTERN, UNQUOTED_SHEET_NAME_PATTERN} from './parser-consts'
+import {ABSOLUTE_OPERATOR, RANGE_OPERATOR, SHEET_NAME_PATTERN, UNQUOTED_SHEET_NAME_PATTERN, IMMUTABLE_CELL_REFERENCE_PATTERN, IMMUTABLE_COL_REFERENCE_PATTERN, IMMUTABLE_ROW_REFERENCE_PATTERN} from './parser-consts'
 import {RowAddress} from './RowAddress'
 
 export type SheetMappingFn = (sheetName: string) => Maybe<number>
@@ -18,6 +19,10 @@ const addressRegex = new RegExp(`^(${SHEET_NAME_PATTERN})?(\\${ABSOLUTE_OPERATOR
 const columnRegex = new RegExp(`^(${SHEET_NAME_PATTERN})?(\\${ABSOLUTE_OPERATOR}?)([A-Za-z]+)$`)
 const rowRegex = new RegExp(`^(${SHEET_NAME_PATTERN})?(\\${ABSOLUTE_OPERATOR}?)([0-9]+)$`)
 const simpleSheetNameRegex = new RegExp(`^${UNQUOTED_SHEET_NAME_PATTERN}$`)
+
+const immutableCellRegex = new RegExp(IMMUTABLE_CELL_REFERENCE_PATTERN)
+const immutableColRegex = new RegExp(IMMUTABLE_COL_REFERENCE_PATTERN)
+const immutableRowRegex = new RegExp(IMMUTABLE_ROW_REFERENCE_PATTERN)
 
 /**
  * Computes R0C0 representation of cell address based on it's string representation and base address.
@@ -53,6 +58,34 @@ export const cellAddressFromString = (sheetMapping: SheetMappingFn, stringAddres
   }
 }
 
+/**
+ * Computes R0C0 representation of cell address based on it's string representation and base address.
+ * 
+ * @param sheetMapping 
+ * @param stringAddress 
+ * @param baseAddress 
+ * @returns 
+ */
+export const cellAddressFromImmutableReference = (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress) => {
+  const result = immutableCellRegex.exec(stringAddress)!
+  const [match, cellId, absoluteCol, absoluteRow, showSheet] = result
+  const address = immutableReferenceMapping.getCellAddress(cellId)
+  const { col, row } = address
+  let sheet = address.sheet as number | undefined
+  if (sheet === baseAddress.sheet && showSheet !== 'true') {
+    sheet = undefined
+  }
+  if (absoluteCol === 'true' && absoluteRow === 'true') {
+    return CellAddress.absolute(col, row, sheet)
+  } else if (absoluteCol === 'true') {
+    return CellAddress.absoluteCol(col, row - baseAddress.row, sheet)
+  } else if (absoluteRow === 'true') {
+    return CellAddress.absoluteRow(col - baseAddress.col, row, sheet)
+  } else {
+    return CellAddress.relative(col - baseAddress.col, 0 - baseAddress.row, sheet)
+  }
+}
+
 export const columnAddressFromString = (sheetMapping: SheetMappingFn, stringAddress: string, baseAddress: SimpleCellAddress): Maybe<ColumnAddress> => {
   const result = columnRegex.exec(stringAddress)!
 
@@ -74,6 +107,22 @@ export const columnAddressFromString = (sheetMapping: SheetMappingFn, stringAddr
   }
 }
 
+export const colAddressFromImmutableReference = (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress): Maybe<ColumnAddress> => {
+  const result = immutableColRegex.exec(stringAddress)!
+  const [match, colId, absoluteCol, showSheet] = result
+  const address = immutableReferenceMapping.getColIndex(colId)
+  const col = address.index
+  let sheet = address.sheet as number | undefined
+  if (sheet === baseAddress.sheet && showSheet !== 'true') {
+    sheet = undefined
+  }
+  if (absoluteCol === 'true') {
+    return ColumnAddress.absolute(col, sheet)
+  } else {
+    return ColumnAddress.relative(col - baseAddress.col, sheet)
+  }
+}
+
 export const rowAddressFromString = (sheetMapping: SheetMappingFn, stringAddress: string, baseAddress: SimpleCellAddress): Maybe<RowAddress> => {
   const result = rowRegex.exec(stringAddress)!
 
@@ -89,6 +138,22 @@ export const rowAddressFromString = (sheetMapping: SheetMappingFn, stringAddress
   const row = Number(result[6]) - 1
 
   if (result[5] === ABSOLUTE_OPERATOR) {
+    return RowAddress.absolute(row, sheet)
+  } else {
+    return RowAddress.relative(row - baseAddress.row, sheet)
+  }
+}
+
+export const rowAddressFromImmutableReference = (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress): Maybe<RowAddress> => {
+  const result = immutableRowRegex.exec(stringAddress)!
+  const [match, rowId, absoluteRow, showSheet] = result
+  const address = immutableReferenceMapping.getColIndex(rowId)
+  const row = address.index
+  let sheet = address.sheet as number | undefined
+  if (sheet === baseAddress.sheet && showSheet !== 'true') {
+    sheet = undefined
+  }
+  if (absoluteRow === 'true') {
     return RowAddress.absolute(row, sheet)
   } else {
     return RowAddress.relative(row - baseAddress.row, sheet)

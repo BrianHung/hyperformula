@@ -90,9 +90,9 @@ export class BuildEngineFactory {
       }
     }
 
-    const parser = new ParserWithCaching(config, functionRegistry, sheetMapping.get)
+    const parser = new ParserWithCaching(config, functionRegistry, sheetMapping.get, (addressMapping as any).immutableReferenceMapping)
     lazilyTransformingAstService.parser = parser
-    const unparser = new Unparser(config, buildLexerConfig(config), sheetMapping.fetchDisplayName, namedExpressions)
+    const unparser = new Unparser(config, buildLexerConfig(config), sheetMapping.fetchDisplayName, namedExpressions, (addressMapping as any))
     const dateTimeHelper = new DateTimeHelper(config)
     const numberLiteralHelper = new NumberLiteralHelper(config)
     const arithmeticHelper = new ArithmeticHelper(config, dateTimeHelper, numberLiteralHelper)

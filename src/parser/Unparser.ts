@@ -4,6 +4,7 @@
  */
 
 import {ErrorType, SimpleCellAddress} from '../Cell'
+import {ImmutableIdMapping} from '../DependencyGraph/ImmutableRefMapping'
 import {NoSheetWithIdError} from '../index'
 import {NamedExpressions} from '../NamedExpressions'
 import {SheetIndexMappingFn, sheetIndexToString} from './addressRepresentationConverters'
@@ -17,8 +18,41 @@ import {
   RowRangeAst,
 } from './Ast'
 import {binaryOpTokenMap} from './binaryOpTokenMap'
+import {CellAddress} from './CellAddress'
+import {ColumnAddress} from './ColumnAddress'
+import {RowAddress} from './RowAddress'
 import {LexerConfig} from './LexerConfig'
 import {ParserConfig} from './ParserConfig'
+
+function unparseAddressToImmutableReference(
+  immutableMapping: ImmutableIdMapping,
+  address: CellAddress | ColumnAddress | RowAddress, 
+  baseAddress: SimpleCellAddress
+): string | undefined {
+  if (address instanceof CellAddress) {
+    const cellId = immutableMapping.getCellId(address.toSimpleCellAddress(baseAddress))
+    if (cellId === undefined) return undefined
+    const isRowAbsolute = address.isRowAbsolute()
+    const isColAbsolute = address.isColumnAbsolute()
+    const showSheet = address.sheet === baseAddress.sheet
+    return `REF("cell","${cellId}",${isRowAbsolute},${isColAbsolute},${showSheet})`
+  }
+  if (address instanceof ColumnAddress) {
+    const colId = immutableMapping.getColId(address.sheet || baseAddress.sheet, address.col)
+    if (colId === undefined) return undefined
+    const showSheet = address.sheet === baseAddress.sheet
+    const isColAbsolute = address.isColumnAbsolute()
+    return `REF("col","${colId}",${isColAbsolute},${showSheet})`
+  }
+  if (address instanceof RowAddress) {
+    const rowId = immutableMapping.getRowId(address.sheet || baseAddress.sheet, address.row)
+    if (rowId === undefined) return undefined
+    const showSheet = address.sheet === baseAddress.sheet
+    const isRowAbsolute = address.isRowAbsolute()
+    return `REF("row","${rowId}",${isRowAbsolute},${showSheet})`
+  }
+  return undefined
+}
 
 export class Unparser {
   constructor(
@@ -26,6 +60,7 @@ export class Unparser {
     private readonly lexerConfig: LexerConfig,
     private readonly sheetMappingFn: SheetIndexMappingFn,
     private readonly namedExpressions: NamedExpressions,
+    private readonly immutableMapping?: ImmutableIdMapping,
   ) {
   }
 
@@ -57,20 +92,26 @@ export class Unparser {
         const originalNamedExpressionName = this.namedExpressions.nearestNamedExpression(ast.expressionName, address.sheet)?.displayName
         return imageWithWhitespace(originalNamedExpressionName || ast.expressionName, ast.leadingWhitespace)
       }
+      // TODO: Replace this
       case AstNodeType.CELL_REFERENCE: {
         let image
-        if (ast.reference.sheet !== undefined) {
-          image = this.unparseSheetName(ast.reference.sheet) + '!'
+        if (this.immutableMapping) {
+          image = unparseAddressToImmutableReference(this.immutableMapping, ast.reference, address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
         } else {
-          image = ''
+          if (ast.reference.sheet !== undefined) {
+            image = this.unparseSheetName(ast.reference.sheet) + '!'
+          } else {
+            image = ''
+          }
+          image += ast.reference.unparse(address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
         }
-        image += ast.reference.unparse(address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
         return imageWithWhitespace(image, ast.leadingWhitespace)
       }
       case AstNodeType.COLUMN_RANGE:
       case AstNodeType.ROW_RANGE:
       case AstNodeType.CELL_RANGE: {
-        return imageWithWhitespace(this.formatRange(ast, address), ast.leadingWhitespace)
+        const image = this.immutableMapping ? this.formatImmutableRange(ast, address) : this.formatRange(ast, address)
+        return imageWithWhitespace(image, ast.leadingWhitespace)
       }
       case AstNodeType.PLUS_UNARY_OP: {
         const unparsedExpr = this.unparseAst(ast.value, address)
@@ -118,11 +159,11 @@ export class Unparser {
   }
 
   private formatRange(ast: CellRangeAst | ColumnRangeAst | RowRangeAst, baseAddress: SimpleCellAddress): string {
-    let startSheeet = ''
+    let startSheet = ''
     let endSheet = ''
 
     if (ast.start.sheet !== undefined && (ast.sheetReferenceType !== RangeSheetReferenceType.RELATIVE)) {
-      startSheeet = this.unparseSheetName(ast.start.sheet) + '!'
+      startSheet = this.unparseSheetName(ast.start.sheet) + '!'
     }
 
     if (ast.end.sheet !== undefined && ast.sheetReferenceType === RangeSheetReferenceType.BOTH_ABSOLUTE) {
@@ -134,7 +175,17 @@ export class Unparser {
     if (unparsedStart === undefined || unparsedEnd === undefined) {
       return this.config.translationPackage.getErrorTranslation(ErrorType.REF)
     }
-    return `${startSheeet}${unparsedStart}:${endSheet}${unparsedEnd}`
+
+    return `${startSheet}${unparsedStart}:${endSheet}${unparsedEnd}`
+  }
+
+  private formatImmutableRange(ast: CellRangeAst | ColumnRangeAst | RowRangeAst, baseAddress: SimpleCellAddress): string {
+    const unparsedStart = unparseAddressToImmutableReference(this.immutableMapping as any, ast.start, baseAddress)
+    const unparsedEnd = unparseAddressToImmutableReference(this.immutableMapping as any, ast.end, baseAddress)
+    if (unparsedStart === undefined || unparsedEnd === undefined) {
+      return this.config.translationPackage.getErrorTranslation(ErrorType.REF)
+    }
+    return `${unparsedStart}:${unparsedEnd}`
   }
 }
 

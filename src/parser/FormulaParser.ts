@@ -22,6 +22,9 @@ import {
   columnAddressFromString,
   rowAddressFromString,
   SheetMappingFn,
+  cellAddressFromImmutableReference,
+  rowAddressFromImmutableReference,
+  colAddressFromImmutableReference,
 } from './addressRepresentationConverters'
 import {
   ArrayAst,
@@ -94,8 +97,12 @@ import {
   RParen,
   StringLiteral,
   TimesOp,
+  ImmutableCellReference,
+  ImmutableRowRange,
+  ImmutableColRange,
 } from './LexerConfig'
 import {AddressWithSheet} from './Address'
+import {ImmutableReferenceMapping} from '../DependencyGraph/ImmutableRefMapping'
 
 export interface FormulaParserResult {
   ast: Ast,
@@ -113,12 +120,13 @@ export interface FormulaParserResult {
  * E -> M + E | M - E | M <br/>
  * M -> W * M | W / M | W <br/>
  * W -> C * W | C <br/>
- * C -> N | R | O | A | P | num <br/>
+ * C -> N | R | O | A | P | I | num <br/>
  * N -> '(' E ')' <br/>
  * R -> A:OFFSET(..) | A:A <br/>
  * O -> OFFSET(..) | OFFSET(..):A | OFFSET(..):OFFSET(..) <br/>
  * A -> A1 | $A1 | A$1 | $A$1 <br/>
  * P -> SUM(..) <br/>
+ * I -> REF('cell',..) | REF(..):REF(..) <br/>
  */
 export class FormulaParser extends EmbeddedActionsParser {
   private lexerConfig: LexerConfig
@@ -131,6 +139,8 @@ export class FormulaParser extends EmbeddedActionsParser {
   private customParsingError?: ParsingError
 
   private readonly sheetMapping: SheetMappingFn
+
+  private readonly immutableReferenceMapping: ImmutableReferenceMapping
 
   /**
    * Cache for positiveAtomicExpression alternatives
@@ -247,6 +257,72 @@ export class FormulaParser extends EmbeddedActionsParser {
   })
 
   /**
+   * Rule for column range, e.g. A:B, Sheet1!A:B, Sheet1!A:Sheet1!B
+   */
+  private immutableColumnRangeExpression: AstRule = this.RULE('immutableColumnRangeExpression', () => {
+    const range = this.CONSUME(ImmutableColRange) as ExtendedToken
+    const [startImage, endImage] = range.image.split(':')
+    const firstAddress = this.ACTION(() => colAddressFromImmutableReference(this.immutableReferenceMapping, startImage, this.formulaAddress))
+    const secondAddress = this.ACTION(() => colAddressFromImmutableReference(this.immutableReferenceMapping, endImage, this.formulaAddress))
+
+    if (firstAddress === undefined || secondAddress === undefined) {
+      return buildCellErrorAst(new CellError(ErrorType.REF))
+    }
+
+    if (firstAddress.exceedsSheetSizeLimits(this.lexerConfig.maxColumns) || secondAddress.exceedsSheetSizeLimits(this.lexerConfig.maxColumns)) {
+      return buildErrorWithRawInputAst(range.image, new CellError(ErrorType.NAME), range.leadingWhitespace)
+    }
+
+    if (firstAddress.sheet === undefined && secondAddress.sheet !== undefined) {
+      return this.parsingError(ParsingErrorType.ParserError, 'Malformed range expression')
+    }
+
+    const { firstEnd, secondEnd, sheetRefType } = FormulaParser.fixSheetIdsForRangeEnds(firstAddress, secondAddress)
+
+    return buildColumnRangeAst(firstEnd, secondEnd, sheetRefType, range.leadingWhitespace)
+  })
+
+  /**
+   * Rule for row range, e.g. 1:2, Sheet1!1:2, Sheet1!1:Sheet1!2
+   */
+  private immutableRowRangeExpression: AstRule = this.RULE('immutableRowRangeExpression', () => {
+    const range = this.CONSUME(ImmutableRowRange) as ExtendedToken
+    const [startImage, endImage] = range.image.split(':')
+    const firstAddress = this.ACTION(() => rowAddressFromImmutableReference(this.immutableReferenceMapping, startImage, this.formulaAddress))
+    const secondAddress = this.ACTION(() => rowAddressFromImmutableReference(this.immutableReferenceMapping, endImage, this.formulaAddress))
+
+    if (firstAddress === undefined || secondAddress === undefined) {
+      return buildCellErrorAst(new CellError(ErrorType.REF))
+    }
+
+    if (firstAddress.exceedsSheetSizeLimits(this.lexerConfig.maxRows) || secondAddress.exceedsSheetSizeLimits(this.lexerConfig.maxRows)) {
+      return buildErrorWithRawInputAst(range.image, new CellError(ErrorType.NAME), range.leadingWhitespace)
+    }
+
+    if (firstAddress.sheet === undefined && secondAddress.sheet !== undefined) {
+      return this.parsingError(ParsingErrorType.ParserError, 'Malformed range expression')
+    }
+
+    const { firstEnd, secondEnd, sheetRefType } = FormulaParser.fixSheetIdsForRangeEnds(firstAddress, secondAddress)
+
+    return buildRowRangeAst(firstEnd, secondEnd, sheetRefType, range.leadingWhitespace)
+  })
+
+  private immutableCellReference: AstRule = this.RULE('immutableCellReference', () => {
+    const cell = this.CONSUME(ImmutableCellReference) as ExtendedToken
+    const address = this.ACTION(() => {
+      return cellAddressFromImmutableReference(this.immutableReferenceMapping, cell.image, this.formulaAddress)
+    })
+    if (address === undefined) {
+      return buildErrorWithRawInputAst(cell.image, new CellError(ErrorType.REF), cell.leadingWhitespace)
+    } else if (address.exceedsSheetSizeLimits(this.lexerConfig.maxColumns, this.lexerConfig.maxRows)) {
+      return buildErrorWithRawInputAst(cell.image, new CellError(ErrorType.NAME), cell.leadingWhitespace)
+    } else {
+      return buildCellReferenceAst(address, cell.leadingWhitespace)
+    }
+  })
+
+  /**
    * Rule for cell reference expression (e.g. A1, $A1, A$1, $A$1, $Sheet42!A$17)
    */
   private cellReference: AstRule = this.RULE('cellReference', () => {
@@ -274,6 +350,33 @@ export class FormulaParser extends EmbeddedActionsParser {
     })
     const endAddress = this.ACTION(() => {
       return cellAddressFromString(this.sheetMapping, end.image, this.formulaAddress)
+    })
+
+    if (startAddress === undefined || endAddress === undefined) {
+      return this.ACTION(() => {
+        return buildErrorWithRawInputAst(`${start.image}:${end.image}`, new CellError(ErrorType.REF), start.leadingWhitespace)
+      })
+    } else if (startAddress.exceedsSheetSizeLimits(this.lexerConfig.maxColumns, this.lexerConfig.maxRows)
+      || endAddress.exceedsSheetSizeLimits(this.lexerConfig.maxColumns, this.lexerConfig.maxRows)) {
+      return this.ACTION(() => {
+        return buildErrorWithRawInputAst(`${start.image}:${end.image}`, new CellError(ErrorType.NAME), start.leadingWhitespace)
+      })
+    }
+
+    return this.buildCellRange(startAddress, endAddress, start.leadingWhitespace?.image)
+  })
+
+  /**
+   * Rule for end range reference expression with additional checks considering range start
+   */
+  private endImmutableRangeReference: AstRule = this.RULE('endImmutableRangeReference', (start: ExtendedToken) => {
+    const end = this.CONSUME(ImmutableCellReference) as ExtendedToken
+
+    const startAddress = this.ACTION(() => {
+      return cellAddressFromImmutableReference(this.immutableReferenceMapping, start.image, this.formulaAddress)
+    })
+    const endAddress = this.ACTION(() => {
+      return cellAddressFromImmutableReference(this.immutableReferenceMapping, end.image, this.formulaAddress)
     })
 
     if (startAddress === undefined || endAddress === undefined) {
@@ -328,6 +431,46 @@ export class FormulaParser extends EmbeddedActionsParser {
     const start = this.CONSUME(CellReference)
     this.CONSUME2(RangeSeparator)
     return this.SUBRULE(this.endOfRangeExpression, {ARGS: [start]})
+  })
+
+  /**
+   * Rule for end of range expression
+   *
+   * End of range may be a cell reference or OFFSET() function call
+   */
+  private endOfImmutableRangeExpression: AstRule = this.RULE('endOfImmutableRangeExpression', (start: ExtendedToken) => {
+    return this.OR([
+      {
+        ALT: () => {
+          return this.SUBRULE(this.endImmutableRangeReference, {ARGS: [start]})
+        },
+      },
+      {
+        ALT: () => {
+          const offsetProcedure = this.SUBRULE(this.offsetProcedureExpression)
+          const startAddress = this.ACTION(() => {
+            return cellAddressFromImmutableReference(this.immutableReferenceMapping, start.image, this.formulaAddress)
+          })
+          if (startAddress === undefined) {
+            return buildCellErrorAst(new CellError(ErrorType.REF))
+          }
+          if (offsetProcedure.type === AstNodeType.CELL_REFERENCE) {
+            return this.buildCellRange(startAddress, offsetProcedure.reference, start.leadingWhitespace?.image)
+          } else {
+            return this.parsingError(ParsingErrorType.RangeOffsetNotAllowed, 'Range offset not allowed here')
+          }
+        },
+      },
+    ])
+  })
+
+  /**
+   * Rule for cell ranges (e.g. A1:B$3, A1:OFFSET())
+   */
+  private immutableCellRangeExpression: AstRule = this.RULE('immutableCellRangeExpression', () => {
+    const start = this.CONSUME(ImmutableCellReference)
+    this.CONSUME2(RangeSeparator)
+    return this.SUBRULE(this.endOfImmutableRangeExpression, {ARGS: [start]})
   })
 
   /**
@@ -451,12 +594,13 @@ export class FormulaParser extends EmbeddedActionsParser {
     ])
   })
 
-  constructor(lexerConfig: LexerConfig, sheetMapping: SheetMappingFn) {
+  constructor(lexerConfig: LexerConfig, sheetMapping: SheetMappingFn, immutableReferenceMapping: ImmutableReferenceMapping) {
     super(lexerConfig.allTokens, {outputCst: false, maxLookahead: 7})
     this.lexerConfig = lexerConfig
     this.sheetMapping = sheetMapping
     this.formulaAddress = simpleCellAddress(0, 0, 0)
     this.performSelfAnalysis()
+    this.immutableReferenceMapping = immutableReferenceMapping
   }
 
   /**
@@ -508,6 +652,18 @@ export class FormulaParser extends EmbeddedActionsParser {
    */
   private positiveAtomicExpression: AstRule = this.RULE('positiveAtomicExpression', () => {
     return this.OR(this.atomicExpCache ?? (this.atomicExpCache = [
+      {
+        ALT: () => this.SUBRULE(this.immutableCellRangeExpression),
+      },
+      {
+        ALT: () => this.SUBRULE(this.immutableCellReference),
+      },
+      {
+        ALT: () => this.SUBRULE(this.immutableRowRangeExpression),
+      },
+      {
+        ALT: () => this.SUBRULE(this.immutableColumnRangeExpression),
+      },
       {
         ALT: () => this.SUBRULE(this.arrayExpression),
       },
@@ -875,7 +1031,7 @@ export class FormulaLexer {
   private readonly lexer: Lexer
 
   constructor(private lexerConfig: LexerConfig) {
-    this.lexer = new Lexer(lexerConfig.allTokens, {ensureOptimizations: true})
+    this.lexer = new Lexer(lexerConfig.allTokens, {ensureOptimizations: false})
   }
 
   /**

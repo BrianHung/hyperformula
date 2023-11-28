@@ -13,6 +13,7 @@ import {
 import {TranslatableErrorType} from './Cell'
 import {defaultParseToDateTime} from './DateTimeDefault'
 import {DateTime, instanceOfSimpleDate, SimpleDate, SimpleDateTime, SimpleTime} from './DateTimeHelper'
+import { AddressMapping } from './DependencyGraph'
 import {AlwaysDense, ChooseAddressMapping} from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy'
 import {ConfigValueEmpty, ExpectedValueOfTypeError} from './errors'
 import {defaultStringifyDateTime, defaultStringifyDuration} from './format/format'
@@ -36,6 +37,7 @@ export interface ConfigParams {
    * @category String
    */
   accentSensitive: boolean,
+  addressMapping?: AddressMapping,
   /**
    * Sets a minimum number of elements that a range must have to use binary search.
    *
@@ -537,6 +539,7 @@ export class Config implements ConfigParams, ParserConfig {
   public readonly chooseAddressMappingPolicy: ChooseAddressMapping
   /** @inheritDoc */
   public readonly accentSensitive: boolean
+  public readonly addressMapping?: AddressMapping | undefined
   /** @inheritDoc */
   public readonly caseFirst: 'upper' | 'lower' | 'false'
   /** @inheritDoc */
@@ -619,6 +622,7 @@ export class Config implements ConfigParams, ParserConfig {
   constructor(options: Partial<ConfigParams> = {}, showDeprecatedWarns: boolean = true) {
     const {
       accentSensitive,
+      addressMapping,
       binarySearchThreshold,
       caseSensitive,
       caseFirst,
@@ -664,6 +668,7 @@ export class Config implements ConfigParams, ParserConfig {
 
     this.useArrayArithmetic = configValueFromParam(useArrayArithmetic, 'boolean', 'useArrayArithmetic')
     this.accentSensitive = configValueFromParam(accentSensitive, 'boolean', 'accentSensitive')
+    this.addressMapping = addressMapping
     this.caseSensitive = configValueFromParam(caseSensitive, 'boolean', 'caseSensitive')
     this.caseFirst = configValueFromParam(caseFirst, ['upper', 'lower', 'false'], 'caseFirst')
     this.ignorePunctuation = configValueFromParam(ignorePunctuation, 'boolean', 'ignorePunctuation')

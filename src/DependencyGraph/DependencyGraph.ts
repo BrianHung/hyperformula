@@ -71,7 +71,7 @@ export class DependencyGraph {
 
   public static buildEmpty(lazilyTransformingAstService: LazilyTransformingAstService, config: Config, functionRegistry: FunctionRegistry, namedExpressions: NamedExpressions, stats: Statistics) {
     return new DependencyGraph(
-      new AddressMapping(config.chooseAddressMappingPolicy),
+      config.addressMapping ?? new AddressMapping(config.chooseAddressMappingPolicy),
       new RangeMapping(),
       new SheetMapping(config.translationPackage),
       new ArrayMapping(),

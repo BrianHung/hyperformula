@@ -29,6 +29,7 @@ import {ParserConfig} from './ParserConfig'
 import {formatNumber} from './Unparser'
 import {ColumnAddress} from './ColumnAddress'
 import {RowAddress} from './RowAddress'
+import { ImmutableReferenceMapping } from '../DependencyGraph/ImmutableRefMapping'
 
 export interface ParsingResult {
   ast: Ast,
@@ -53,10 +54,11 @@ export class ParserWithCaching {
     private readonly config: ParserConfig,
     private readonly functionRegistry: FunctionRegistry,
     private readonly sheetMapping: SheetMappingFn,
+    private readonly immutableReferenceMapping: ImmutableReferenceMapping
   ) {
     this.lexerConfig = buildLexerConfig(config)
     this.lexer = new FormulaLexer(this.lexerConfig)
-    this.formulaParser = new FormulaParser(this.lexerConfig, this.sheetMapping)
+    this.formulaParser = new FormulaParser(this.lexerConfig, this.sheetMapping, this.immutableReferenceMapping)
     this.cache = new Cache(this.functionRegistry)
   }
 

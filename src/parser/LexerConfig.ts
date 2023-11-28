@@ -14,6 +14,9 @@ import {
   RANGE_OPERATOR,
   ROW_REFERENCE_PATTERN,
   UNICODE_LETTER_PATTERN,
+  IMMUTABLE_CELL_REFERENCE_PATTERN,
+  IMMUTABLE_COL_REFERENCE_PATTERN,
+  IMMUTABLE_ROW_REFERENCE_PATTERN,
 } from './parser-consts'
 import {CellReferenceMatcher} from './CellReferenceMatcher'
 import {NamedExpressionMatcher} from './NamedExpressionMatcher'
@@ -49,6 +52,9 @@ export const RowRange = createToken({ name: 'RowRange', pattern: new RegExp(`${R
 
 export const ProcedureName = createToken({ name: 'ProcedureName', pattern: new RegExp(`([${UNICODE_LETTER_PATTERN}][${NON_RESERVED_CHARACTER_PATTERN}]*)\\(`) })
 
+export const ImmutableColRange = createToken({ name: 'ImmutableColRange', pattern: new RegExp(`${IMMUTABLE_COL_REFERENCE_PATTERN}${RANGE_OPERATOR}${IMMUTABLE_COL_REFERENCE_PATTERN}`) })
+export const ImmutableRowRange = createToken({ name: 'ImmutableRowRange', pattern: new RegExp(`${IMMUTABLE_ROW_REFERENCE_PATTERN}${RANGE_OPERATOR}${IMMUTABLE_ROW_REFERENCE_PATTERN}`) })
+
 const cellReferenceMatcher = new CellReferenceMatcher()
 export const CellReference = createToken({
   name: 'CellReference',
@@ -62,6 +68,54 @@ export const NamedExpression = createToken({
   name: 'NamedExpression',
   pattern: namedExpressionMatcher.match.bind(namedExpressionMatcher),
   start_chars_hint: namedExpressionMatcher.POSSIBLE_START_CHARACTERS,
+  line_breaks: false,
+})
+class ImmutableCellReferenceMatcher {
+  private cellReferenceRegexp = new RegExp(IMMUTABLE_CELL_REFERENCE_PATTERN, 'y')
+
+  /**
+   * Method used by the lexer to recognize CellReference token in text
+   *
+   * Note: using 'y' sticky flag for a named expression which is not supported on IE11...
+   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
+   */
+  match(text: string, startOffset: number): RegExpExecArray | null {
+    this.cellReferenceRegexp.lastIndex = startOffset
+
+    const execResult = this.cellReferenceRegexp.exec(text)
+    if (execResult !== null) {
+      /**
+       * Save RegExp capturing groups on the token object.
+       * https://chevrotain.io/docs/guide/custom_token_patterns.html#custom-payloads
+       */
+      (execResult as any).payload = [
+        execResult[1],
+        execResult[2],
+        execResult[3],
+        execResult[4],
+      ]
+    }
+    return execResult
+  }
+}
+
+const immutableCellReferenceMatcher = new ImmutableCellReferenceMatcher()
+
+export const ImmutableCellReference = createToken({
+  name: 'ImmutableCellReference',
+  pattern: immutableCellReferenceMatcher.match.bind(immutableCellReferenceMatcher),
+  line_breaks: false,
+})
+
+export const ImmutableRowReference = createToken({
+  name: 'ImmutableRowReference',
+  pattern: new RegExp(IMMUTABLE_ROW_REFERENCE_PATTERN),
+  line_breaks: false,
+})
+
+export const ImmutableColReference = createToken({
+  name: 'ImmutableColReference',
+  pattern: new RegExp(IMMUTABLE_COL_REFERENCE_PATTERN),
   line_breaks: false,
 })
 
@@ -127,6 +181,11 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     RParen,
     ArrayLParen,
     ArrayRParen,
+    ImmutableColRange,
+    ImmutableRowRange,
+    ImmutableCellReference,
+    ImmutableRowReference,
+    ImmutableColReference,
     OffsetProcedureName,
     ProcedureName,
     RangeSeparator,

@@ -30,3 +30,7 @@ export const ALL_UNICODE_LETTERS_ARRAY = [
   ...Array.from(Array(26)).map((_, i) => i + 'a'.charCodeAt(0)),
   ...Array.from(Array(0x02AF-0x00C0+1)).map((_, i) => i + 0x00C0),
 ].map(code => String.fromCharCode(code))
+
+export const IMMUTABLE_CELL_REFERENCE_PATTERN = 'REF\\("cell","([0-9a-fA-F-]+)",(true|false),(true|false)(?:,(true|false))?\\)'
+export const IMMUTABLE_ROW_REFERENCE_PATTERN = 'REF\\("row","([0-9a-fA-F-]+)",(true|false)(?:,(true|false))?\\)'
+export const IMMUTABLE_COL_REFERENCE_PATTERN = 'REF\\("col","([0-9a-fA-F-]+)",(true|false)(?:,(true|false))?\\)'
