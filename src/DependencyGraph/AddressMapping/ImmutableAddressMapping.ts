@@ -3,7 +3,7 @@
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
 
-import {SimpleCellAddress} from '../../Cell'
+import {SimpleCellAddress, SimpleColumnAddress as SimpleColAddress, SimpleRowAddress} from '../../Cell'
 import {RawCellContent} from '../../CellContentParser'
 import {NoSheetWithIdError} from '../../errors'
 import {EmptyValue, InterpreterValue} from '../../interpreter/InterpreterValue'
@@ -37,6 +37,14 @@ export class ImmutableAddressMapping extends AddressMapping {
   setCellId(address: SimpleCellAddress, id: string) {
     const vertex = this.getCell(address)
     if (vertex) (vertex as any).id = id
+  }
+
+  public getColId(address: SimpleColAddress) {
+    return this.immutableReferenceMapping.getColId(address)
+  }
+
+  public getRowId(address: SimpleRowAddress) {
+    return this.immutableReferenceMapping.getRowId(address)
   }
 
   /** @inheritDoc */
@@ -112,6 +120,7 @@ export class ImmutableAddressMapping extends AddressMapping {
     if (!sheetMapping) {
       throw Error('Sheet not initialized')
     }
+    // PERF: Optimize this
     if ((newVertex as any).id === undefined) (newVertex as any).id = this.immutableReferenceMapping.getCellId(address)
     sheetMapping.setCell(address, newVertex)
   }

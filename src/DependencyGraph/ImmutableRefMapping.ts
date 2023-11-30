@@ -4,11 +4,12 @@
  */
 
 import {addressKey, SimpleCellAddress} from '../Cell'
-import { AddressMapping } from './AddressMapping/AddressMapping'
+import {AddressMapping} from './AddressMapping/AddressMapping'
+import {SimpleColumnAddress as SimpleColAddress, SimpleRowAddress} from '../Cell'
 
 export interface ImmutableIdMapping {
-  getRowId(sheet: number, row: number): string,
-  getColId(sheet: number, col: number): string,
+  getRowId(address: SimpleRowAddress): string,
+  getColId(address: SimpleColAddress): string,
   getCellId(address: SimpleCellAddress): string,
 }
 
@@ -51,38 +52,39 @@ export class ImmutableReferenceMapping implements ImmutableReferenceMapping {
     .sort((x, y) => (x.order < y.order ? -1 : 1))
   }
 
-  public getRowId(sheet: number, row: number): string {
+  public getRowId({sheet, row}: SimpleRowAddress): string {
     return this.sortedRows[row]?.id
   }
 
-  public getColId(sheet: number, col: number): string {
+  public getColId({sheet, col}: SimpleColAddress): string {
     return this.sortedRows[col]?.id
   }
 
   public getCellId(address: SimpleCellAddress) {
-    const rowId = this.getRowId(address.sheet, address.row)
-    const colId = this.getColId(address.sheet, address.col)
+    const rowId = this.getRowId(address)
+    const colId = this.getColId(address)
     const cell = Array.from(this.cells.values()).find(cell => cell.row === rowId && cell.col === colId)
     return cell?.id
   }
 
-  getRowIndex(id: string): { sheet: number, index: number } {
+  getRowIndex(id: string): { sheet: number, index: number } | undefined {
     const index = this.sortedRows.findIndex(row => row.id === id)
-    if (index === -1) throw Error()
+    if (index === -1) return undefined
     return { index, sheet: 0 }
   }
 
-  getColIndex(id: string): { sheet: number, index: number } {
+  getColIndex(id: string): { sheet: number, index: number } | undefined {
     const index = this.sortedCols.findIndex(row => row.id === id)
-    if (index === -1) throw Error()
+    if (index === -1) return undefined
     return { index, sheet: 0 }
   }
 
-  public getCellAddress(id: string): SimpleCellAddress {
+  public getCellAddress(id: string): SimpleCellAddress | undefined {
     const cell = this.cells.get(id)
-    if (cell === undefined) throw Error()
+    if (cell === undefined) return undefined
     const row = this.getRowIndex(cell.row)
     const col = this.getColIndex(cell.col)
+    if (row === undefined || col === undefined) return undefined
     if (row.sheet !== col.sheet) throw Error()
     return { sheet: 0, row: row.index, col: col.index }
   }
@@ -98,8 +100,9 @@ export class ImmutableIdMapping extends ImmutableReferenceMapping implements Imm
   constructor(props: any) {
     super(props)
     this.cells.forEach(({ id, row: r, col: c }) => {
-      const row = this.getRowIndex(r).index
-      const col = this.getColIndex(c).index
+      const row = this.getRowIndex(r)?.index
+      const col = this.getColIndex(c)?.index
+      if (row === undefined || col === undefined) return
       this.cellsToId.set(addressKey({ sheet: 0, row, col }), id)
     })
   }

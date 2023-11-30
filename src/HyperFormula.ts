@@ -756,6 +756,14 @@ export class HyperFormula implements TypedEmitter {
     return this._serialization.getCellSerialized(cellAddress)
   }
 
+  public getCellSerializedImmutable(cellAddress: SimpleCellAddress): RawCellContent {
+    if (!isSimpleCellAddress(cellAddress)) {
+      throw new ExpectedValueOfTypeError('SimpleCellAddress', 'cellAddress')
+    }
+    this.ensureEvaluationIsNotSuspended()
+    return this._serialization.getCellSerializedImmutable(cellAddress)
+  }
+
   /**
    * Returns an array of arrays of [[CellValue]] with values of all cells from [[Sheet]].
    * Applies rounding and post-processing.

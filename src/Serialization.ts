@@ -65,6 +65,32 @@ export class Serialization {
     return this.getCellFormula(address, targetAddress) ?? this.getRawValue(address)
   }
 
+  public getCellFormulaImmutable(address: SimpleCellAddress, targetAddress?: SimpleCellAddress): Maybe<string> {
+    const formulaVertex = this.dependencyGraph.getCell(address)
+    if (formulaVertex instanceof FormulaCellVertex) {
+      const formula = formulaVertex.getFormula(this.dependencyGraph.lazilyTransformingAstService)
+      targetAddress = targetAddress ?? address
+      return this.unparser.unparseImmutable(formula, targetAddress)
+    } else if (formulaVertex instanceof ArrayVertex) {
+      const arrayVertexAddress = formulaVertex.getAddress(this.dependencyGraph.lazilyTransformingAstService)
+      if (arrayVertexAddress.row !== address.row || arrayVertexAddress.col !== address.col || arrayVertexAddress.sheet !== address.sheet) {
+        return undefined
+      }
+      targetAddress = targetAddress ?? address
+      const formula = formulaVertex.getFormula(this.dependencyGraph.lazilyTransformingAstService)
+      if (formula !== undefined) {
+        return this.unparser.unparseImmutable(formula, targetAddress)
+      }
+    } else if (formulaVertex instanceof ParsingErrorVertex) {
+      return formulaVertex.getFormula()
+    }
+    return undefined
+  }
+
+  public getCellSerializedImmutable(address: SimpleCellAddress, targetAddress?: SimpleCellAddress): RawCellContent {
+    return this.getCellFormulaImmutable(address, targetAddress) ?? this.getRawValue(address)
+  }
+
   public getCellValue(address: SimpleCellAddress): CellValue {
     return this.exporter.exportValue(this.dependencyGraph.getScalarValue(address))
   }

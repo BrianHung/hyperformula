@@ -220,32 +220,86 @@ describe('unparser should return REF', () => {
   const namedExpressions = new NamedExpressions()
   const unparser = new Unparser(config, lexerConfig, sheetMapping.fetchDisplayName, namedExpressions, idMapping)
 
-  it('cell reference', () => {
-    const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",true,true,false)'
-    const ast = parser.parse(formula, adr('A1')).ast
-    const unparsed = unparser.unparse(ast, adr('A1'))
-    expect(unparsed).toEqual(formula)
+  describe('cell reference', () => {
+    it('relative', () => {
+      const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",false,false,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=A1')
+    })
+    it('absolute col', () => {
+      const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",true,false,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=$A1')
+    })
+    it('absolute row', () => {
+      const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",false,true,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=A$1')
+    })
+    it('absolute', () => {
+      const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",true,true,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=$A$1')
+    })
   })
 
   it('cell range', () => {
-    const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",true,true,false):REF("cell","00000000-0000-0000-0000-000000000000",true,true,false)'
+    const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",false,false,false):REF("cell","00000000-0000-0000-0000-000000000000",false,false,false)'
     const ast = parser.parse(formula, adr('A1')).ast
+    const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+    expect(unparsedImmutable).toEqual(formula)
     const unparsed = unparser.unparse(ast, adr('A1'))
-    expect(unparsed).toEqual(formula)
+    expect(unparsed).toEqual('=A1:A1')
   })
 
-  it('row range', () => {
-    const formula = '=REF("row","00000000-0000-0000-0000-000000000000",false,false):REF("row","00000000-0000-0000-0000-000000000000",false,false)'
-    const ast = parser.parse(formula, adr('A1')).ast
-    const unparsed = unparser.unparse(ast, adr('A1'))
-    expect(unparsed).toEqual(formula)
+  describe('row range', () => {
+    it('relative', () => {
+      const formula = '=REF("row","00000000-0000-0000-0000-000000000000",false,false):REF("row","00000000-0000-0000-0000-000000000000",false,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=1:1')
+    })
+    it('absolute', () => {
+      const formula = '=REF("row","00000000-0000-0000-0000-000000000000",true,false):REF("row","00000000-0000-0000-0000-000000000000",true,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=$1:$1')
+    })
   })
 
-  it('col range', () => {
-    const formula = '=REF("col","00000000-0000-0000-0000-000000000000",false,false):REF("col","00000000-0000-0000-0000-000000000000",false,false)'
-    const ast = parser.parse(formula, adr('A1')).ast
-    const unparsed = unparser.unparse(ast, adr('A1'))
-    expect(unparsed).toEqual(formula)
+  describe('col range', () => {
+    it('relative', () => {
+      const formula = '=REF("col","00000000-0000-0000-0000-000000000000",false,false):REF("col","00000000-0000-0000-0000-000000000000",false,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=A:A')
+    })
+    it('absolute', () => {
+      const formula = '=REF("col","00000000-0000-0000-0000-000000000000",true,false):REF("col","00000000-0000-0000-0000-000000000000",true,false)'
+      const ast = parser.parse(formula, adr('A1')).ast
+      const unparsedImmutable = unparser.unparseImmutable(ast, adr('A1'))
+      expect(unparsedImmutable).toEqual(formula)
+      const unparsed = unparser.unparse(ast, adr('A1'))
+      expect(unparsed).toEqual('=$A:$A')
+    })
   })
 })
 
@@ -265,14 +319,62 @@ describe('parser with engine', () => {
     cols: colMap,
   })
 
-  const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
+  it('basic cell reference', () => {
+    const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
 
-  const value = 1
-  const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",true,true,false)'
+    const value = 1
+    const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",false,false,false)'
+  
+    const engine = HyperFormula.buildFromArray([[value, formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  
+    expect(engine.getCellValue(adr('B1'))).toEqual(value)
+    expect(engine.getCellSerialized(adr('B1'))).toEqual('=A1')
+    expect(engine.getCellSerializedImmutable(adr('B1'))).toEqual(formula)
+  })
 
-  const engine = HyperFormula.buildFromArray([[value, formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  it('basic cell reference with formula', () => {
+    const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
 
-  expect(engine.getCellValue(adr('B1'))).toEqual(value)
-  expect(engine.getCellSerialized(adr('B1'))).toEqual(formula)
+    const value = 1
+
+    const cellRef = 'REF("cell","00000000-0000-0000-0000-000000000000",false,false,false)'
+    const formula = `=${cellRef}+1`
+  
+    const engine = HyperFormula.buildFromArray([[value, formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  
+    expect(engine.getCellValue(adr('B1'))).toEqual(value+1)
+    expect(engine.getCellSerialized(adr('B1'))).toEqual('=A1+1')
+    expect(engine.getCellSerializedImmutable(adr('B1'))).toEqual(formula)
+  })
+
+  it('basic col reference with formula', () => {
+    const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
+
+    const value = 1
+  
+    const colRef = 'REF("col","00000000-0000-0000-0000-000000000000",false,false)'
+    const formula = `=SUM(${colRef}:${colRef})`
+
+    const engine = HyperFormula.buildFromArray([[value, formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  
+    expect(engine.getCellValue(adr('B1'))).toEqual(value)
+    expect(engine.getCellSerialized(adr('B1'))).toEqual('=SUM(A:A)')
+    expect(engine.getCellSerializedImmutable(adr('B1'))).toEqual(formula)
+  })
+
+  it('basic row reference with formula', () => {
+    const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
+
+    const value = 1
+
+    const rowRef = 'REF("row","00000000-0000-0000-0000-000000000000",false,false)'
+    const formula = `=SUM(${rowRef}:${rowRef})`
+  
+    const engine = HyperFormula.buildFromArray([[value], [formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  
+    expect(engine.getCellValue(adr('A2'))).toEqual(value)
+    expect(engine.getCellSerialized(adr('A2'))).toEqual('=SUM(1:1)')
+    expect(engine.getCellSerializedImmutable(adr('A2'))).toEqual(formula)
+  })
 })
 

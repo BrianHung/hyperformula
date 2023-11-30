@@ -3,7 +3,7 @@
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
 
-import {ErrorType, SimpleCellAddress} from '../Cell'
+import {ErrorType, SimpleCellAddress, simpleCellAddress} from '../Cell'
 import {ImmutableIdMapping} from '../DependencyGraph/ImmutableRefMapping'
 import {NoSheetWithIdError} from '../index'
 import {NamedExpressions} from '../NamedExpressions'
@@ -32,20 +32,20 @@ function unparseAddressToImmutableReference(
   if (address instanceof CellAddress) {
     const cellId = immutableMapping.getCellId(address.toSimpleCellAddress(baseAddress))
     if (cellId === undefined) return undefined
-    const isRowAbsolute = address.isRowAbsolute()
     const isColAbsolute = address.isColumnAbsolute()
+    const isRowAbsolute = address.isRowAbsolute()
     const showSheet = address.sheet === baseAddress.sheet
-    return `REF("cell","${cellId}",${isRowAbsolute},${isColAbsolute},${showSheet})`
+    return `REF("cell","${cellId}",${isColAbsolute},${isRowAbsolute},${showSheet})`
   }
   if (address instanceof ColumnAddress) {
-    const colId = immutableMapping.getColId(address.sheet || baseAddress.sheet, address.col)
+    const colId = immutableMapping.getColId(address.toSimpleColumnAddress(baseAddress))
     if (colId === undefined) return undefined
     const showSheet = address.sheet === baseAddress.sheet
     const isColAbsolute = address.isColumnAbsolute()
     return `REF("col","${colId}",${isColAbsolute},${showSheet})`
   }
   if (address instanceof RowAddress) {
-    const rowId = immutableMapping.getRowId(address.sheet || baseAddress.sheet, address.row)
+    const rowId = immutableMapping.getRowId(address.toSimpleRowAddress(baseAddress))
     if (rowId === undefined) return undefined
     const showSheet = address.sheet === baseAddress.sheet
     const isRowAbsolute = address.isRowAbsolute()
@@ -66,6 +66,82 @@ export class Unparser {
 
   public unparse(ast: Ast, address: SimpleCellAddress): string {
     return '=' + this.unparseAst(ast, address)
+  }
+
+  public unparseImmutable(ast: Ast, address: SimpleCellAddress): string {
+    return '=' + this.unparseAstImmutable(ast, address)
+  }
+
+  private unparseAstImmutable(ast: Ast, address: SimpleCellAddress): string {
+    if (this.immutableMapping === undefined) throw Error('unparseAstImmutable called without immutableMapping')
+    switch (ast.type) {
+      case AstNodeType.EMPTY: {
+        return imageWithWhitespace('', ast.leadingWhitespace)
+      }
+      case AstNodeType.NUMBER: {
+        return imageWithWhitespace(formatNumber(ast.value, this.config.decimalSeparator), ast.leadingWhitespace)
+      }
+      case AstNodeType.STRING: {
+        return imageWithWhitespace('"' + ast.value + '"', ast.leadingWhitespace)
+      }
+      case AstNodeType.FUNCTION_CALL: {
+        const args = ast.args.map((arg) => arg !== undefined ? this.unparseAstImmutable(arg, address) : ''
+        ).join(this.config.functionArgSeparator)
+        const procedureName = this.config.translationPackage.isFunctionTranslated(ast.procedureName) ?
+          this.config.translationPackage.getFunctionTranslation(ast.procedureName) :
+          ast.procedureName
+        const rightPart = procedureName + '(' + args + imageWithWhitespace(')', ast.internalWhitespace)
+        return imageWithWhitespace(rightPart, ast.leadingWhitespace)
+      }
+      case AstNodeType.NAMED_EXPRESSION: {
+        const originalNamedExpressionName = this.namedExpressions.nearestNamedExpression(ast.expressionName, address.sheet)?.displayName
+        return imageWithWhitespace(originalNamedExpressionName || ast.expressionName, ast.leadingWhitespace)
+      }
+      case AstNodeType.CELL_REFERENCE: {
+        const image = unparseAddressToImmutableReference(this.immutableMapping, ast.reference, address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
+        return imageWithWhitespace(image, ast.leadingWhitespace)
+      }
+      case AstNodeType.COLUMN_RANGE:
+      case AstNodeType.ROW_RANGE:
+      case AstNodeType.CELL_RANGE: {
+        const image = this.formatImmutableRange(ast, address)
+        return imageWithWhitespace(image, ast.leadingWhitespace)
+      }
+      case AstNodeType.PLUS_UNARY_OP: {
+        const unparsedExpr = this.unparseAstImmutable(ast.value, address)
+        return imageWithWhitespace('+', ast.leadingWhitespace) + unparsedExpr
+      }
+      case AstNodeType.MINUS_UNARY_OP: {
+        const unparsedExpr = this.unparseAstImmutable(ast.value, address)
+        return imageWithWhitespace('-', ast.leadingWhitespace) + unparsedExpr
+      }
+      case AstNodeType.PERCENT_OP: {
+        return this.unparseAstImmutable(ast.value, address) + imageWithWhitespace('%', ast.leadingWhitespace)
+      }
+      case AstNodeType.ERROR: {
+        const image = this.config.translationPackage.getErrorTranslation(
+          ast.error ? ast.error.type : ErrorType.ERROR
+        )
+        return imageWithWhitespace(image, ast.leadingWhitespace)
+      }
+      case AstNodeType.ERROR_WITH_RAW_INPUT: {
+        return imageWithWhitespace(ast.rawInput, ast.leadingWhitespace)
+      }
+      case AstNodeType.PARENTHESIS: {
+        const expression = this.unparseAstImmutable(ast.expression, address)
+        const rightPart = '(' + expression + imageWithWhitespace(')', ast.internalWhitespace)
+        return imageWithWhitespace(rightPart, ast.leadingWhitespace)
+      }
+      case AstNodeType.ARRAY: {
+        const ret = '{' + ast.args.map(row => row.map(val => this.unparseAstImmutable(val, address)).join(this.config.arrayColumnSeparator)).join(this.config.arrayRowSeparator) + imageWithWhitespace('}', ast.internalWhitespace)
+        return imageWithWhitespace(ret, ast.leadingWhitespace)
+      }
+      default: {
+        const left = this.unparseAstImmutable(ast.left, address)
+        const right = this.unparseAstImmutable(ast.right, address)
+        return left + imageWithWhitespace(binaryOpTokenMap[ast.type], ast.leadingWhitespace) + right
+      }
+    }
   }
 
   private unparseAst(ast: Ast, address: SimpleCellAddress): string {
@@ -92,25 +168,20 @@ export class Unparser {
         const originalNamedExpressionName = this.namedExpressions.nearestNamedExpression(ast.expressionName, address.sheet)?.displayName
         return imageWithWhitespace(originalNamedExpressionName || ast.expressionName, ast.leadingWhitespace)
       }
-      // TODO: Replace this
       case AstNodeType.CELL_REFERENCE: {
         let image
-        if (this.immutableMapping) {
-          image = unparseAddressToImmutableReference(this.immutableMapping, ast.reference, address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
+        if (ast.reference.sheet !== undefined) {
+          image = this.unparseSheetName(ast.reference.sheet) + '!'
         } else {
-          if (ast.reference.sheet !== undefined) {
-            image = this.unparseSheetName(ast.reference.sheet) + '!'
-          } else {
-            image = ''
-          }
-          image += ast.reference.unparse(address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
+          image = ''
         }
+        image += ast.reference.unparse(address) ?? this.config.translationPackage.getErrorTranslation(ErrorType.REF)
         return imageWithWhitespace(image, ast.leadingWhitespace)
       }
       case AstNodeType.COLUMN_RANGE:
       case AstNodeType.ROW_RANGE:
       case AstNodeType.CELL_RANGE: {
-        const image = this.immutableMapping ? this.formatImmutableRange(ast, address) : this.formatRange(ast, address)
+        const image = this.formatRange(ast, address)
         return imageWithWhitespace(image, ast.leadingWhitespace)
       }
       case AstNodeType.PLUS_UNARY_OP: {
