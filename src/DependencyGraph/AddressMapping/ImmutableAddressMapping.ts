@@ -120,7 +120,7 @@ export class ImmutableAddressMapping extends AddressMapping {
     if (!sheetMapping) {
       throw Error('Sheet not initialized')
     }
-    // PERF: Optimize this
+    // PERF: Optimize this using LazilyTransformingAstService version
     if ((newVertex as any).id === undefined) (newVertex as any).id = this.immutableReferenceMapping.getCellId(address)
     sheetMapping.setCell(address, newVertex)
   }

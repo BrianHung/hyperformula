@@ -2440,6 +2440,18 @@ export class HyperFormula implements TypedEmitter {
     )
   }
 
+  public getRangeSerializedImmutable(source: SimpleCellRange): RawCellContent[][] {
+    if (!isSimpleCellRange(source)) {
+      throw new ExpectedValueOfTypeError('SimpleCellRange', 'source')
+    }
+    const cellRange = new AbsoluteCellRange(source.start, source.end)
+    return cellRange.arrayOfAddressesInRange().map(
+      (subarray) => subarray.map(
+        (address) => this.getCellSerializedImmutable(address)
+      )
+    )
+  }
+
   /**
    * Returns values to fill target range using source range, with properly extending the range using wrap-around heuristic.
    *

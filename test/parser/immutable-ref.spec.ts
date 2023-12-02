@@ -332,6 +332,19 @@ describe('parser with engine', () => {
     expect(engine.getCellSerializedImmutable(adr('B1'))).toEqual(formula)
   })
 
+  it('basic cell reference with sheet name', () => {
+    const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
+
+    const value = 1
+    const formula = '=REF("cell","00000000-0000-0000-0000-000000000000",false,false,true)'
+  
+    const engine = HyperFormula.buildFromArray([[value, formula]], { addressMapping, licenseKey: 'gpl-v3' })
+  
+    expect(engine.getCellValue(adr('B1'))).toEqual(value)
+    expect(engine.getCellSerialized(adr('B1'))).toEqual('=Sheet1!A1')
+    expect(engine.getCellSerializedImmutable(adr('B1'))).toEqual(formula)
+  })
+
   it('basic cell reference with formula', () => {
     const addressMapping = new ImmutableAddressMapping(new AlwaysDense(), refMapping)
 
