@@ -11,10 +11,10 @@ var _index = require("../index");
  */
 
 class ImmutableAddressMapping extends _index.AddressMapping {
-  constructor(policy, immutableReferenceMapping) {
+  constructor(policy, immutableMapping) {
     super(policy);
     this.policy = policy;
-    this.immutableReferenceMapping = immutableReferenceMapping;
+    this.immutableMapping = immutableMapping;
   }
   getCellId(address) {
     return this.getCell(address).id;
@@ -27,10 +27,10 @@ class ImmutableAddressMapping extends _index.AddressMapping {
     if (vertex) vertex.id = id;
   }
   getColId(address) {
-    return this.immutableReferenceMapping.getColId(address);
+    return this.immutableMapping.getColId(address);
   }
   getRowId(address) {
-    return this.immutableReferenceMapping.getRowId(address);
+    return this.immutableMapping.getRowId(address);
   }
   /** @inheritDoc */
   getCell(address) {
@@ -100,7 +100,7 @@ class ImmutableAddressMapping extends _index.AddressMapping {
       throw Error('Sheet not initialized');
     }
     // PERF: Optimize this using LazilyTransformingAstService version
-    if (newVertex.id === undefined) newVertex.id = this.immutableReferenceMapping.getCellId(address);
+    if (newVertex.id === undefined) newVertex.id = this.immutableMapping.getCellId(address);
     sheetMapping.setCell(address, newVertex);
   }
   moveCell(source, destination) {

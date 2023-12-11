@@ -16,6 +16,11 @@ import {
   DenseSparseChooseBasedOnThreshold
 } from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy'
 import {
+  ImmutableAddressMapping,
+  ImmutableIdMapping,
+  ImmutableReferenceMapping,
+} from './DependencyGraph'
+import {
   ConfigValueTooBigError,
   ConfigValueTooSmallError,
   EvaluationSuspendedError,
@@ -183,4 +188,7 @@ export {
   TargetLocationHasArrayError,
   UnableToParseError,
   SerializedNamedExpression,
+  ImmutableAddressMapping,
+  ImmutableIdMapping,
+  ImmutableReferenceMapping,
 }

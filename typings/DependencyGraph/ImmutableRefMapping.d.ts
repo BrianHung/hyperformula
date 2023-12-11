@@ -5,25 +5,25 @@
 import { SimpleCellAddress } from '../Cell';
 import { SimpleColumnAddress as SimpleColAddress, SimpleRowAddress } from '../Cell';
 export interface ImmutableIdMapping {
-    getRowId(address: SimpleRowAddress): string;
-    getColId(address: SimpleColAddress): string;
-    getCellId(address: SimpleCellAddress): string;
+    getRowId(address: SimpleRowAddress): string | undefined;
+    getColId(address: SimpleColAddress): string | undefined;
+    getCellId(address: SimpleCellAddress): string | undefined;
 }
 export interface ImmutableReferenceMapping {
     getRowIndex(id: string): {
         sheet: number;
         index: number;
-    };
+    } | undefined;
     getColIndex(id: string): {
         sheet: number;
         index: number;
-    };
-    getCellAddress(id: string): SimpleCellAddress;
+    } | undefined;
+    getCellAddress(id: string): SimpleCellAddress | undefined;
 }
 /**
  * Basic implementation of a ImmutableReferenceMapping.
  */
-export declare class ImmutableReferenceMapping implements ImmutableReferenceMapping {
+export declare class ImmutableReferenceMappingTestImpl implements ImmutableReferenceMapping {
     cols: Map<string, {
         id: string;
         order: string;
@@ -61,11 +61,21 @@ export declare class ImmutableReferenceMapping implements ImmutableReferenceMapp
     getRowId({ sheet, row }: SimpleRowAddress): string;
     getColId({ sheet, col }: SimpleColAddress): string;
     getCellId(address: SimpleCellAddress): string | undefined;
+    getRowIndex(id: string): {
+        sheet: number;
+        index: number;
+    } | undefined;
+    getColIndex(id: string): {
+        sheet: number;
+        index: number;
+    } | undefined;
+    getCellAddress(id: string): SimpleCellAddress | undefined;
 }
 /**
  * Basic implementation of a ImmutableIdMapping.
  */
-export declare class ImmutableIdMapping extends ImmutableReferenceMapping implements ImmutableIdMapping {
+export declare class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImpl implements ImmutableIdMapping {
     cellsToId: Map<string, string>;
     constructor(props: any);
+    getCellId(address: SimpleCellAddress): string | undefined;
 }

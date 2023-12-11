@@ -6,7 +6,7 @@ import { addressKey } from '../Cell';
 /**
  * Basic implementation of a ImmutableReferenceMapping.
  */
-export class ImmutableReferenceMapping {
+export class ImmutableReferenceMappingTestImpl {
   constructor({
     cols,
     rows,
@@ -78,7 +78,7 @@ export class ImmutableReferenceMapping {
 /**
  * Basic implementation of a ImmutableIdMapping.
  */
-export class ImmutableIdMapping extends ImmutableReferenceMapping {
+export class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImpl {
   constructor(props) {
     super(props);
     this.cellsToId = new Map();

@@ -12,7 +12,7 @@ import {buildEmptyParserWithCaching} from './common'
 import {adr} from '../testUtils'
 import {IMMUTABLE_CELL_REFERENCE_PATTERN, IMMUTABLE_COL_REFERENCE_PATTERN, IMMUTABLE_ROW_REFERENCE_PATTERN} from '../../src/parser/parser-consts'
 import { CellRangeAst, ColumnRangeAst, RangeSheetReferenceType, RowRangeAst, buildColumnRangeAst, buildRowRangeAst, buildCellRangeAst, buildCellReferenceAst } from '../../src/parser/Ast'
-import {ImmutableIdMapping, ImmutableReferenceMapping} from '../../src/DependencyGraph/ImmutableRefMapping'
+import {ImmutableIdMappingTestImpl, ImmutableReferenceMappingTestImpl} from '../../src/DependencyGraph/ImmutableRefMapping'
 import { NamedExpressions } from '../../src/NamedExpressions'
 import { AlwaysDense, HyperFormula } from '../../src'
 import { ImmutableAddressMapping } from '../../src/DependencyGraph/AddressMapping/ImmutableAddressMapping'
@@ -79,7 +79,7 @@ describe('parser immutable tokens into reference ast', () => {
   const cellMap = new Map()
   cellMap.set('00000000-0000-0000-0000-000000000000', { id: '00000000-0000-0000-0000-000000000000', row: '00000000-0000-0000-0000-000000000000', col: '00000000-0000-0000-0000-000000000000' })
 
-  const refMapping = new ImmutableReferenceMapping({
+  const refMapping = new ImmutableReferenceMappingTestImpl({
     cells: cellMap,
     rows: rowMap,
     cols: colMap,
@@ -201,13 +201,13 @@ describe('unparser should return REF', () => {
   const cellMap = new Map()
   cellMap.set('00000000-0000-0000-0000-000000000000', { id: '00000000-0000-0000-0000-000000000000', row: '00000000-0000-0000-0000-000000000000', col: '00000000-0000-0000-0000-000000000000' })
 
-  const refMapping = new ImmutableReferenceMapping({
+  const refMapping = new ImmutableReferenceMappingTestImpl({
     cells: cellMap,
     rows: rowMap,
     cols: colMap,
   })
 
-  const idMapping = new ImmutableIdMapping({
+  const idMapping = new ImmutableIdMappingTestImpl({
     cells: cellMap,
     rows: rowMap,
     cols: colMap,

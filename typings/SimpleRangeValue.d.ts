@@ -15,7 +15,7 @@ export declare class SimpleRangeValue {
     /**
      * A property that represents the address of the range.
      */
-    readonly range?: import("./Maybe").Maybe<AbsoluteCellRange>;
+    readonly range?: AbsoluteCellRange | undefined;
     private readonly dependencyGraph?;
     private _hasOnlyNumbers?;
     /**
@@ -30,7 +30,7 @@ export declare class SimpleRangeValue {
     /**
      * A property that represents the address of the range.
      */
-    range?: import("./Maybe").Maybe<AbsoluteCellRange>, dependencyGraph?: DependencyGraph | undefined, _hasOnlyNumbers?: boolean | undefined);
+    range?: AbsoluteCellRange | undefined, dependencyGraph?: DependencyGraph | undefined, _hasOnlyNumbers?: boolean | undefined);
     /**
      * Returns the range data as a 2D array.
      */

@@ -15,13 +15,13 @@ import {CellVertex} from '../Vertex'
 import {ChooseAddressMapping} from './ChooseAddressMappingPolicy'
 import {AddressMappingStrategy} from './AddressMappingStrategy'
 import {AddressMapping} from '../index'
-import { ImmutableReferenceMapping } from '../ImmutableRefMapping'
+import { ImmutableIdMapping } from '../ImmutableRefMapping'
 
 export class ImmutableAddressMapping extends AddressMapping {
 
   constructor(
     public readonly policy: ChooseAddressMapping,
-    public readonly immutableReferenceMapping: ImmutableReferenceMapping
+    public readonly immutableMapping: ImmutableIdMapping
   ) {
     super(policy)
   }
@@ -40,11 +40,11 @@ export class ImmutableAddressMapping extends AddressMapping {
   }
 
   public getColId(address: SimpleColAddress) {
-    return this.immutableReferenceMapping.getColId(address)
+    return this.immutableMapping.getColId(address)
   }
 
   public getRowId(address: SimpleRowAddress) {
-    return this.immutableReferenceMapping.getRowId(address)
+    return this.immutableMapping.getRowId(address)
   }
 
   /** @inheritDoc */
@@ -121,7 +121,7 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw Error('Sheet not initialized')
     }
     // PERF: Optimize this using LazilyTransformingAstService version
-    if ((newVertex as any).id === undefined) (newVertex as any).id = this.immutableReferenceMapping.getCellId(address)
+    if ((newVertex as any).id === undefined) (newVertex as any).id = this.immutableMapping.getCellId(address)
     sheetMapping.setCell(address, newVertex)
   }
 

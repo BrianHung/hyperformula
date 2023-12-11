@@ -12,16 +12,16 @@ import { CellVertex } from '../Vertex';
 import { ChooseAddressMapping } from './ChooseAddressMappingPolicy';
 import { AddressMappingStrategy } from './AddressMappingStrategy';
 import { AddressMapping } from '../index';
-import { ImmutableReferenceMapping } from '../ImmutableRefMapping';
+import { ImmutableIdMapping } from '../ImmutableRefMapping';
 export declare class ImmutableAddressMapping extends AddressMapping {
     readonly policy: ChooseAddressMapping;
-    readonly immutableReferenceMapping: ImmutableReferenceMapping;
-    constructor(policy: ChooseAddressMapping, immutableReferenceMapping: ImmutableReferenceMapping);
+    readonly immutableMapping: ImmutableIdMapping;
+    constructor(policy: ChooseAddressMapping, immutableMapping: ImmutableIdMapping);
     getCellId(address: SimpleCellAddress): any;
     hasCellId(address: SimpleCellAddress): boolean;
     setCellId(address: SimpleCellAddress, id: string): void;
-    getColId(address: SimpleColAddress): string;
-    getRowId(address: SimpleRowAddress): string;
+    getColId(address: SimpleColAddress): string | undefined;
+    getRowId(address: SimpleRowAddress): string | undefined;
     /** @inheritDoc */
     getCell(address: SimpleCellAddress): Maybe<CellVertex>;
     fetchCell(address: SimpleCellAddress): CellVertex;

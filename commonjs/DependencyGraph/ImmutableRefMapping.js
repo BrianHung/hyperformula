@@ -1,7 +1,7 @@
 "use strict";
 
 exports.__esModule = true;
-exports.ImmutableReferenceMapping = exports.ImmutableIdMapping = void 0;
+exports.ImmutableReferenceMappingTestImpl = exports.ImmutableIdMappingTestImpl = void 0;
 var _Cell = require("../Cell");
 /**
  * @license
@@ -11,7 +11,7 @@ var _Cell = require("../Cell");
 /**
  * Basic implementation of a ImmutableReferenceMapping.
  */
-class ImmutableReferenceMapping {
+class ImmutableReferenceMappingTestImpl {
   constructor({
     cols,
     rows,
@@ -83,8 +83,8 @@ class ImmutableReferenceMapping {
 /**
  * Basic implementation of a ImmutableIdMapping.
  */
-exports.ImmutableReferenceMapping = ImmutableReferenceMapping;
-class ImmutableIdMapping extends ImmutableReferenceMapping {
+exports.ImmutableReferenceMappingTestImpl = ImmutableReferenceMappingTestImpl;
+class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImpl {
   constructor(props) {
     super(props);
     this.cellsToId = new Map();
@@ -108,4 +108,4 @@ class ImmutableIdMapping extends ImmutableReferenceMapping {
     return this.cellsToId.get((0, _Cell.addressKey)(address));
   }
 }
-exports.ImmutableIdMapping = ImmutableIdMapping;
+exports.ImmutableIdMappingTestImpl = ImmutableIdMappingTestImpl;

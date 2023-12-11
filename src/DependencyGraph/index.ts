@@ -5,6 +5,7 @@
 
 export {DependencyGraph} from './DependencyGraph'
 export {AddressMapping} from './AddressMapping/AddressMapping'
+export {ImmutableAddressMapping} from './AddressMapping/ImmutableAddressMapping'
 export {Graph} from './Graph'
 export {TopSort} from './TopSort'
 export {RangeMapping} from './RangeMapping'
@@ -19,3 +20,4 @@ export {RangeVertex, CriterionCache} from './RangeVertex'
 export {SparseStrategy} from './AddressMapping/SparseStrategy'
 export {DenseStrategy} from './AddressMapping/DenseStrategy'
 export {ArrayVertex} from './FormulaCellVertex'
+export type {ImmutableIdMapping, ImmutableReferenceMapping} from './ImmutableRefMapping'

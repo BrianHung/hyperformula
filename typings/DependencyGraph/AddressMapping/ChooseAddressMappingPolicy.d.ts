@@ -11,7 +11,7 @@ export interface ChooseAddressMapping {
 export declare class DenseSparseChooseBasedOnThreshold implements ChooseAddressMapping {
     private readonly threshold;
     constructor(threshold: number);
-    call(fill: number): typeof DenseStrategy | typeof SparseStrategy;
+    call(fill: number): typeof SparseStrategy | typeof DenseStrategy;
 }
 export declare class AlwaysSparse implements ChooseAddressMapping {
     call(): typeof SparseStrategy;

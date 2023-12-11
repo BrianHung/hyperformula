@@ -675,7 +675,7 @@
  * <https://www.gnu.org/licenses/why-not-lgpl.html>.
  * 
  * Version: 2.6.0
- * Release date: 19/09/2023 (built at 06/12/2023 11:56:03)
+ * Release date: 19/09/2023 (built at 11/12/2023 11:55:31)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -686,7 +686,7 @@
 		exports["HyperFormula"] = factory(require("chevrotain"), require("unorm"), require("tiny-emitter"));
 	else
 		root["HyperFormula"] = factory(root["chevrotain"], root["unorm"], root["TinyEmitter"]);
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__85__, __WEBPACK_EXTERNAL_MODULE__127__, __WEBPACK_EXTERNAL_MODULE__174__) {
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__85__, __WEBPACK_EXTERNAL_MODULE__128__, __WEBPACK_EXTERNAL_MODULE__175__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -790,13 +790,15 @@ exports.CellType = _Cell.CellType;
 exports.CellValueDetailedType = _Cell.CellValueDetailedType;
 exports.CellValueType = _Cell.CellValueType;
 exports.ErrorType = _Cell.ErrorType;
-var _CellValue = __webpack_require__(129);
+var _CellValue = __webpack_require__(130);
 exports.DetailedCellError = _CellValue.DetailedCellError;
-var _Config = __webpack_require__(130);
-var _ChooseAddressMappingPolicy = __webpack_require__(134);
+var _Config = __webpack_require__(131);
+var _ChooseAddressMappingPolicy = __webpack_require__(135);
 exports.AlwaysDense = _ChooseAddressMappingPolicy.AlwaysDense;
 exports.AlwaysSparse = _ChooseAddressMappingPolicy.AlwaysSparse;
 exports.DenseSparseChooseBasedOnThreshold = _ChooseAddressMappingPolicy.DenseSparseChooseBasedOnThreshold;
+var _DependencyGraph = __webpack_require__(75);
+exports.ImmutableAddressMapping = _DependencyGraph.ImmutableAddressMapping;
 var _errors = __webpack_require__(106);
 exports.ConfigValueTooBigError = _errors.ConfigValueTooBigError;
 exports.ConfigValueTooSmallError = _errors.ConfigValueTooSmallError;
@@ -825,17 +827,17 @@ exports.SheetSizeLimitExceededError = _errors.SheetSizeLimitExceededError;
 exports.SourceLocationHasArrayError = _errors.SourceLocationHasArrayError;
 exports.TargetLocationHasArrayError = _errors.TargetLocationHasArrayError;
 exports.UnableToParseError = _errors.UnableToParseError;
-var _Exporter = __webpack_require__(157);
+var _Exporter = __webpack_require__(158);
 exports.ExportedCellChange = _Exporter.ExportedCellChange;
 exports.ExportedNamedExpressionChange = _Exporter.ExportedNamedExpressionChange;
-var _HyperFormula = __webpack_require__(139);
+var _HyperFormula = __webpack_require__(140);
 exports.HyperFormula = _HyperFormula.HyperFormula;
-var _enGB = _interopRequireDefault(__webpack_require__(175));
-var _interpreter = __webpack_require__(176);
+var _enGB = _interopRequireDefault(__webpack_require__(176));
+var _interpreter = __webpack_require__(177);
 exports.FunctionPlugin = _interpreter.FunctionPlugin;
 exports.FunctionArgumentType = _interpreter.FunctionArgumentType;
 exports.EmptyValue = _interpreter.EmptyValue;
-var plugins = _interopRequireWildcard(__webpack_require__(177));
+var plugins = _interopRequireWildcard(__webpack_require__(178));
 var _SimpleRangeValue = __webpack_require__(98);
 exports.SimpleRangeValue = _SimpleRangeValue.SimpleRangeValue;
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -915,8 +917,8 @@ exports.__esModule = true;
 exports.ArraySizePredictor = exports.ArraySize = void 0;
 __webpack_require__(2);
 var _AbsoluteCellRange = __webpack_require__(73);
-var _InterpreterState = __webpack_require__(124);
-var _FunctionPlugin = __webpack_require__(125);
+var _InterpreterState = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 var _parser = __webpack_require__(78);
 /**
  * @license
@@ -3319,11 +3321,13 @@ exports.equalSimpleCellAddress = equalSimpleCellAddress;
 
 
 exports.__esModule = true;
-exports.ValueCellVertex = exports.TopSort = exports.SparseStrategy = exports.SheetMapping = exports.RangeVertex = exports.RangeMapping = exports.ParsingErrorVertex = exports.Graph = exports.FormulaCellVertex = exports.EmptyCellVertex = exports.DependencyGraph = exports.DenseStrategy = exports.ArrayVertex = exports.ArrayMapping = exports.AddressMapping = void 0;
+exports.ValueCellVertex = exports.TopSort = exports.SparseStrategy = exports.SheetMapping = exports.RangeVertex = exports.RangeMapping = exports.ParsingErrorVertex = exports.ImmutableAddressMapping = exports.Graph = exports.FormulaCellVertex = exports.EmptyCellVertex = exports.DependencyGraph = exports.DenseStrategy = exports.ArrayVertex = exports.ArrayMapping = exports.AddressMapping = void 0;
 var _DependencyGraph = __webpack_require__(76);
 exports.DependencyGraph = _DependencyGraph.DependencyGraph;
 var _AddressMapping = __webpack_require__(105);
 exports.AddressMapping = _AddressMapping.AddressMapping;
+var _ImmutableAddressMapping = __webpack_require__(119);
+exports.ImmutableAddressMapping = _ImmutableAddressMapping.ImmutableAddressMapping;
 var _Graph = __webpack_require__(112);
 exports.Graph = _Graph.Graph;
 var _TopSort = __webpack_require__(113);
@@ -3337,17 +3341,17 @@ exports.ArrayMapping = _ArrayMapping.ArrayMapping;
 var _FormulaCellVertex = __webpack_require__(109);
 exports.FormulaCellVertex = _FormulaCellVertex.FormulaCellVertex;
 exports.ArrayVertex = _FormulaCellVertex.ArrayVertex;
-var _EmptyCellVertex = __webpack_require__(119);
+var _EmptyCellVertex = __webpack_require__(120);
 exports.EmptyCellVertex = _EmptyCellVertex.EmptyCellVertex;
-var _ValueCellVertex = __webpack_require__(120);
+var _ValueCellVertex = __webpack_require__(121);
 exports.ValueCellVertex = _ValueCellVertex.ValueCellVertex;
-var _ParsingErrorVertex = __webpack_require__(121);
+var _ParsingErrorVertex = __webpack_require__(122);
 exports.ParsingErrorVertex = _ParsingErrorVertex.ParsingErrorVertex;
 var _RangeVertex = __webpack_require__(111);
 exports.RangeVertex = _RangeVertex.RangeVertex;
-var _SparseStrategy = __webpack_require__(122);
+var _SparseStrategy = __webpack_require__(123);
 exports.SparseStrategy = _SparseStrategy.SparseStrategy;
-var _DenseStrategy = __webpack_require__(123);
+var _DenseStrategy = __webpack_require__(124);
 exports.DenseStrategy = _DenseStrategy.DenseStrategy;
 
 /***/ }),
@@ -10771,6 +10775,226 @@ function buildTranslationPackage(rawTranslationPackage) {
 
 
 exports.__esModule = true;
+exports.ImmutableAddressMapping = void 0;
+var _errors = __webpack_require__(106);
+var _InterpreterValue = __webpack_require__(99);
+var _index = __webpack_require__(75);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class ImmutableAddressMapping extends _index.AddressMapping {
+  constructor(policy, immutableMapping) {
+    super(policy);
+    this.policy = policy;
+    this.immutableMapping = immutableMapping;
+  }
+  getCellId(address) {
+    return this.getCell(address).id;
+  }
+  hasCellId(address) {
+    return this.getCell(address).id !== undefined;
+  }
+  setCellId(address, id) {
+    const vertex = this.getCell(address);
+    if (vertex) vertex.id = id;
+  }
+  getColId(address) {
+    return this.immutableMapping.getColId(address);
+  }
+  getRowId(address) {
+    return this.immutableMapping.getRowId(address);
+  }
+  /** @inheritDoc */
+  getCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    return sheetMapping.getCell(address);
+  }
+  fetchCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    const vertex = sheetMapping.getCell(address);
+    if (!vertex) {
+      throw Error('Vertex for address missing in AddressMapping');
+    }
+    return vertex;
+  }
+  strategyFor(sheetId) {
+    const strategy = this.mapping.get(sheetId);
+    if (strategy === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return strategy;
+  }
+  addSheet(sheetId, strategy) {
+    if (this.mapping.has(sheetId)) {
+      throw Error('Sheet already added');
+    }
+    this.mapping.set(sheetId, strategy);
+  }
+  autoAddSheet(sheetId, sheetBoundaries) {
+    const {
+      height,
+      width,
+      fill
+    } = sheetBoundaries;
+    const strategyConstructor = this.policy.call(fill);
+    this.addSheet(sheetId, new strategyConstructor(width, height));
+  }
+  getCellValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex === undefined) {
+      return _InterpreterValue.EmptyValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellValue(address);
+    } else {
+      return vertex.getCellValue();
+    }
+  }
+  getRawValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex instanceof _index.ValueCellVertex) {
+      return vertex.getValues().rawValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellRawValue(address);
+    } else {
+      return null;
+    }
+  }
+  /** @inheritDoc */
+  setCell(address, newVertex) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    // PERF: Optimize this using LazilyTransformingAstService version
+    if (newVertex.id === undefined) newVertex.id = this.immutableMapping.getCellId(address);
+    sheetMapping.setCell(address, newVertex);
+  }
+  moveCell(source, destination) {
+    const sheetMapping = this.mapping.get(source.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized.');
+    }
+    if (source.sheet !== destination.sheet) {
+      throw Error('Cannot move cells between sheets.');
+    }
+    if (sheetMapping.has(destination)) {
+      throw new Error('Cannot move cell. Destination already occupied.');
+    }
+    const vertex = sheetMapping.getCell(source);
+    if (vertex === undefined) {
+      throw new Error('Cannot move cell. No cell with such address.');
+    }
+    this.setCell(destination, vertex);
+    this.removeCell(source);
+  }
+  removeCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    sheetMapping.removeCell(address);
+  }
+  /** @inheritDoc */
+  has(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      return false;
+    }
+    return sheetMapping.has(address);
+  }
+  /** @inheritDoc */
+  getHeight(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getHeight();
+  }
+  /** @inheritDoc */
+  getWidth(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (!sheetMapping) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getWidth();
+  }
+  addRows(sheet, row, numberOfRows) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addRows(row, numberOfRows);
+  }
+  removeRows(removedRows) {
+    const sheetMapping = this.mapping.get(removedRows.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedRows.sheet);
+    }
+    sheetMapping.removeRows(removedRows);
+  }
+  removeSheet(sheetId) {
+    this.mapping.delete(sheetId);
+  }
+  addColumns(sheet, column, numberOfColumns) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addColumns(column, numberOfColumns);
+  }
+  removeColumns(removedColumns) {
+    const sheetMapping = this.mapping.get(removedColumns.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedColumns.sheet);
+    }
+    sheetMapping.removeColumns(removedColumns);
+  }
+  *verticesFromRowsSpan(rowsSpan) {
+    yield* this.mapping.get(rowsSpan.sheet).verticesFromRowsSpan(rowsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  }
+
+  *verticesFromColumnsSpan(columnsSpan) {
+    yield* this.mapping.get(columnsSpan.sheet).verticesFromColumnsSpan(columnsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  }
+
+  *entriesFromRowsSpan(rowsSpan) {
+    yield* this.mapping.get(rowsSpan.sheet).entriesFromRowsSpan(rowsSpan);
+  }
+  *entriesFromColumnsSpan(columnsSpan) {
+    yield* this.mapping.get(columnsSpan.sheet).entriesFromColumnsSpan(columnsSpan);
+  }
+  *entries() {
+    for (const [sheet, mapping] of this.mapping.entries()) {
+      yield* mapping.getEntries(sheet);
+    }
+  }
+  *sheetEntries(sheet) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping !== undefined) {
+      yield* sheetMapping.getEntries(sheet);
+    } else {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+  }
+}
+exports.ImmutableAddressMapping = ImmutableAddressMapping;
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.EmptyCellVertex = void 0;
 var _InterpreterValue = __webpack_require__(99);
 /**
@@ -10793,7 +11017,7 @@ class EmptyCellVertex {
 exports.EmptyCellVertex = EmptyCellVertex;
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10837,7 +11061,7 @@ class ValueCellVertex {
 exports.ValueCellVertex = ValueCellVertex;
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10866,7 +11090,7 @@ class ParsingErrorVertex {
 exports.ParsingErrorVertex = ParsingErrorVertex;
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11072,7 +11296,7 @@ class SparseStrategy {
 exports.SparseStrategy = SparseStrategy;
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11252,7 +11476,7 @@ class DenseStrategy {
 exports.DenseStrategy = DenseStrategy;
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11274,7 +11498,7 @@ class InterpreterState {
 exports.InterpreterState = InterpreterState;
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11287,7 +11511,7 @@ var _AbsoluteCellRange = __webpack_require__(73);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(126);
+var _ArithmeticHelper = __webpack_require__(127);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
 /**
@@ -11602,7 +11826,7 @@ class FunctionPlugin {
 exports.FunctionPlugin = FunctionPlugin;
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11625,10 +11849,10 @@ exports.normalizeString = normalizeString;
 exports.numberCmp = numberCmp;
 exports.zeroIfEmpty = zeroIfEmpty;
 __webpack_require__(2);
-var _unorm = _interopRequireDefault(__webpack_require__(127));
+var _unorm = _interopRequireDefault(__webpack_require__(128));
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _StringHelper = __webpack_require__(128);
+var _StringHelper = __webpack_require__(129);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -12399,13 +12623,13 @@ function normalizeString(str, form) {
 }
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__127__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__128__;
 
 /***/ }),
-/* 128 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12429,7 +12653,7 @@ function collatorFromConfig(config) {
 }
 
 /***/ }),
-/* 129 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12459,7 +12683,7 @@ class DetailedCellError {
 exports.DetailedCellError = DetailedCellError;
 
 /***/ }),
-/* 130 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12468,14 +12692,14 @@ exports.DetailedCellError = DetailedCellError;
 exports.__esModule = true;
 exports.Config = void 0;
 exports.getDefaultConfig = getDefaultConfig;
-var _ArgumentSanitization = __webpack_require__(131);
-var _DateTimeDefault = __webpack_require__(132);
-var _DateTimeHelper = __webpack_require__(133);
-var _ChooseAddressMappingPolicy = __webpack_require__(134);
+var _ArgumentSanitization = __webpack_require__(132);
+var _DateTimeDefault = __webpack_require__(133);
+var _DateTimeHelper = __webpack_require__(134);
+var _ChooseAddressMappingPolicy = __webpack_require__(135);
 var _errors = __webpack_require__(106);
-var _format = __webpack_require__(135);
-var _licenseKeyValidator = __webpack_require__(137);
-var _HyperFormula = __webpack_require__(139);
+var _format = __webpack_require__(136);
+var _licenseKeyValidator = __webpack_require__(138);
+var _HyperFormula = __webpack_require__(140);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -12704,7 +12928,7 @@ function getDefaultConfig() {
 }
 
 /***/ }),
-/* 131 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12718,7 +12942,7 @@ exports.validateArgToType = validateArgToType;
 exports.validateNumberToBeAtLeast = validateNumberToBeAtLeast;
 exports.validateNumberToBeAtMost = validateNumberToBeAtMost;
 __webpack_require__(2);
-var _Config = __webpack_require__(130);
+var _Config = __webpack_require__(131);
 var _errors = __webpack_require__(106);
 /**
  * @license
@@ -12790,7 +13014,7 @@ function validateArgToType(inputValue, expectedType, paramName) {
 }
 
 /***/ }),
-/* 132 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13012,7 +13236,7 @@ function memoize(fn) {
 }
 
 /***/ }),
-/* 133 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13350,7 +13574,7 @@ function toBasisEU(date) {
 }
 
 /***/ }),
-/* 134 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13358,8 +13582,8 @@ function toBasisEU(date) {
 
 exports.__esModule = true;
 exports.DenseSparseChooseBasedOnThreshold = exports.AlwaysSparse = exports.AlwaysDense = void 0;
-var _DenseStrategy = __webpack_require__(123);
-var _SparseStrategy = __webpack_require__(122);
+var _DenseStrategy = __webpack_require__(124);
+var _SparseStrategy = __webpack_require__(123);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -13392,7 +13616,7 @@ class AlwaysDense {
 exports.AlwaysDense = AlwaysDense;
 
 /***/ }),
-/* 135 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13404,9 +13628,9 @@ exports.defaultStringifyDuration = defaultStringifyDuration;
 exports.format = format;
 exports.padLeft = padLeft;
 exports.padRight = padRight;
-var _DateTimeDefault = __webpack_require__(132);
-var _DateTimeHelper = __webpack_require__(133);
-var _parser = __webpack_require__(136);
+var _DateTimeDefault = __webpack_require__(133);
+var _DateTimeHelper = __webpack_require__(134);
+var _parser = __webpack_require__(137);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -13617,7 +13841,7 @@ function defaultStringifyDateTime(dateTime, formatArg) {
 }
 
 /***/ }),
-/* 136 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13737,7 +13961,7 @@ function isEscapeToken(token) {
 }
 
 /***/ }),
-/* 137 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13745,7 +13969,7 @@ function isEscapeToken(token) {
 
 exports.__esModule = true;
 exports.checkLicenseKeyValidity = checkLicenseKeyValidity;
-var _licenseKeyHelper = __webpack_require__(138);
+var _licenseKeyHelper = __webpack_require__(139);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -13810,7 +14034,7 @@ function formatDate(date) {
 }
 
 /***/ }),
-/* 138 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13850,7 +14074,7 @@ function checkKeySchema(v) {
 /* eslint-enable */
 
 /***/ }),
-/* 139 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13859,18 +14083,18 @@ function checkKeySchema(v) {
 exports.__esModule = true;
 exports.HyperFormula = void 0;
 var _AbsoluteCellRange = __webpack_require__(73);
-var _ArgumentSanitization = __webpack_require__(131);
-var _BuildEngineFactory = __webpack_require__(140);
+var _ArgumentSanitization = __webpack_require__(132);
+var _BuildEngineFactory = __webpack_require__(141);
 var _Cell = __webpack_require__(74);
-var _CellContentParser = __webpack_require__(141);
-var _Config = __webpack_require__(130);
-var _DateTimeHelper = __webpack_require__(133);
-var _Destroy = __webpack_require__(172);
-var _Emitter = __webpack_require__(173);
+var _CellContentParser = __webpack_require__(142);
+var _Config = __webpack_require__(131);
+var _DateTimeHelper = __webpack_require__(134);
+var _Destroy = __webpack_require__(173);
+var _Emitter = __webpack_require__(174);
 var _errors = __webpack_require__(106);
 var _i18n = __webpack_require__(117);
-var _FunctionRegistry = __webpack_require__(159);
-var _Operations = __webpack_require__(145);
+var _FunctionRegistry = __webpack_require__(160);
+var _Operations = __webpack_require__(146);
 var _parser2 = __webpack_require__(78);
 /**
  * @license
@@ -18048,7 +18272,7 @@ HyperFormula.version = "2.6.0";
  *
  * @category Static Properties
  */
-HyperFormula.buildDate = "06/12/2023 11:56:03";
+HyperFormula.buildDate = "11/12/2023 11:55:31";
 /**
  * A release date.
  *
@@ -18064,7 +18288,7 @@ HyperFormula.languages = {};
 HyperFormula.registeredLanguages = new Map();
 
 /***/ }),
-/* 140 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18073,30 +18297,30 @@ HyperFormula.registeredLanguages = new Map();
 exports.__esModule = true;
 exports.BuildEngineFactory = void 0;
 var _ArraySize = __webpack_require__(1);
-var _CellContentParser = __webpack_require__(141);
-var _ClipboardOperations = __webpack_require__(142);
-var _Config = __webpack_require__(130);
-var _CrudOperations = __webpack_require__(143);
-var _DateTimeHelper = __webpack_require__(133);
+var _CellContentParser = __webpack_require__(142);
+var _ClipboardOperations = __webpack_require__(143);
+var _Config = __webpack_require__(131);
+var _CrudOperations = __webpack_require__(144);
+var _DateTimeHelper = __webpack_require__(134);
 var _DependencyGraph = __webpack_require__(75);
 var _errors = __webpack_require__(106);
-var _Evaluator = __webpack_require__(156);
-var _Exporter = __webpack_require__(157);
-var _GraphBuilder = __webpack_require__(158);
+var _Evaluator = __webpack_require__(157);
+var _Exporter = __webpack_require__(158);
+var _GraphBuilder = __webpack_require__(159);
 var _i18n = __webpack_require__(117);
-var _ArithmeticHelper = __webpack_require__(126);
-var _FunctionRegistry = __webpack_require__(159);
-var _Interpreter = __webpack_require__(161);
-var _LazilyTransformingAstService = __webpack_require__(163);
-var _SearchStrategy = __webpack_require__(165);
-var _NamedExpressions = __webpack_require__(144);
-var _NumberLiteralHelper = __webpack_require__(170);
-var _Operations = __webpack_require__(145);
+var _ArithmeticHelper = __webpack_require__(127);
+var _FunctionRegistry = __webpack_require__(160);
+var _Interpreter = __webpack_require__(162);
+var _LazilyTransformingAstService = __webpack_require__(164);
+var _SearchStrategy = __webpack_require__(166);
+var _NamedExpressions = __webpack_require__(145);
+var _NumberLiteralHelper = __webpack_require__(171);
+var _Operations = __webpack_require__(146);
 var _parser = __webpack_require__(78);
-var _Serialization = __webpack_require__(171);
-var _Sheet = __webpack_require__(154);
+var _Serialization = __webpack_require__(172);
+var _Sheet = __webpack_require__(155);
 var _statistics = __webpack_require__(101);
-var _UndoRedo = __webpack_require__(155);
+var _UndoRedo = __webpack_require__(156);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -18189,7 +18413,7 @@ class BuildEngineFactory {
 exports.BuildEngineFactory = BuildEngineFactory;
 
 /***/ }),
-/* 141 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18201,10 +18425,10 @@ exports.isBoolean = isBoolean;
 exports.isError = isError;
 exports.isFormula = isFormula;
 var _Cell = __webpack_require__(74);
-var _DateTimeHelper = __webpack_require__(133);
+var _DateTimeHelper = __webpack_require__(134);
 var _errorMessage = __webpack_require__(90);
 var _errors = __webpack_require__(106);
-var _ArithmeticHelper = __webpack_require__(126);
+var _ArithmeticHelper = __webpack_require__(127);
 var _InterpreterValue = __webpack_require__(99);
 /**
  * @license
@@ -18370,7 +18594,7 @@ class CellContentParser {
 exports.CellContentParser = CellContentParser;
 
 /***/ }),
-/* 142 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18474,7 +18698,7 @@ class ClipboardOperations {
 exports.ClipboardOperations = ClipboardOperations;
 
 /***/ }),
-/* 143 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18485,13 +18709,13 @@ exports.CrudOperations = void 0;
 __webpack_require__(2);
 var _AbsoluteCellRange = __webpack_require__(73);
 var _Cell = __webpack_require__(74);
-var _CellContentParser = __webpack_require__(141);
+var _CellContentParser = __webpack_require__(142);
 var _errors = __webpack_require__(106);
-var _NamedExpressions = __webpack_require__(144);
-var _Operations = __webpack_require__(145);
-var _Sheet = __webpack_require__(154);
+var _NamedExpressions = __webpack_require__(145);
+var _Operations = __webpack_require__(146);
+var _Sheet = __webpack_require__(155);
 var _Span = __webpack_require__(100);
-var _UndoRedo = __webpack_require__(155);
+var _UndoRedo = __webpack_require__(156);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -19004,7 +19228,7 @@ function isNonnegativeInteger(x) {
 }
 
 /***/ }),
-/* 144 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19317,7 +19541,7 @@ const doesContainRelativeReferences = ast => {
 exports.doesContainRelativeReferences = doesContainRelativeReferences;
 
 /***/ }),
-/* 145 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19332,23 +19556,23 @@ var _AbsoluteCellRange = __webpack_require__(73);
 var _absolutizeDependencies = __webpack_require__(77);
 var _ArraySize = __webpack_require__(1);
 var _Cell = __webpack_require__(74);
-var _CellContentParser = __webpack_require__(141);
-var _ClipboardOperations = __webpack_require__(142);
+var _CellContentParser = __webpack_require__(142);
+var _ClipboardOperations = __webpack_require__(143);
 var _ContentChanges = __webpack_require__(97);
 var _DependencyGraph = __webpack_require__(75);
 var _FormulaCellVertex = __webpack_require__(109);
-var _AddColumnsTransformer = __webpack_require__(146);
-var _AddRowsTransformer = __webpack_require__(148);
-var _CleanOutOfScopeDependenciesTransformer = __webpack_require__(149);
-var _MoveCellsTransformer = __webpack_require__(150);
-var _RemoveColumnsTransformer = __webpack_require__(151);
-var _RemoveRowsTransformer = __webpack_require__(152);
-var _RemoveSheetTransformer = __webpack_require__(153);
+var _AddColumnsTransformer = __webpack_require__(147);
+var _AddRowsTransformer = __webpack_require__(149);
+var _CleanOutOfScopeDependenciesTransformer = __webpack_require__(150);
+var _MoveCellsTransformer = __webpack_require__(151);
+var _RemoveColumnsTransformer = __webpack_require__(152);
+var _RemoveRowsTransformer = __webpack_require__(153);
+var _RemoveSheetTransformer = __webpack_require__(154);
 var _errors = __webpack_require__(106);
 var _InterpreterValue = __webpack_require__(99);
-var _NamedExpressions = __webpack_require__(144);
+var _NamedExpressions = __webpack_require__(145);
 var _parser = __webpack_require__(78);
-var _Sheet = __webpack_require__(154);
+var _Sheet = __webpack_require__(155);
 var _Span = __webpack_require__(100);
 var _statistics = __webpack_require__(101);
 /**
@@ -20193,7 +20417,7 @@ function isRowOrColumnRange(leftCorner, width, height) {
 }
 
 /***/ }),
-/* 146 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20202,7 +20426,7 @@ function isRowOrColumnRange(leftCorner, width, height) {
 exports.__esModule = true;
 exports.AddColumnsTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20310,7 +20534,7 @@ class AddColumnsTransformer extends _Transformer.Transformer {
 exports.AddColumnsTransformer = AddColumnsTransformer;
 
 /***/ }),
-/* 147 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20457,7 +20681,7 @@ class Transformer {
 exports.Transformer = Transformer;
 
 /***/ }),
-/* 148 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20466,7 +20690,7 @@ exports.Transformer = Transformer;
 exports.__esModule = true;
 exports.AddRowsTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20573,7 +20797,7 @@ class AddRowsTransformer extends _Transformer.Transformer {
 exports.AddRowsTransformer = AddRowsTransformer;
 
 /***/ }),
-/* 149 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20582,7 +20806,7 @@ exports.AddRowsTransformer = AddRowsTransformer;
 exports.__esModule = true;
 exports.CleanOutOfScopeDependenciesTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20615,7 +20839,7 @@ class CleanOutOfScopeDependenciesTransformer extends _Transformer.Transformer {
 exports.CleanOutOfScopeDependenciesTransformer = CleanOutOfScopeDependenciesTransformer;
 
 /***/ }),
-/* 150 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20626,7 +20850,7 @@ exports.MoveCellsTransformer = exports.DependentFormulaTransformer = void 0;
 var _Cell = __webpack_require__(74);
 var _parser = __webpack_require__(78);
 var _RowAddress = __webpack_require__(82);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20747,7 +20971,7 @@ class DependentFormulaTransformer extends _Transformer.Transformer {
 exports.DependentFormulaTransformer = DependentFormulaTransformer;
 
 /***/ }),
-/* 151 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20756,7 +20980,7 @@ exports.DependentFormulaTransformer = DependentFormulaTransformer;
 exports.__esModule = true;
 exports.RemoveColumnsTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20891,7 +21115,7 @@ class RemoveColumnsTransformer extends _Transformer.Transformer {
 exports.RemoveColumnsTransformer = RemoveColumnsTransformer;
 
 /***/ }),
-/* 152 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20900,7 +21124,7 @@ exports.RemoveColumnsTransformer = RemoveColumnsTransformer;
 exports.__esModule = true;
 exports.RemoveRowsTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -21035,7 +21259,7 @@ class RemoveRowsTransformer extends _Transformer.Transformer {
 exports.RemoveRowsTransformer = RemoveRowsTransformer;
 
 /***/ }),
-/* 153 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21044,7 +21268,7 @@ exports.RemoveRowsTransformer = RemoveRowsTransformer;
 exports.__esModule = true;
 exports.RemoveSheetTransformer = void 0;
 var _Cell = __webpack_require__(74);
-var _Transformer = __webpack_require__(147);
+var _Transformer = __webpack_require__(148);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -21089,7 +21313,7 @@ class RemoveSheetTransformer extends _Transformer.Transformer {
 exports.RemoveSheetTransformer = RemoveSheetTransformer;
 
 /***/ }),
-/* 154 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21147,7 +21371,7 @@ function findBoundaries(sheet) {
 }
 
 /***/ }),
-/* 155 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21157,7 +21381,7 @@ exports.__esModule = true;
 exports.UndoRedo = exports.SetSheetContentUndoEntry = exports.SetRowOrderUndoEntry = exports.SetColumnOrderUndoEntry = exports.SetCellContentsUndoEntry = exports.RenameSheetUndoEntry = exports.RemoveSheetUndoEntry = exports.RemoveRowsUndoEntry = exports.RemoveNamedExpressionUndoEntry = exports.RemoveColumnsUndoEntry = exports.PasteUndoEntry = exports.MoveRowsUndoEntry = exports.MoveColumnsUndoEntry = exports.MoveCellsUndoEntry = exports.ClearSheetUndoEntry = exports.ChangeNamedExpressionUndoEntry = exports.BatchUndoEntry = exports.BaseUndoEntry = exports.AddSheetUndoEntry = exports.AddRowsUndoEntry = exports.AddNamedExpressionUndoEntry = exports.AddColumnsUndoEntry = void 0;
 __webpack_require__(2);
 var _Cell = __webpack_require__(74);
-var _Operations = __webpack_require__(145);
+var _Operations = __webpack_require__(146);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -21814,7 +22038,7 @@ class UndoRedo {
 exports.UndoRedo = UndoRedo;
 
 /***/ }),
-/* 156 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21829,7 +22053,7 @@ var _Cell = __webpack_require__(74);
 var _ContentChanges = __webpack_require__(97);
 var _DependencyGraph = __webpack_require__(75);
 var _FormulaCellVertex = __webpack_require__(109);
-var _InterpreterState = __webpack_require__(124);
+var _InterpreterState = __webpack_require__(125);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
 var _statistics = __webpack_require__(101);
@@ -21953,7 +22177,7 @@ class Evaluator {
 exports.Evaluator = Evaluator;
 
 /***/ }),
-/* 157 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21963,11 +22187,11 @@ exports.__esModule = true;
 exports.Exporter = exports.ExportedNamedExpressionChange = exports.ExportedCellChange = void 0;
 __webpack_require__(2);
 var _Cell = __webpack_require__(74);
-var _CellValue = __webpack_require__(129);
+var _CellValue = __webpack_require__(130);
 var _errorMessage = __webpack_require__(90);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
-var _NamedExpressions = __webpack_require__(144);
+var _NamedExpressions = __webpack_require__(145);
 var _addressRepresentationConverters = __webpack_require__(79);
 /**
  * @license
@@ -22078,7 +22302,7 @@ class Exporter {
 exports.Exporter = Exporter;
 
 /***/ }),
-/* 158 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22089,7 +22313,7 @@ exports.SimpleStrategy = exports.GraphBuilder = void 0;
 var _absolutizeDependencies = __webpack_require__(77);
 var _ArraySize = __webpack_require__(1);
 var _Cell = __webpack_require__(74);
-var _CellContentParser = __webpack_require__(141);
+var _CellContentParser = __webpack_require__(142);
 var _DependencyGraph = __webpack_require__(75);
 var _InterpreterValue = __webpack_require__(99);
 var _statistics = __webpack_require__(101);
@@ -22197,7 +22421,7 @@ class SimpleStrategy {
 exports.SimpleStrategy = SimpleStrategy;
 
 /***/ }),
-/* 159 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22207,8 +22431,8 @@ exports.__esModule = true;
 exports.FunctionRegistry = void 0;
 __webpack_require__(2);
 var _errors = __webpack_require__(106);
-var _HyperFormula = __webpack_require__(139);
-var _VersionPlugin = __webpack_require__(160);
+var _HyperFormula = __webpack_require__(140);
+var _VersionPlugin = __webpack_require__(161);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22432,7 +22656,7 @@ FunctionRegistry.plugins = new Map();
 FunctionRegistry._protectedPlugins = new Map([['VERSION', _VersionPlugin.VersionPlugin], ['OFFSET', undefined]]);
 
 /***/ }),
-/* 160 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22440,8 +22664,8 @@ FunctionRegistry._protectedPlugins = new Map([['VERSION', _VersionPlugin.Version
 
 exports.__esModule = true;
 exports.VersionPlugin = void 0;
-var _HyperFormula = __webpack_require__(139);
-var _FunctionPlugin = __webpack_require__(125);
+var _HyperFormula = __webpack_require__(140);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22476,7 +22700,7 @@ VersionPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 161 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22490,10 +22714,10 @@ var _ArrayValue = __webpack_require__(110);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _Ast = __webpack_require__(86);
-var _ArithmeticHelper = __webpack_require__(126);
-var _Criterion = __webpack_require__(162);
-var _FunctionRegistry = __webpack_require__(159);
-var _InterpreterState = __webpack_require__(124);
+var _ArithmeticHelper = __webpack_require__(127);
+var _Criterion = __webpack_require__(163);
+var _FunctionRegistry = __webpack_require__(160);
+var _InterpreterState = __webpack_require__(125);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
 /**
@@ -22891,7 +23115,7 @@ function wrapperForRootVertex(val, vertex) {
 }
 
 /***/ }),
-/* 162 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23084,7 +23308,7 @@ const buildCriterionLambda = (criterion, arithmeticHelper) => {
 exports.buildCriterionLambda = buildCriterionLambda;
 
 /***/ }),
-/* 163 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23093,7 +23317,7 @@ exports.buildCriterionLambda = buildCriterionLambda;
 exports.__esModule = true;
 exports.LazilyTransformingAstService = void 0;
 __webpack_require__(2);
-var _CombinedTransformer = __webpack_require__(164);
+var _CombinedTransformer = __webpack_require__(165);
 var _statistics = __webpack_require__(101);
 /**
  * @license
@@ -23155,7 +23379,7 @@ class LazilyTransformingAstService {
 exports.LazilyTransformingAstService = LazilyTransformingAstService;
 
 /***/ }),
-/* 164 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23193,7 +23417,7 @@ class CombinedTransformer {
 exports.CombinedTransformer = CombinedTransformer;
 
 /***/ }),
-/* 165 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23201,8 +23425,8 @@ exports.CombinedTransformer = CombinedTransformer;
 
 exports.__esModule = true;
 exports.buildColumnSearchStrategy = buildColumnSearchStrategy;
-var _ColumnBinarySearch = __webpack_require__(166);
-var _ColumnIndex = __webpack_require__(169);
+var _ColumnBinarySearch = __webpack_require__(167);
+var _ColumnIndex = __webpack_require__(170);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23217,7 +23441,7 @@ function buildColumnSearchStrategy(dependencyGraph, config, statistics) {
 }
 
 /***/ }),
-/* 166 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23225,7 +23449,7 @@ function buildColumnSearchStrategy(dependencyGraph, config, statistics) {
 
 exports.__esModule = true;
 exports.ColumnBinarySearch = void 0;
-var _AdvancedFind = __webpack_require__(167);
+var _AdvancedFind = __webpack_require__(168);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23264,7 +23488,7 @@ class ColumnBinarySearch extends _AdvancedFind.AdvancedFind {
 exports.ColumnBinarySearch = ColumnBinarySearch;
 
 /***/ }),
-/* 167 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23273,8 +23497,8 @@ exports.ColumnBinarySearch = ColumnBinarySearch;
 exports.__esModule = true;
 exports.AdvancedFind = void 0;
 var _InterpreterValue = __webpack_require__(99);
-var _ArithmeticHelper = __webpack_require__(126);
-var _binarySearch = __webpack_require__(168);
+var _ArithmeticHelper = __webpack_require__(127);
+var _binarySearch = __webpack_require__(169);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23327,7 +23551,7 @@ class AdvancedFind {
 exports.AdvancedFind = AdvancedFind;
 
 /***/ }),
-/* 168 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23452,7 +23676,7 @@ function compare(left, right) {
 }
 
 /***/ }),
-/* 169 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23462,13 +23686,13 @@ exports.__esModule = true;
 exports.ColumnIndex = void 0;
 exports.findInOrderedArray = findInOrderedArray;
 var _Cell = __webpack_require__(74);
-var _AddRowsTransformer = __webpack_require__(148);
-var _RemoveRowsTransformer = __webpack_require__(152);
-var _ArithmeticHelper = __webpack_require__(126);
+var _AddRowsTransformer = __webpack_require__(149);
+var _RemoveRowsTransformer = __webpack_require__(153);
+var _ArithmeticHelper = __webpack_require__(127);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
 var _statistics = __webpack_require__(101);
-var _ColumnBinarySearch = __webpack_require__(166);
+var _ColumnBinarySearch = __webpack_require__(167);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23731,7 +23955,7 @@ function findInOrderedArray(key, values, handlingMisses = 'upperBound') {
 }
 
 /***/ }),
-/* 170 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23769,7 +23993,7 @@ class NumberLiteralHelper {
 exports.NumberLiteralHelper = NumberLiteralHelper;
 
 /***/ }),
-/* 171 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23935,7 +24159,7 @@ class Serialization {
 exports.Serialization = Serialization;
 
 /***/ }),
-/* 172 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23963,7 +24187,7 @@ function postMortem(method) {
 }
 
 /***/ }),
-/* 173 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23971,7 +24195,7 @@ function postMortem(method) {
 
 exports.__esModule = true;
 exports.Events = exports.Emitter = void 0;
-var _tinyEmitter = __webpack_require__(174);
+var _tinyEmitter = __webpack_require__(175);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23998,13 +24222,13 @@ class Emitter extends _tinyEmitter.TinyEmitter {
 exports.Emitter = Emitter;
 
 /***/ }),
-/* 174 */
+/* 175 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__174__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__175__;
 
 /***/ }),
-/* 175 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24432,20 +24656,6 @@ var _default = dictionary;
 exports.default = _default;
 
 /***/ }),
-/* 176 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-var _FunctionPlugin = __webpack_require__(125);
-exports.FunctionPlugin = _FunctionPlugin.FunctionPlugin;
-exports.FunctionArgumentType = _FunctionPlugin.FunctionArgumentType;
-var _InterpreterValue = __webpack_require__(99);
-exports.EmptyValue = _InterpreterValue.EmptyValue;
-
-/***/ }),
 /* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -24453,93 +24663,11 @@ exports.EmptyValue = _InterpreterValue.EmptyValue;
 
 
 exports.__esModule = true;
-exports.TrigonometryPlugin = exports.TextPlugin = exports.SumprodPlugin = exports.StatisticalPlugin = exports.StatisticalAggregationPlugin = exports.SqrtPlugin = exports.SimpleArithmerticPlugin = exports.RoundingPlugin = exports.RomanPlugin = exports.RandomPlugin = exports.RadixConversionPlugin = exports.RadiansPlugin = exports.PowerPlugin = exports.NumericAggregationPlugin = exports.ModuloPlugin = exports.MedianPlugin = exports.MatrixPlugin = exports.MathPlugin = exports.MathConstantsPlugin = exports.LookupPlugin = exports.LogarithmPlugin = exports.IsOddPlugin = exports.IsEvenPlugin = exports.InformationPlugin = exports.HyperlinkPlugin = exports.FormulaTextPlugin = exports.FinancialPlugin = exports.ExpPlugin = exports.DeltaPlugin = exports.DegreesPlugin = exports.DateTimePlugin = exports.CountUniquePlugin = exports.CountBlankPlugin = exports.ConditionalAggregationPlugin = exports.ComplexPlugin = exports.CodePlugin = exports.CharPlugin = exports.BooleanPlugin = exports.BitwiseLogicOperationsPlugin = exports.BitShiftPlugin = exports.ArrayPlugin = exports.AddressPlugin = exports.AbsPlugin = void 0;
-var _AddressPlugin = __webpack_require__(178);
-exports.AddressPlugin = _AddressPlugin.AddressPlugin;
-var _ArrayPlugin = __webpack_require__(179);
-exports.ArrayPlugin = _ArrayPlugin.ArrayPlugin;
-var _AbsPlugin = __webpack_require__(180);
-exports.AbsPlugin = _AbsPlugin.AbsPlugin;
-var _BitShiftPlugin = __webpack_require__(181);
-exports.BitShiftPlugin = _BitShiftPlugin.BitShiftPlugin;
-var _BitwiseLogicOperationsPlugin = __webpack_require__(182);
-exports.BitwiseLogicOperationsPlugin = _BitwiseLogicOperationsPlugin.BitwiseLogicOperationsPlugin;
-var _BooleanPlugin = __webpack_require__(183);
-exports.BooleanPlugin = _BooleanPlugin.BooleanPlugin;
-var _CharPlugin = __webpack_require__(184);
-exports.CharPlugin = _CharPlugin.CharPlugin;
-var _CodePlugin = __webpack_require__(185);
-exports.CodePlugin = _CodePlugin.CodePlugin;
-var _CountBlankPlugin = __webpack_require__(186);
-exports.CountBlankPlugin = _CountBlankPlugin.CountBlankPlugin;
-var _CountUniquePlugin = __webpack_require__(187);
-exports.CountUniquePlugin = _CountUniquePlugin.CountUniquePlugin;
-var _DateTimePlugin = __webpack_require__(188);
-exports.DateTimePlugin = _DateTimePlugin.DateTimePlugin;
-var _DegreesPlugin = __webpack_require__(189);
-exports.DegreesPlugin = _DegreesPlugin.DegreesPlugin;
-var _DeltaPlugin = __webpack_require__(190);
-exports.DeltaPlugin = _DeltaPlugin.DeltaPlugin;
-var _ExpPlugin = __webpack_require__(191);
-exports.ExpPlugin = _ExpPlugin.ExpPlugin;
-var _FinancialPlugin = __webpack_require__(192);
-exports.FinancialPlugin = _FinancialPlugin.FinancialPlugin;
-var _FormulaTextPlugin = __webpack_require__(193);
-exports.FormulaTextPlugin = _FormulaTextPlugin.FormulaTextPlugin;
-var _HyperlinkPlugin = __webpack_require__(194);
-exports.HyperlinkPlugin = _HyperlinkPlugin.HyperlinkPlugin;
-var _InformationPlugin = __webpack_require__(195);
-exports.InformationPlugin = _InformationPlugin.InformationPlugin;
-var _IsEvenPlugin = __webpack_require__(196);
-exports.IsEvenPlugin = _IsEvenPlugin.IsEvenPlugin;
-var _IsOddPlugin = __webpack_require__(197);
-exports.IsOddPlugin = _IsOddPlugin.IsOddPlugin;
-var _LogarithmPlugin = __webpack_require__(198);
-exports.LogarithmPlugin = _LogarithmPlugin.LogarithmPlugin;
-var _MathConstantsPlugin = __webpack_require__(199);
-exports.MathConstantsPlugin = _MathConstantsPlugin.MathConstantsPlugin;
-var _MatrixPlugin = __webpack_require__(200);
-exports.MatrixPlugin = _MatrixPlugin.MatrixPlugin;
-var _MedianPlugin = __webpack_require__(201);
-exports.MedianPlugin = _MedianPlugin.MedianPlugin;
-var _ModuloPlugin = __webpack_require__(202);
-exports.ModuloPlugin = _ModuloPlugin.ModuloPlugin;
-var _NumericAggregationPlugin = __webpack_require__(203);
-exports.NumericAggregationPlugin = _NumericAggregationPlugin.NumericAggregationPlugin;
-var _PowerPlugin = __webpack_require__(204);
-exports.PowerPlugin = _PowerPlugin.PowerPlugin;
-var _RadiansPlugin = __webpack_require__(205);
-exports.RadiansPlugin = _RadiansPlugin.RadiansPlugin;
-var _RadixConversionPlugin = __webpack_require__(206);
-exports.RadixConversionPlugin = _RadixConversionPlugin.RadixConversionPlugin;
-var _RandomPlugin = __webpack_require__(207);
-exports.RandomPlugin = _RandomPlugin.RandomPlugin;
-var _RoundingPlugin = __webpack_require__(208);
-exports.RoundingPlugin = _RoundingPlugin.RoundingPlugin;
-var _SqrtPlugin = __webpack_require__(209);
-exports.SqrtPlugin = _SqrtPlugin.SqrtPlugin;
-var _ConditionalAggregationPlugin = __webpack_require__(210);
-exports.ConditionalAggregationPlugin = _ConditionalAggregationPlugin.ConditionalAggregationPlugin;
-var _SumprodPlugin = __webpack_require__(213);
-exports.SumprodPlugin = _SumprodPlugin.SumprodPlugin;
-var _TextPlugin = __webpack_require__(214);
-exports.TextPlugin = _TextPlugin.TextPlugin;
-var _TrigonometryPlugin = __webpack_require__(215);
-exports.TrigonometryPlugin = _TrigonometryPlugin.TrigonometryPlugin;
-var _LookupPlugin = __webpack_require__(216);
-exports.LookupPlugin = _LookupPlugin.LookupPlugin;
-var _RomanPlugin = __webpack_require__(218);
-exports.RomanPlugin = _RomanPlugin.RomanPlugin;
-var _SimpleArithmertic = __webpack_require__(219);
-exports.SimpleArithmerticPlugin = _SimpleArithmertic.SimpleArithmerticPlugin;
-var _StatisticalPlugin = __webpack_require__(220);
-exports.StatisticalPlugin = _StatisticalPlugin.StatisticalPlugin;
-var _MathPlugin = __webpack_require__(223);
-exports.MathPlugin = _MathPlugin.MathPlugin;
-var _ComplexPlugin = __webpack_require__(224);
-exports.ComplexPlugin = _ComplexPlugin.ComplexPlugin;
-var _StatisticalAggregationPlugin = __webpack_require__(225);
-exports.StatisticalAggregationPlugin = _StatisticalAggregationPlugin.StatisticalAggregationPlugin;
+var _FunctionPlugin = __webpack_require__(126);
+exports.FunctionPlugin = _FunctionPlugin.FunctionPlugin;
+exports.FunctionArgumentType = _FunctionPlugin.FunctionArgumentType;
+var _InterpreterValue = __webpack_require__(99);
+exports.EmptyValue = _InterpreterValue.EmptyValue;
 
 /***/ }),
 /* 178 */
@@ -24549,9 +24677,105 @@ exports.StatisticalAggregationPlugin = _StatisticalAggregationPlugin.Statistical
 
 
 exports.__esModule = true;
+exports.TrigonometryPlugin = exports.TextPlugin = exports.SumprodPlugin = exports.StatisticalPlugin = exports.StatisticalAggregationPlugin = exports.SqrtPlugin = exports.SimpleArithmerticPlugin = exports.RoundingPlugin = exports.RomanPlugin = exports.RandomPlugin = exports.RadixConversionPlugin = exports.RadiansPlugin = exports.PowerPlugin = exports.NumericAggregationPlugin = exports.ModuloPlugin = exports.MedianPlugin = exports.MatrixPlugin = exports.MathPlugin = exports.MathConstantsPlugin = exports.LookupPlugin = exports.LogarithmPlugin = exports.IsOddPlugin = exports.IsEvenPlugin = exports.InformationPlugin = exports.HyperlinkPlugin = exports.FormulaTextPlugin = exports.FinancialPlugin = exports.ExpPlugin = exports.DeltaPlugin = exports.DegreesPlugin = exports.DateTimePlugin = exports.CountUniquePlugin = exports.CountBlankPlugin = exports.ConditionalAggregationPlugin = exports.ComplexPlugin = exports.CodePlugin = exports.CharPlugin = exports.BooleanPlugin = exports.BitwiseLogicOperationsPlugin = exports.BitShiftPlugin = exports.ArrayPlugin = exports.AddressPlugin = exports.AbsPlugin = void 0;
+var _AddressPlugin = __webpack_require__(179);
+exports.AddressPlugin = _AddressPlugin.AddressPlugin;
+var _ArrayPlugin = __webpack_require__(180);
+exports.ArrayPlugin = _ArrayPlugin.ArrayPlugin;
+var _AbsPlugin = __webpack_require__(181);
+exports.AbsPlugin = _AbsPlugin.AbsPlugin;
+var _BitShiftPlugin = __webpack_require__(182);
+exports.BitShiftPlugin = _BitShiftPlugin.BitShiftPlugin;
+var _BitwiseLogicOperationsPlugin = __webpack_require__(183);
+exports.BitwiseLogicOperationsPlugin = _BitwiseLogicOperationsPlugin.BitwiseLogicOperationsPlugin;
+var _BooleanPlugin = __webpack_require__(184);
+exports.BooleanPlugin = _BooleanPlugin.BooleanPlugin;
+var _CharPlugin = __webpack_require__(185);
+exports.CharPlugin = _CharPlugin.CharPlugin;
+var _CodePlugin = __webpack_require__(186);
+exports.CodePlugin = _CodePlugin.CodePlugin;
+var _CountBlankPlugin = __webpack_require__(187);
+exports.CountBlankPlugin = _CountBlankPlugin.CountBlankPlugin;
+var _CountUniquePlugin = __webpack_require__(188);
+exports.CountUniquePlugin = _CountUniquePlugin.CountUniquePlugin;
+var _DateTimePlugin = __webpack_require__(189);
+exports.DateTimePlugin = _DateTimePlugin.DateTimePlugin;
+var _DegreesPlugin = __webpack_require__(190);
+exports.DegreesPlugin = _DegreesPlugin.DegreesPlugin;
+var _DeltaPlugin = __webpack_require__(191);
+exports.DeltaPlugin = _DeltaPlugin.DeltaPlugin;
+var _ExpPlugin = __webpack_require__(192);
+exports.ExpPlugin = _ExpPlugin.ExpPlugin;
+var _FinancialPlugin = __webpack_require__(193);
+exports.FinancialPlugin = _FinancialPlugin.FinancialPlugin;
+var _FormulaTextPlugin = __webpack_require__(194);
+exports.FormulaTextPlugin = _FormulaTextPlugin.FormulaTextPlugin;
+var _HyperlinkPlugin = __webpack_require__(195);
+exports.HyperlinkPlugin = _HyperlinkPlugin.HyperlinkPlugin;
+var _InformationPlugin = __webpack_require__(196);
+exports.InformationPlugin = _InformationPlugin.InformationPlugin;
+var _IsEvenPlugin = __webpack_require__(197);
+exports.IsEvenPlugin = _IsEvenPlugin.IsEvenPlugin;
+var _IsOddPlugin = __webpack_require__(198);
+exports.IsOddPlugin = _IsOddPlugin.IsOddPlugin;
+var _LogarithmPlugin = __webpack_require__(199);
+exports.LogarithmPlugin = _LogarithmPlugin.LogarithmPlugin;
+var _MathConstantsPlugin = __webpack_require__(200);
+exports.MathConstantsPlugin = _MathConstantsPlugin.MathConstantsPlugin;
+var _MatrixPlugin = __webpack_require__(201);
+exports.MatrixPlugin = _MatrixPlugin.MatrixPlugin;
+var _MedianPlugin = __webpack_require__(202);
+exports.MedianPlugin = _MedianPlugin.MedianPlugin;
+var _ModuloPlugin = __webpack_require__(203);
+exports.ModuloPlugin = _ModuloPlugin.ModuloPlugin;
+var _NumericAggregationPlugin = __webpack_require__(204);
+exports.NumericAggregationPlugin = _NumericAggregationPlugin.NumericAggregationPlugin;
+var _PowerPlugin = __webpack_require__(205);
+exports.PowerPlugin = _PowerPlugin.PowerPlugin;
+var _RadiansPlugin = __webpack_require__(206);
+exports.RadiansPlugin = _RadiansPlugin.RadiansPlugin;
+var _RadixConversionPlugin = __webpack_require__(207);
+exports.RadixConversionPlugin = _RadixConversionPlugin.RadixConversionPlugin;
+var _RandomPlugin = __webpack_require__(208);
+exports.RandomPlugin = _RandomPlugin.RandomPlugin;
+var _RoundingPlugin = __webpack_require__(209);
+exports.RoundingPlugin = _RoundingPlugin.RoundingPlugin;
+var _SqrtPlugin = __webpack_require__(210);
+exports.SqrtPlugin = _SqrtPlugin.SqrtPlugin;
+var _ConditionalAggregationPlugin = __webpack_require__(211);
+exports.ConditionalAggregationPlugin = _ConditionalAggregationPlugin.ConditionalAggregationPlugin;
+var _SumprodPlugin = __webpack_require__(214);
+exports.SumprodPlugin = _SumprodPlugin.SumprodPlugin;
+var _TextPlugin = __webpack_require__(215);
+exports.TextPlugin = _TextPlugin.TextPlugin;
+var _TrigonometryPlugin = __webpack_require__(216);
+exports.TrigonometryPlugin = _TrigonometryPlugin.TrigonometryPlugin;
+var _LookupPlugin = __webpack_require__(217);
+exports.LookupPlugin = _LookupPlugin.LookupPlugin;
+var _RomanPlugin = __webpack_require__(219);
+exports.RomanPlugin = _RomanPlugin.RomanPlugin;
+var _SimpleArithmertic = __webpack_require__(220);
+exports.SimpleArithmerticPlugin = _SimpleArithmertic.SimpleArithmerticPlugin;
+var _StatisticalPlugin = __webpack_require__(221);
+exports.StatisticalPlugin = _StatisticalPlugin.StatisticalPlugin;
+var _MathPlugin = __webpack_require__(224);
+exports.MathPlugin = _MathPlugin.MathPlugin;
+var _ComplexPlugin = __webpack_require__(225);
+exports.ComplexPlugin = _ComplexPlugin.ComplexPlugin;
+var _StatisticalAggregationPlugin = __webpack_require__(226);
+exports.StatisticalAggregationPlugin = _StatisticalAggregationPlugin.StatisticalAggregationPlugin;
+
+/***/ }),
+/* 179 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.AddressPlugin = void 0;
 var _addressRepresentationConverters = __webpack_require__(79);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 /**
@@ -24639,7 +24863,7 @@ AddressPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 179 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24652,10 +24876,10 @@ var _ArraySize = __webpack_require__(1);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(126);
-var _InterpreterState = __webpack_require__(124);
+var _ArithmeticHelper = __webpack_require__(127);
+var _InterpreterState = __webpack_require__(125);
 var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24802,7 +25026,7 @@ ArrayPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 180 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24810,7 +25034,7 @@ ArrayPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.AbsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24832,7 +25056,7 @@ AbsPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 181 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24842,7 +25066,7 @@ exports.__esModule = true;
 exports.BitShiftPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24907,7 +25131,7 @@ function validate(result) {
 }
 
 /***/ }),
-/* 182 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24915,7 +25139,7 @@ function validate(result) {
 
 exports.__esModule = true;
 exports.BitwiseLogicOperationsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24967,7 +25191,7 @@ BitwiseLogicOperationsPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 183 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24977,7 +25201,7 @@ exports.__esModule = true;
 exports.BooleanPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25230,7 +25454,7 @@ BooleanPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 184 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25240,7 +25464,7 @@ exports.__esModule = true;
 exports.CharPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25281,7 +25505,7 @@ CharPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 185 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25291,7 +25515,7 @@ exports.__esModule = true;
 exports.CodePlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25330,7 +25554,7 @@ CodePlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 186 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25339,7 +25563,7 @@ CodePlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.CountBlankPlugin = void 0;
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25374,7 +25598,7 @@ CountBlankPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 187 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25383,7 +25607,7 @@ CountBlankPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.CountUniquePlugin = void 0;
 var _Cell = __webpack_require__(74);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25429,7 +25653,7 @@ CountUniquePlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 188 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25439,11 +25663,11 @@ exports.__esModule = true;
 exports.DateTimePlugin = void 0;
 __webpack_require__(2);
 var _Cell = __webpack_require__(74);
-var _DateTimeHelper = __webpack_require__(133);
+var _DateTimeHelper = __webpack_require__(134);
 var _errorMessage = __webpack_require__(90);
-var _format = __webpack_require__(135);
+var _format = __webpack_require__(136);
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26196,7 +26420,7 @@ const weekdayOffsets = new Map([[1, 0], [2, 1], [11, 1], [12, 2], [13, 3], [14, 
 const workdayPatterns = new Map([[1, '0000011'], [2, '1000001'], [3, '1100000'], [4, '0110000'], [5, '0011000'], [6, '0001100'], [7, '0000110'], [11, '0000001'], [12, '1000000'], [13, '0100000'], [14, '0010000'], [15, '0001000'], [16, '0000100'], [17, '0000010']]);
 
 /***/ }),
-/* 189 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26204,7 +26428,7 @@ const workdayPatterns = new Map([[1, '0000011'], [2, '1000001'], [3, '1100000'],
 
 exports.__esModule = true;
 exports.DegreesPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26226,7 +26450,7 @@ DegreesPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 190 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26234,7 +26458,7 @@ DegreesPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.DeltaPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26259,7 +26483,7 @@ DeltaPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 191 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26267,7 +26491,7 @@ DeltaPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.ExpPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26297,7 +26521,7 @@ ExpPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 192 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26309,7 +26533,7 @@ __webpack_require__(2);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27145,7 +27369,7 @@ function npvCore(rate, args) {
 }
 
 /***/ }),
-/* 193 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27155,8 +27379,8 @@ exports.__esModule = true;
 exports.FormulaTextPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _index = __webpack_require__(176);
-var _FunctionPlugin = __webpack_require__(125);
+var _index = __webpack_require__(177);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27192,7 +27416,7 @@ FormulaTextPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 194 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27200,7 +27424,7 @@ FormulaTextPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.HyperlinkPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27228,7 +27452,7 @@ HyperlinkPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 195 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27242,7 +27466,7 @@ var _errorMessage = __webpack_require__(90);
 var _parser = __webpack_require__(78);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27680,7 +27904,7 @@ InformationPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 196 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27688,7 +27912,7 @@ InformationPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.IsEvenPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27710,7 +27934,7 @@ IsEvenPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 197 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27718,7 +27942,7 @@ IsEvenPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.IsOddPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27740,7 +27964,7 @@ IsOddPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 198 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27748,7 +27972,7 @@ IsOddPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.LogarithmPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27793,7 +28017,7 @@ LogarithmPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 199 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27801,7 +28025,7 @@ LogarithmPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.PI = exports.MathConstantsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27833,7 +28057,7 @@ MathConstantsPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 200 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27846,9 +28070,9 @@ var _ArraySize = __webpack_require__(1);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _parser = __webpack_require__(78);
-var _InterpreterState = __webpack_require__(124);
+var _InterpreterState = __webpack_require__(125);
 var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28100,7 +28324,7 @@ MatrixPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 201 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28110,7 +28334,7 @@ exports.__esModule = true;
 exports.MedianPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28204,7 +28428,7 @@ MedianPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 202 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28213,7 +28437,7 @@ MedianPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.ModuloPlugin = void 0;
 var _Cell = __webpack_require__(74);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28243,7 +28467,7 @@ ModuloPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 203 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28257,10 +28481,10 @@ var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _errors = __webpack_require__(106);
 var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(126);
+var _ArithmeticHelper = __webpack_require__(127);
 var _InterpreterValue = __webpack_require__(99);
 var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28877,7 +29101,7 @@ function numbersBooleans(arg) {
 }
 
 /***/ }),
-/* 204 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28885,7 +29109,7 @@ function numbersBooleans(arg) {
 
 exports.__esModule = true;
 exports.PowerPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28909,7 +29133,7 @@ PowerPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 205 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28917,7 +29141,7 @@ PowerPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.RadiansPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28939,7 +29163,7 @@ RadiansPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 206 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28949,8 +29173,8 @@ exports.__esModule = true;
 exports.RadixConversionPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _format = __webpack_require__(135);
-var _FunctionPlugin = __webpack_require__(125);
+var _format = __webpack_require__(136);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29260,7 +29484,7 @@ function twoComplementToDecimal(value, base) {
 }
 
 /***/ }),
-/* 207 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29270,7 +29494,7 @@ exports.__esModule = true;
 exports.RandomPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29322,7 +29546,7 @@ RandomPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 208 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29334,7 +29558,7 @@ exports.findNextEvenNumber = findNextEvenNumber;
 exports.findNextOddNumber = findNextOddNumber;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29589,7 +29813,7 @@ RoundingPlugin.aliases = {
 };
 
 /***/ }),
-/* 209 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29597,7 +29821,7 @@ RoundingPlugin.aliases = {
 
 exports.__esModule = true;
 exports.SqrtPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29619,7 +29843,7 @@ SqrtPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 210 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29630,9 +29854,9 @@ exports.ConditionalAggregationPlugin = void 0;
 __webpack_require__(2);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _CriterionFunctionCompute = __webpack_require__(211);
+var _CriterionFunctionCompute = __webpack_require__(212);
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29854,7 +30078,7 @@ ConditionalAggregationPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 211 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29865,7 +30089,7 @@ exports.CriterionFunctionCompute = exports.Condition = void 0;
 __webpack_require__(2);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _generatorUtils = __webpack_require__(212);
+var _generatorUtils = __webpack_require__(213);
 var _InterpreterValue = __webpack_require__(99);
 /**
  * @license
@@ -30011,7 +30235,7 @@ function zip(arr1, arr2) {
 }
 
 /***/ }),
-/* 212 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30056,7 +30280,7 @@ function first(iterable) {
 }
 
 /***/ }),
-/* 213 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30067,7 +30291,7 @@ exports.SumprodPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30117,7 +30341,7 @@ SumprodPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 214 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30127,7 +30351,7 @@ exports.__esModule = true;
 exports.TextPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30454,7 +30678,7 @@ TextPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 215 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30464,8 +30688,8 @@ exports.__esModule = true;
 exports.TrigonometryPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
-var _MathConstantsPlugin = __webpack_require__(199);
+var _FunctionPlugin = __webpack_require__(126);
+var _MathConstantsPlugin = __webpack_require__(200);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30685,7 +30909,7 @@ TrigonometryPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 216 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30696,11 +30920,11 @@ exports.LookupPlugin = void 0;
 var _AbsoluteCellRange = __webpack_require__(73);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _RowSearchStrategy = __webpack_require__(217);
+var _RowSearchStrategy = __webpack_require__(218);
 var _statistics = __webpack_require__(101);
-var _ArithmeticHelper = __webpack_require__(126);
+var _ArithmeticHelper = __webpack_require__(127);
 var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30884,7 +31108,7 @@ LookupPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 217 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30892,7 +31116,7 @@ LookupPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.RowSearchStrategy = void 0;
-var _AdvancedFind = __webpack_require__(167);
+var _AdvancedFind = __webpack_require__(168);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30913,7 +31137,7 @@ class RowSearchStrategy extends _AdvancedFind.AdvancedFind {
 exports.RowSearchStrategy = RowSearchStrategy;
 
 /***/ }),
-/* 218 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30924,7 +31148,7 @@ exports.RomanPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -31168,7 +31392,7 @@ function absorb(valAcc, token, lower, upper) {
 }
 
 /***/ }),
-/* 219 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31176,7 +31400,7 @@ function absorb(valAcc, token, lower, upper) {
 
 exports.__esModule = true;
 exports.SimpleArithmerticPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -31375,7 +31599,7 @@ SimpleArithmerticPlugin.implementedFunctions = {
 };
 
 /***/ }),
-/* 220 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31385,9 +31609,9 @@ exports.__esModule = true;
 exports.StatisticalPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _bessel = __webpack_require__(221);
-var _jstat = __webpack_require__(222);
-var _FunctionPlugin = __webpack_require__(125);
+var _bessel = __webpack_require__(222);
+var _jstat = __webpack_require__(223);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -32260,7 +32484,7 @@ StatisticalPlugin.aliases = {
 };
 
 /***/ }),
-/* 221 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32771,7 +32995,7 @@ var besselk = function () {
 exports.besselk = besselk;
 
 /***/ }),
-/* 222 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33639,7 +33863,7 @@ function corrcoeff(arr1, arr2) {
 }
 
 /***/ }),
-/* 223 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33649,7 +33873,7 @@ exports.__esModule = true;
 exports.MathPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(125);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -34025,7 +34249,7 @@ function binaryLCM(a, b) {
 }
 
 /***/ }),
-/* 224 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34035,8 +34259,8 @@ exports.__esModule = true;
 exports.ComplexPlugin = void 0;
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
-var _ArithmeticHelper = __webpack_require__(126);
-var _FunctionPlugin = __webpack_require__(125);
+var _ArithmeticHelper = __webpack_require__(127);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -34373,7 +34597,7 @@ function power(arg, n) {
 }
 
 /***/ }),
-/* 225 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34385,8 +34609,8 @@ __webpack_require__(2);
 var _Cell = __webpack_require__(74);
 var _errorMessage = __webpack_require__(90);
 var _InterpreterValue = __webpack_require__(99);
-var _jstat = __webpack_require__(222);
-var _FunctionPlugin = __webpack_require__(125);
+var _jstat = __webpack_require__(223);
+var _FunctionPlugin = __webpack_require__(126);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.

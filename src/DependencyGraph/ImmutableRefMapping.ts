@@ -4,25 +4,24 @@
  */
 
 import {addressKey, SimpleCellAddress} from '../Cell'
-import {AddressMapping} from './AddressMapping/AddressMapping'
 import {SimpleColumnAddress as SimpleColAddress, SimpleRowAddress} from '../Cell'
 
 export interface ImmutableIdMapping {
-  getRowId(address: SimpleRowAddress): string,
-  getColId(address: SimpleColAddress): string,
-  getCellId(address: SimpleCellAddress): string,
+  getRowId(address: SimpleRowAddress): string | undefined,
+  getColId(address: SimpleColAddress): string | undefined,
+  getCellId(address: SimpleCellAddress): string | undefined,
 }
 
 export interface ImmutableReferenceMapping {
-  getRowIndex(id: string): { sheet: number, index: number },
-  getColIndex(id: string): { sheet: number, index: number },
-  getCellAddress(id: string): SimpleCellAddress,
+  getRowIndex(id: string): { sheet: number, index: number } | undefined,
+  getColIndex(id: string): { sheet: number, index: number } | undefined,
+  getCellAddress(id: string): SimpleCellAddress | undefined,
 }
 
 /**
  * Basic implementation of a ImmutableReferenceMapping.
  */
-export class ImmutableReferenceMapping implements ImmutableReferenceMapping {
+export class ImmutableReferenceMappingTestImpl implements ImmutableReferenceMapping {
 
   cols: Map<string, { id: string, order: string, sheet: number }> = new Map()
   rows: Map<string, { id: string, order: string, sheet: number }> = new Map()
@@ -93,7 +92,7 @@ export class ImmutableReferenceMapping implements ImmutableReferenceMapping {
 /**
  * Basic implementation of a ImmutableIdMapping.
  */
-export class ImmutableIdMapping extends ImmutableReferenceMapping implements ImmutableIdMapping {
+export class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImpl implements ImmutableIdMapping {
 
   cellsToId: Map<string, string> = new Map()
 

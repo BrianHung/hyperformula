@@ -7,10 +7,10 @@ import { EmptyValue } from '../../interpreter/InterpreterValue';
 import { ArrayVertex, ValueCellVertex } from '../index';
 import { AddressMapping } from '../index';
 export class ImmutableAddressMapping extends AddressMapping {
-  constructor(policy, immutableReferenceMapping) {
+  constructor(policy, immutableMapping) {
     super(policy);
     this.policy = policy;
-    this.immutableReferenceMapping = immutableReferenceMapping;
+    this.immutableMapping = immutableMapping;
   }
   getCellId(address) {
     return this.getCell(address).id;
@@ -23,10 +23,10 @@ export class ImmutableAddressMapping extends AddressMapping {
     if (vertex) vertex.id = id;
   }
   getColId(address) {
-    return this.immutableReferenceMapping.getColId(address);
+    return this.immutableMapping.getColId(address);
   }
   getRowId(address) {
-    return this.immutableReferenceMapping.getRowId(address);
+    return this.immutableMapping.getRowId(address);
   }
   /** @inheritDoc */
   getCell(address) {
@@ -96,7 +96,7 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw Error('Sheet not initialized');
     }
     // PERF: Optimize this using LazilyTransformingAstService version
-    if (newVertex.id === undefined) newVertex.id = this.immutableReferenceMapping.getCellId(address);
+    if (newVertex.id === undefined) newVertex.id = this.immutableMapping.getCellId(address);
     sheetMapping.setCell(address, newVertex);
   }
   moveCell(source, destination) {

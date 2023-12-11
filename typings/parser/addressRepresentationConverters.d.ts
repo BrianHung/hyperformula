@@ -28,7 +28,7 @@ export declare const cellAddressFromString: (sheetMapping: SheetMappingFn, strin
  * @param baseAddress
  * @returns
  */
-export declare const cellAddressFromImmutableReference: (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress) => CellAddress | undefined;
+export declare const cellAddressFromImmutableReference: (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress) => Maybe<CellAddress>;
 export declare const columnAddressFromString: (sheetMapping: SheetMappingFn, stringAddress: string, baseAddress: SimpleCellAddress) => Maybe<ColumnAddress>;
 export declare const colAddressFromImmutableReference: (immutableReferenceMapping: ImmutableReferenceMapping, stringAddress: string, baseAddress: SimpleCellAddress) => Maybe<ColumnAddress>;
 export declare const rowAddressFromString: (sheetMapping: SheetMappingFn, stringAddress: string, baseAddress: SimpleCellAddress) => Maybe<RowAddress>;

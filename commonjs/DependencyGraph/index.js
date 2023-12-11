@@ -1,11 +1,13 @@
 "use strict";
 
 exports.__esModule = true;
-exports.ValueCellVertex = exports.TopSort = exports.SparseStrategy = exports.SheetMapping = exports.RangeVertex = exports.RangeMapping = exports.ParsingErrorVertex = exports.Graph = exports.FormulaCellVertex = exports.EmptyCellVertex = exports.DependencyGraph = exports.DenseStrategy = exports.ArrayVertex = exports.ArrayMapping = exports.AddressMapping = void 0;
+exports.ValueCellVertex = exports.TopSort = exports.SparseStrategy = exports.SheetMapping = exports.RangeVertex = exports.RangeMapping = exports.ParsingErrorVertex = exports.ImmutableAddressMapping = exports.Graph = exports.FormulaCellVertex = exports.EmptyCellVertex = exports.DependencyGraph = exports.DenseStrategy = exports.ArrayVertex = exports.ArrayMapping = exports.AddressMapping = void 0;
 var _DependencyGraph = require("./DependencyGraph");
 exports.DependencyGraph = _DependencyGraph.DependencyGraph;
 var _AddressMapping = require("./AddressMapping/AddressMapping");
 exports.AddressMapping = _AddressMapping.AddressMapping;
+var _ImmutableAddressMapping = require("./AddressMapping/ImmutableAddressMapping");
+exports.ImmutableAddressMapping = _ImmutableAddressMapping.ImmutableAddressMapping;
 var _Graph = require("./Graph");
 exports.Graph = _Graph.Graph;
 var _TopSort = require("./TopSort");
