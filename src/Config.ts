@@ -13,7 +13,7 @@ import {
 import {TranslatableErrorType} from './Cell'
 import {defaultParseToDateTime} from './DateTimeDefault'
 import {DateTime, instanceOfSimpleDate, SimpleDate, SimpleDateTime, SimpleTime} from './DateTimeHelper'
-import { AddressMapping } from './DependencyGraph'
+import { AddressMapping, RangeMapping } from './DependencyGraph'
 import {AlwaysDense, ChooseAddressMapping} from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy'
 import {ConfigValueEmpty, ExpectedValueOfTypeError} from './errors'
 import {defaultStringifyDateTime, defaultStringifyDuration} from './format/format'
@@ -354,6 +354,7 @@ export interface ConfigParams {
    *
    * @category Date and Time
    */
+  rangeMapping?: RangeMapping,
   stringifyDateTime: (dateTime: SimpleDateTime, dateTimeFormat: string) => Maybe<string>,
   /**
    * Sets a function that converts time duration values into strings.
@@ -539,6 +540,7 @@ export class Config implements ConfigParams, ParserConfig {
   public readonly chooseAddressMappingPolicy: ChooseAddressMapping
   /** @inheritDoc */
   public readonly accentSensitive: boolean
+  /** @inheritDoc */
   public readonly addressMapping?: AddressMapping | undefined
   /** @inheritDoc */
   public readonly caseFirst: 'upper' | 'lower' | 'false'
@@ -577,6 +579,8 @@ export class Config implements ConfigParams, ParserConfig {
   public readonly nullYear: number
   /** @inheritDoc */
   public readonly parseDateTime: (dateTimeString: string, dateFormat?: string, timeFormat?: string) => Maybe<DateTime>
+  /** @inheritDoc */
+  public readonly rangeMapping?: RangeMapping | undefined
   /** @inheritDoc */
   public readonly stringifyDateTime: (date: SimpleDateTime, formatArg: string) => Maybe<string>
   /** @inheritDoc */
@@ -649,6 +653,7 @@ export class Config implements ConfigParams, ParserConfig {
       parseDateTime,
       precisionEpsilon,
       precisionRounding,
+      rangeMapping,
       stringifyDateTime,
       stringifyDuration,
       smartRounding,
@@ -669,6 +674,7 @@ export class Config implements ConfigParams, ParserConfig {
     this.useArrayArithmetic = configValueFromParam(useArrayArithmetic, 'boolean', 'useArrayArithmetic')
     this.accentSensitive = configValueFromParam(accentSensitive, 'boolean', 'accentSensitive')
     this.addressMapping = addressMapping
+    this.rangeMapping = rangeMapping
     this.caseSensitive = configValueFromParam(caseSensitive, 'boolean', 'caseSensitive')
     this.caseFirst = configValueFromParam(caseFirst, ['upper', 'lower', 'false'], 'caseFirst')
     this.ignorePunctuation = configValueFromParam(ignorePunctuation, 'boolean', 'ignorePunctuation')

@@ -115,8 +115,8 @@ export class DependencyGraph {
    * - empty cell has associated EmptyCellVertex if and only if it is a dependency (possibly indirect, through range) to some formula
    */
   static buildEmpty(lazilyTransformingAstService, config, functionRegistry, namedExpressions, stats) {
-    var _a;
-    return new DependencyGraph((_a = config.addressMapping) !== null && _a !== void 0 ? _a : new AddressMapping(config.chooseAddressMappingPolicy), new RangeMapping(), new SheetMapping(config.translationPackage), new ArrayMapping(), stats, lazilyTransformingAstService, functionRegistry, namedExpressions);
+    var _a, _b;
+    return new DependencyGraph((_a = config.addressMapping) !== null && _a !== void 0 ? _a : new AddressMapping(config.chooseAddressMappingPolicy), (_b = config.rangeMapping) !== null && _b !== void 0 ? _b : new RangeMapping(), new SheetMapping(config.translationPackage), new ArrayMapping(), stats, lazilyTransformingAstService, functionRegistry, namedExpressions);
   }
   setFormulaToCell(address, ast, dependencies, size, hasVolatileFunction, hasStructuralChangeFunction) {
     const newVertex = FormulaVertex.fromAst(ast, address, size, this.lazilyTransformingAstService.version());

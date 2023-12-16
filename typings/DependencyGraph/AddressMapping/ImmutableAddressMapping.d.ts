@@ -18,14 +18,12 @@ export declare class ImmutableAddressMapping extends AddressMapping {
     readonly immutableMapping: ImmutableIdMapping;
     constructor(policy: ChooseAddressMapping, immutableMapping: ImmutableIdMapping);
     getCellId(address: SimpleCellAddress): any;
-    hasCellId(address: SimpleCellAddress): boolean;
     setCellId(address: SimpleCellAddress, id: string): void;
     getColId(address: SimpleColAddress): string | undefined;
     getRowId(address: SimpleRowAddress): string | undefined;
     /** @inheritDoc */
     getCell(address: SimpleCellAddress): Maybe<CellVertex>;
     fetchCell(address: SimpleCellAddress): CellVertex;
-    strategyFor(sheetId: number): AddressMappingStrategy;
     addSheet(sheetId: number, strategy: AddressMappingStrategy): void;
     autoAddSheet(sheetId: number, sheetBoundaries: SheetBoundaries): void;
     getCellValue(address: SimpleCellAddress): InterpreterValue;
@@ -45,10 +43,4 @@ export declare class ImmutableAddressMapping extends AddressMapping {
     removeSheet(sheetId: number): void;
     addColumns(sheet: number, column: number, numberOfColumns: number): void;
     removeColumns(removedColumns: ColumnsSpan): void;
-    verticesFromRowsSpan(rowsSpan: RowsSpan): IterableIterator<CellVertex>;
-    verticesFromColumnsSpan(columnsSpan: ColumnsSpan): IterableIterator<CellVertex>;
-    entriesFromRowsSpan(rowsSpan: RowsSpan): IterableIterator<[SimpleCellAddress, CellVertex]>;
-    entriesFromColumnsSpan(columnsSpan: ColumnsSpan): IterableIterator<[SimpleCellAddress, CellVertex]>;
-    entries(): IterableIterator<[SimpleCellAddress, Maybe<CellVertex>]>;
-    sheetEntries(sheet: number): IterableIterator<[SimpleCellAddress, CellVertex]>;
 }

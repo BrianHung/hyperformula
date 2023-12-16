@@ -30,10 +30,6 @@ export class ImmutableAddressMapping extends AddressMapping {
     return (this.getCell(address) as any).id
   }
 
-  public hasCellId(address: SimpleCellAddress) {
-    return (this.getCell(address) as any).id !== undefined
-  }
-
   setCellId(address: SimpleCellAddress, id: string) {
     const vertex = this.getCell(address)
     if (vertex) (vertex as any).id = id
@@ -66,15 +62,6 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw Error('Vertex for address missing in AddressMapping')
     }
     return vertex
-  }
-
-  public strategyFor(sheetId: number): AddressMappingStrategy {
-    const strategy = this.mapping.get(sheetId)
-    if (strategy === undefined) {
-      throw new NoSheetWithIdError(sheetId)
-    }
-
-    return strategy
   }
 
   public addSheet(sheetId: number, strategy: AddressMappingStrategy) {
@@ -213,36 +200,5 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw new NoSheetWithIdError(removedColumns.sheet)
     }
     sheetMapping.removeColumns(removedColumns)
-  }
-
-  public* verticesFromRowsSpan(rowsSpan: RowsSpan): IterableIterator<CellVertex> {
-    yield* this.mapping.get(rowsSpan.sheet)!.verticesFromRowsSpan(rowsSpan) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  public* verticesFromColumnsSpan(columnsSpan: ColumnsSpan): IterableIterator<CellVertex> {
-    yield* this.mapping.get(columnsSpan.sheet)!.verticesFromColumnsSpan(columnsSpan) // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  public* entriesFromRowsSpan(rowsSpan: RowsSpan): IterableIterator<[SimpleCellAddress, CellVertex]> {
-    yield* this.mapping.get(rowsSpan.sheet)!.entriesFromRowsSpan(rowsSpan)
-  }
-
-  public* entriesFromColumnsSpan(columnsSpan: ColumnsSpan): IterableIterator<[SimpleCellAddress, CellVertex]> {
-    yield* this.mapping.get(columnsSpan.sheet)!.entriesFromColumnsSpan(columnsSpan)
-  }
-
-  public* entries(): IterableIterator<[SimpleCellAddress, Maybe<CellVertex>]> {
-    for (const [sheet, mapping] of this.mapping.entries()) {
-      yield* mapping.getEntries(sheet)
-    }
-  }
-
-  public* sheetEntries(sheet: number): IterableIterator<[SimpleCellAddress, CellVertex]> {
-    const sheetMapping = this.mapping.get(sheet)
-    if (sheetMapping !== undefined) {
-      yield* sheetMapping.getEntries(sheet)
-    } else {
-      throw new NoSheetWithIdError(sheet)
-    }
   }
 }

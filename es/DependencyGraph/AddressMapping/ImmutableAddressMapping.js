@@ -15,9 +15,6 @@ export class ImmutableAddressMapping extends AddressMapping {
   getCellId(address) {
     return this.getCell(address).id;
   }
-  hasCellId(address) {
-    return this.getCell(address).id !== undefined;
-  }
   setCellId(address, id) {
     const vertex = this.getCell(address);
     if (vertex) vertex.id = id;
@@ -46,13 +43,6 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw Error('Vertex for address missing in AddressMapping');
     }
     return vertex;
-  }
-  strategyFor(sheetId) {
-    const strategy = this.mapping.get(sheetId);
-    if (strategy === undefined) {
-      throw new NoSheetWithIdError(sheetId);
-    }
-    return strategy;
   }
   addSheet(sheetId, strategy) {
     if (this.mapping.has(sheetId)) {
@@ -178,32 +168,5 @@ export class ImmutableAddressMapping extends AddressMapping {
       throw new NoSheetWithIdError(removedColumns.sheet);
     }
     sheetMapping.removeColumns(removedColumns);
-  }
-  *verticesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).verticesFromRowsSpan(rowsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *verticesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).verticesFromColumnsSpan(columnsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *entriesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).entriesFromRowsSpan(rowsSpan);
-  }
-  *entriesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).entriesFromColumnsSpan(columnsSpan);
-  }
-  *entries() {
-    for (const [sheet, mapping] of this.mapping.entries()) {
-      yield* mapping.getEntries(sheet);
-    }
-  }
-  *sheetEntries(sheet) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping !== undefined) {
-      yield* sheetMapping.getEntries(sheet);
-    } else {
-      throw new NoSheetWithIdError(sheet);
-    }
   }
 }

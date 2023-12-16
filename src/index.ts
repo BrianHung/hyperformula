@@ -19,6 +19,8 @@ import {
   ImmutableAddressMapping,
   ImmutableIdMapping,
   ImmutableReferenceMapping,
+  AddressMapping,
+  RangeMapping,
 } from './DependencyGraph'
 import {
   ConfigValueTooBigError,
@@ -191,4 +193,6 @@ export {
   ImmutableAddressMapping,
   ImmutableIdMapping,
   ImmutableReferenceMapping,
+  AddressMapping,
+  RangeMapping,
 }

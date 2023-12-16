@@ -675,7 +675,7 @@
  * <https://www.gnu.org/licenses/why-not-lgpl.html>.
  * 
  * Version: 2.6.0
- * Release date: 19/09/2023 (built at 11/12/2023 11:55:31)
+ * Release date: 19/09/2023 (built at 15/12/2023 16:17:14)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -799,6 +799,8 @@ exports.AlwaysSparse = _ChooseAddressMappingPolicy.AlwaysSparse;
 exports.DenseSparseChooseBasedOnThreshold = _ChooseAddressMappingPolicy.DenseSparseChooseBasedOnThreshold;
 var _DependencyGraph = __webpack_require__(75);
 exports.ImmutableAddressMapping = _DependencyGraph.ImmutableAddressMapping;
+exports.AddressMapping = _DependencyGraph.AddressMapping;
+exports.RangeMapping = _DependencyGraph.RangeMapping;
 var _errors = __webpack_require__(106);
 exports.ConfigValueTooBigError = _errors.ConfigValueTooBigError;
 exports.ConfigValueTooSmallError = _errors.ConfigValueTooSmallError;
@@ -3482,8 +3484,8 @@ class DependencyGraph {
    * - empty cell has associated EmptyCellVertex if and only if it is a dependency (possibly indirect, through range) to some formula
    */
   static buildEmpty(lazilyTransformingAstService, config, functionRegistry, namedExpressions, stats) {
-    var _a;
-    return new DependencyGraph((_a = config.addressMapping) !== null && _a !== void 0 ? _a : new _AddressMapping.AddressMapping(config.chooseAddressMappingPolicy), new _RangeMapping.RangeMapping(), new _SheetMapping.SheetMapping(config.translationPackage), new _ArrayMapping.ArrayMapping(), stats, lazilyTransformingAstService, functionRegistry, namedExpressions);
+    var _a, _b;
+    return new DependencyGraph((_a = config.addressMapping) !== null && _a !== void 0 ? _a : new _AddressMapping.AddressMapping(config.chooseAddressMappingPolicy), (_b = config.rangeMapping) !== null && _b !== void 0 ? _b : new _RangeMapping.RangeMapping(), new _SheetMapping.SheetMapping(config.translationPackage), new _ArrayMapping.ArrayMapping(), stats, lazilyTransformingAstService, functionRegistry, namedExpressions);
   }
   setFormulaToCell(address, ast, dependencies, size, hasVolatileFunction, hasStructuralChangeFunction) {
     const newVertex = _FormulaCellVertex.FormulaVertex.fromAst(ast, address, size, this.lazilyTransformingAstService.version());
@@ -10793,9 +10795,6 @@ class ImmutableAddressMapping extends _index.AddressMapping {
   getCellId(address) {
     return this.getCell(address).id;
   }
-  hasCellId(address) {
-    return this.getCell(address).id !== undefined;
-  }
   setCellId(address, id) {
     const vertex = this.getCell(address);
     if (vertex) vertex.id = id;
@@ -10824,13 +10823,6 @@ class ImmutableAddressMapping extends _index.AddressMapping {
       throw Error('Vertex for address missing in AddressMapping');
     }
     return vertex;
-  }
-  strategyFor(sheetId) {
-    const strategy = this.mapping.get(sheetId);
-    if (strategy === undefined) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return strategy;
   }
   addSheet(sheetId, strategy) {
     if (this.mapping.has(sheetId)) {
@@ -10956,33 +10948,6 @@ class ImmutableAddressMapping extends _index.AddressMapping {
       throw new _errors.NoSheetWithIdError(removedColumns.sheet);
     }
     sheetMapping.removeColumns(removedColumns);
-  }
-  *verticesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).verticesFromRowsSpan(rowsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *verticesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).verticesFromColumnsSpan(columnsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *entriesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).entriesFromRowsSpan(rowsSpan);
-  }
-  *entriesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).entriesFromColumnsSpan(columnsSpan);
-  }
-  *entries() {
-    for (const [sheet, mapping] of this.mapping.entries()) {
-      yield* mapping.getEntries(sheet);
-    }
-  }
-  *sheetEntries(sheet) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping !== undefined) {
-      yield* sheetMapping.getEntries(sheet);
-    } else {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
   }
 }
 exports.ImmutableAddressMapping = ImmutableAddressMapping;
@@ -12737,6 +12702,7 @@ class Config {
       parseDateTime,
       precisionEpsilon,
       precisionRounding,
+      rangeMapping,
       stringifyDateTime,
       stringifyDuration,
       smartRounding,
@@ -12755,6 +12721,7 @@ class Config {
     this.useArrayArithmetic = (0, _ArgumentSanitization.configValueFromParam)(useArrayArithmetic, 'boolean', 'useArrayArithmetic');
     this.accentSensitive = (0, _ArgumentSanitization.configValueFromParam)(accentSensitive, 'boolean', 'accentSensitive');
     this.addressMapping = addressMapping;
+    this.rangeMapping = rangeMapping;
     this.caseSensitive = (0, _ArgumentSanitization.configValueFromParam)(caseSensitive, 'boolean', 'caseSensitive');
     this.caseFirst = (0, _ArgumentSanitization.configValueFromParam)(caseFirst, ['upper', 'lower', 'false'], 'caseFirst');
     this.ignorePunctuation = (0, _ArgumentSanitization.configValueFromParam)(ignorePunctuation, 'boolean', 'ignorePunctuation');
@@ -18272,7 +18239,7 @@ HyperFormula.version = "2.6.0";
  *
  * @category Static Properties
  */
-HyperFormula.buildDate = "11/12/2023 11:55:31";
+HyperFormula.buildDate = "15/12/2023 16:17:14";
 /**
  * A release date.
  *

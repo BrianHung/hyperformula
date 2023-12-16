@@ -48,6 +48,7 @@ class Config {
       parseDateTime,
       precisionEpsilon,
       precisionRounding,
+      rangeMapping,
       stringifyDateTime,
       stringifyDuration,
       smartRounding,
@@ -66,6 +67,7 @@ class Config {
     this.useArrayArithmetic = (0, _ArgumentSanitization.configValueFromParam)(useArrayArithmetic, 'boolean', 'useArrayArithmetic');
     this.accentSensitive = (0, _ArgumentSanitization.configValueFromParam)(accentSensitive, 'boolean', 'accentSensitive');
     this.addressMapping = addressMapping;
+    this.rangeMapping = rangeMapping;
     this.caseSensitive = (0, _ArgumentSanitization.configValueFromParam)(caseSensitive, 'boolean', 'caseSensitive');
     this.caseFirst = (0, _ArgumentSanitization.configValueFromParam)(caseFirst, ['upper', 'lower', 'false'], 'caseFirst');
     this.ignorePunctuation = (0, _ArgumentSanitization.configValueFromParam)(ignorePunctuation, 'boolean', 'ignorePunctuation');

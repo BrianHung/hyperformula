@@ -4,7 +4,7 @@
  */
 import { TranslatableErrorType } from './Cell';
 import { DateTime, SimpleDate, SimpleDateTime, SimpleTime } from './DateTimeHelper';
-import { AddressMapping } from './DependencyGraph';
+import { AddressMapping, RangeMapping } from './DependencyGraph';
 import { ChooseAddressMapping } from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy';
 import { LicenseKeyValidityState } from './helpers/licenseKeyValidator';
 import { TranslationPackage } from './i18n';
@@ -338,6 +338,7 @@ export interface ConfigParams {
      *
      * @category Date and Time
      */
+    rangeMapping?: RangeMapping;
     stringifyDateTime: (dateTime: SimpleDateTime, dateTimeFormat: string) => Maybe<string>;
     /**
      * Sets a function that converts time duration values into strings.
@@ -480,6 +481,7 @@ export declare class Config implements ConfigParams, ParserConfig {
     readonly chooseAddressMappingPolicy: ChooseAddressMapping;
     /** @inheritDoc */
     readonly accentSensitive: boolean;
+    /** @inheritDoc */
     readonly addressMapping?: AddressMapping | undefined;
     /** @inheritDoc */
     readonly caseFirst: 'upper' | 'lower' | 'false';
@@ -517,6 +519,8 @@ export declare class Config implements ConfigParams, ParserConfig {
     readonly nullYear: number;
     /** @inheritDoc */
     readonly parseDateTime: (dateTimeString: string, dateFormat?: string, timeFormat?: string) => Maybe<DateTime>;
+    /** @inheritDoc */
+    readonly rangeMapping?: RangeMapping | undefined;
     /** @inheritDoc */
     readonly stringifyDateTime: (date: SimpleDateTime, formatArg: string) => Maybe<string>;
     /** @inheritDoc */
