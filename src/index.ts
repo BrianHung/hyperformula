@@ -3,9 +3,9 @@
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
 
-import {SimpleCellRange} from './AbsoluteCellRange'
+import {SimpleCellRange, AbsoluteCellRange, AbsoluteColumnRange, AbsoluteRowRange} from './AbsoluteCellRange'
 import {ArraySize} from './ArraySize'
-import {CellError, CellType, CellValueDetailedType, CellValueType, ErrorType, SimpleCellAddress} from './Cell'
+import {CellError, CellType, CellValueDetailedType, CellValueType, ErrorType, SimpleCellAddress, SimpleColumnAddress, SimpleRowAddress} from './Cell'
 import {RawCellContent} from './CellContentParser'
 import {CellValue, DetailedCellError, NoErrorCellValue} from './CellValue'
 import {Config, ConfigParams} from './Config'
@@ -13,7 +13,8 @@ import {ColumnRowIndex} from './CrudOperations'
 import {
   AlwaysDense,
   AlwaysSparse,
-  DenseSparseChooseBasedOnThreshold
+  DenseSparseChooseBasedOnThreshold,
+  ChooseAddressMapping,
 } from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy'
 import {
   ImmutableAddressMapping,
@@ -21,6 +22,8 @@ import {
   ImmutableReferenceMapping,
   AddressMapping,
   RangeMapping,
+  RangeVertex,
+  CellVertex,
 } from './DependencyGraph'
 import {
   ConfigValueTooBigError,
@@ -194,5 +197,13 @@ export {
   ImmutableIdMapping,
   ImmutableReferenceMapping,
   AddressMapping,
+  ChooseAddressMapping,
   RangeMapping,
+  SimpleColumnAddress,
+  SimpleRowAddress,
+  AbsoluteCellRange,
+  AbsoluteColumnRange,
+  AbsoluteRowRange,
+  RangeVertex,
+  CellVertex,
 }
