@@ -675,7 +675,7 @@
  * <https://www.gnu.org/licenses/why-not-lgpl.html>.
  * 
  * Version: 2.6.0
- * Release date: 19/09/2023 (built at 15/12/2023 16:17:14)
+ * Release date: 19/09/2023 (built at 18/12/2023 00:59:59)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -686,7 +686,7 @@
 		exports["HyperFormula"] = factory(require("chevrotain"), require("unorm"), require("tiny-emitter"));
 	else
 		root["HyperFormula"] = factory(root["chevrotain"], root["unorm"], root["TinyEmitter"]);
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__85__, __WEBPACK_EXTERNAL_MODULE__128__, __WEBPACK_EXTERNAL_MODULE__175__) {
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__84__, __WEBPACK_EXTERNAL_MODULE__102__, __WEBPACK_EXTERNAL_MODULE__175__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -782,9 +782,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 exports.__esModule = true;
 exports.default = void 0;
-var _ArraySize = __webpack_require__(1);
+var _AbsoluteCellRange = __webpack_require__(1);
+exports.AbsoluteCellRange = _AbsoluteCellRange.AbsoluteCellRange;
+exports.AbsoluteColumnRange = _AbsoluteCellRange.AbsoluteColumnRange;
+exports.AbsoluteRowRange = _AbsoluteCellRange.AbsoluteRowRange;
+var _ArraySize = __webpack_require__(98);
 exports.ArraySize = _ArraySize.ArraySize;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 exports.CellError = _Cell.CellError;
 exports.CellType = _Cell.CellType;
 exports.CellValueDetailedType = _Cell.CellValueDetailedType;
@@ -797,11 +801,12 @@ var _ChooseAddressMappingPolicy = __webpack_require__(135);
 exports.AlwaysDense = _ChooseAddressMappingPolicy.AlwaysDense;
 exports.AlwaysSparse = _ChooseAddressMappingPolicy.AlwaysSparse;
 exports.DenseSparseChooseBasedOnThreshold = _ChooseAddressMappingPolicy.DenseSparseChooseBasedOnThreshold;
-var _DependencyGraph = __webpack_require__(75);
+var _DependencyGraph = __webpack_require__(74);
 exports.ImmutableAddressMapping = _DependencyGraph.ImmutableAddressMapping;
 exports.AddressMapping = _DependencyGraph.AddressMapping;
 exports.RangeMapping = _DependencyGraph.RangeMapping;
-var _errors = __webpack_require__(106);
+exports.RangeVertex = _DependencyGraph.RangeVertex;
+var _errors = __webpack_require__(111);
 exports.ConfigValueTooBigError = _errors.ConfigValueTooBigError;
 exports.ConfigValueTooSmallError = _errors.ConfigValueTooSmallError;
 exports.EvaluationSuspendedError = _errors.EvaluationSuspendedError;
@@ -840,7 +845,7 @@ exports.FunctionPlugin = _interpreter.FunctionPlugin;
 exports.FunctionArgumentType = _interpreter.FunctionArgumentType;
 exports.EmptyValue = _interpreter.EmptyValue;
 var plugins = _interopRequireWildcard(__webpack_require__(178));
-var _SimpleRangeValue = __webpack_require__(98);
+var _SimpleRangeValue = __webpack_require__(97);
 exports.SimpleRangeValue = _SimpleRangeValue.SimpleRangeValue;
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -916,169 +921,435 @@ exports.default = _default;
 
 
 exports.__esModule = true;
-exports.ArraySizePredictor = exports.ArraySize = void 0;
+exports.WRONG_RANGE_SIZE = exports.AbsoluteRowRange = exports.AbsoluteColumnRange = exports.AbsoluteCellRange = void 0;
+exports.isSimpleCellRange = isSimpleCellRange;
+exports.simpleCellRange = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _InterpreterState = __webpack_require__(125);
-var _FunctionPlugin = __webpack_require__(126);
-var _parser = __webpack_require__(78);
+var _Cell = __webpack_require__(73);
+var _errors = __webpack_require__(111);
+var _parser = __webpack_require__(77);
+var _Span = __webpack_require__(105);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
 
-class ArraySize {
-  constructor(width, height, isRef = false) {
-    this.width = width;
-    this.height = height;
-    this.isRef = isRef;
-    if (width <= 0 || height <= 0) {
-      throw Error('Incorrect array size');
-    }
-  }
-  static fromArray(array) {
-    return new ArraySize(array.length > 0 ? array[0].length : 0, array.length);
-  }
-  static error() {
-    return new ArraySize(1, 1, true);
-  }
-  static scalar() {
-    return new ArraySize(1, 1, false);
-  }
-  isScalar() {
-    return this.width <= 1 && this.height <= 1 || this.isRef;
+const WRONG_RANGE_SIZE = 'AbsoluteCellRange: Wrong range size';
+exports.WRONG_RANGE_SIZE = WRONG_RANGE_SIZE;
+function isSimpleCellRange(obj) {
+  if (obj && (typeof obj === 'object' || typeof obj === 'function')) {
+    return 'start' in obj && (0, _Cell.isSimpleCellAddress)(obj.start) && 'end' in obj && (0, _Cell.isSimpleCellAddress)(obj.end);
+  } else {
+    return false;
   }
 }
-exports.ArraySize = ArraySize;
-function arraySizeForBinaryOp(leftArraySize, rightArraySize) {
-  return new ArraySize(Math.max(leftArraySize.width, rightArraySize.width), Math.max(leftArraySize.height, rightArraySize.height));
-}
-function arraySizeForUnaryOp(arraySize) {
-  return new ArraySize(arraySize.width, arraySize.height);
-}
-class ArraySizePredictor {
-  constructor(config, functionRegistry) {
-    this.config = config;
-    this.functionRegistry = functionRegistry;
+const simpleCellRange = (start, end) => ({
+  start,
+  end
+});
+exports.simpleCellRange = simpleCellRange;
+class AbsoluteCellRange {
+  constructor(start, end) {
+    if (start.sheet !== end.sheet) {
+      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
+    }
+    this.start = (0, _Cell.simpleCellAddress)(start.sheet, start.col, start.row);
+    this.end = (0, _Cell.simpleCellAddress)(end.sheet, end.col, end.row);
   }
-  checkArraySize(ast, formulaAddress) {
-    return this.checkArraySizeForAst(ast, {
-      formulaAddress,
-      arraysFlag: this.config.useArrayArithmetic
-    });
+  get sheet() {
+    return this.start.sheet;
   }
-  checkArraySizeForAst(ast, state) {
-    switch (ast.type) {
-      case _parser.AstNodeType.FUNCTION_CALL:
-        {
-          return this.checkArraySizeForFunction(ast, state);
-        }
-      case _parser.AstNodeType.COLUMN_RANGE:
-      case _parser.AstNodeType.ROW_RANGE:
-      case _parser.AstNodeType.CELL_RANGE:
-        {
-          const range = _AbsoluteCellRange.AbsoluteCellRange.fromAstOrUndef(ast, state.formulaAddress);
-          if (range === undefined) {
-            return ArraySize.error();
-          } else {
-            return new ArraySize(range.width(), range.height(), true);
-          }
-        }
-      case _parser.AstNodeType.ARRAY:
-        {
-          const heights = [];
-          const widths = [];
-          for (const row of ast.args) {
-            const sizes = row.map(ast => this.checkArraySizeForAst(ast, state));
-            const h = Math.min(...sizes.map(size => size.height));
-            const w = sizes.reduce((total, size) => total + size.width, 0);
-            heights.push(h);
-            widths.push(w);
-          }
-          const height = heights.reduce((total, h) => total + h, 0);
-          const width = Math.min(...widths);
-          return new ArraySize(width, height);
-        }
-      case _parser.AstNodeType.STRING:
-      case _parser.AstNodeType.NUMBER:
-        return ArraySize.scalar();
-      case _parser.AstNodeType.CELL_REFERENCE:
-        return new ArraySize(1, 1, true);
-      case _parser.AstNodeType.DIV_OP:
-      case _parser.AstNodeType.CONCATENATE_OP:
-      case _parser.AstNodeType.EQUALS_OP:
-      case _parser.AstNodeType.GREATER_THAN_OP:
-      case _parser.AstNodeType.GREATER_THAN_OR_EQUAL_OP:
-      case _parser.AstNodeType.LESS_THAN_OP:
-      case _parser.AstNodeType.LESS_THAN_OR_EQUAL_OP:
-      case _parser.AstNodeType.MINUS_OP:
-      case _parser.AstNodeType.NOT_EQUAL_OP:
-      case _parser.AstNodeType.PLUS_OP:
-      case _parser.AstNodeType.POWER_OP:
-      case _parser.AstNodeType.TIMES_OP:
-        {
-          const left = this.checkArraySizeForAst(ast.left, state);
-          const right = this.checkArraySizeForAst(ast.right, state);
-          if (!state.arraysFlag && (left.height > 1 || left.width > 1 || right.height > 1 || right.width > 1)) {
-            return ArraySize.error();
-          }
-          return arraySizeForBinaryOp(left, right);
-        }
-      case _parser.AstNodeType.MINUS_UNARY_OP:
-      case _parser.AstNodeType.PLUS_UNARY_OP:
-      case _parser.AstNodeType.PERCENT_OP:
-        {
-          const val = this.checkArraySizeForAst(ast.value, state);
-          if (!state.arraysFlag && (val.height > 1 || val.width > 1)) {
-            return ArraySize.error();
-          }
-          return arraySizeForUnaryOp(val);
-        }
-      case _parser.AstNodeType.PARENTHESIS:
-        {
-          return this.checkArraySizeForAst(ast.expression, state);
-        }
-      case _parser.AstNodeType.EMPTY:
-        return ArraySize.error();
-      default:
-        return ArraySize.error();
+  static fromSimpleCellAddresses(start, end) {
+    if (start.sheet !== end.sheet) {
+      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
+    }
+    const width = end.col - start.col;
+    const height = end.row - start.row;
+    if (Number.isFinite(height) && Number.isFinite(width)) {
+      return new AbsoluteCellRange(start, end);
+    }
+    if (Number.isFinite(height)) {
+      return new AbsoluteRowRange(start.sheet, start.row, end.row);
+    }
+    return new AbsoluteColumnRange(start.sheet, start.col, end.col);
+  }
+  static fromAst(ast, baseAddress) {
+    if (ast.type === _parser.AstNodeType.CELL_RANGE) {
+      return AbsoluteCellRange.fromCellRange(ast, baseAddress);
+    } else if (ast.type === _parser.AstNodeType.COLUMN_RANGE) {
+      return AbsoluteColumnRange.fromColumnRange(ast, baseAddress);
+    } else {
+      return AbsoluteRowRange.fromRowRangeAst(ast, baseAddress);
     }
   }
-  checkArraySizeForFunction(ast, state) {
-    const metadata = this.functionRegistry.getMetadata(ast.procedureName);
-    const pluginArraySizeFunction = this.functionRegistry.getArraySizeFunction(ast.procedureName);
-    if (pluginArraySizeFunction !== undefined) {
-      return pluginArraySizeFunction(ast, state);
+  static fromAstOrUndef(ast, baseAddress) {
+    try {
+      return AbsoluteCellRange.fromAst(ast, baseAddress);
+    } catch (_e) {
+      return undefined;
     }
-    const subChecks = ast.args.map(arg => {
-      var _a;
-      return this.checkArraySizeForAst(arg, new _InterpreterState.InterpreterState(state.formulaAddress, state.arraysFlag || ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.arrayFunction) !== null && _a !== void 0 ? _a : false)));
-    });
-    if (metadata === undefined || metadata.expandRanges || !state.arraysFlag || metadata.vectorizationForbidden || metadata.parameters === undefined) {
-      return new ArraySize(1, 1);
+  }
+  static fromCellRange(x, baseAddress) {
+    return new AbsoluteCellRange(x.start.toSimpleCellAddress(baseAddress), x.end.toSimpleCellAddress(baseAddress));
+  }
+  static spanFrom(topLeftCorner, width, height) {
+    const ret = AbsoluteCellRange.spanFromOrUndef(topLeftCorner, width, height);
+    if (ret === undefined) {
+      throw new Error(WRONG_RANGE_SIZE);
     }
-    const argumentDefinitions = [...metadata.parameters];
-    if (metadata.repeatLastArgs === undefined && argumentDefinitions.length < subChecks.length) {
-      return ArraySize.error();
+    return ret;
+  }
+  static spanFromOrUndef(topLeftCorner, width, height) {
+    if (!Number.isFinite(width) && Number.isFinite(height)) {
+      if (topLeftCorner.col !== 0) {
+        return undefined;
+      }
+      return new AbsoluteRowRange(topLeftCorner.sheet, topLeftCorner.row, topLeftCorner.row + height - 1);
+    } else if (!Number.isFinite(height) && Number.isFinite(width)) {
+      if (topLeftCorner.row !== 0) {
+        return undefined;
+      }
+      return new AbsoluteColumnRange(topLeftCorner.sheet, topLeftCorner.col, topLeftCorner.col + width - 1);
+    } else if (Number.isFinite(height) && Number.isFinite(width)) {
+      return new AbsoluteCellRange(topLeftCorner, (0, _Cell.simpleCellAddress)(topLeftCorner.sheet, topLeftCorner.col + width - 1, topLeftCorner.row + height - 1));
     }
-    if (metadata.repeatLastArgs !== undefined && argumentDefinitions.length < subChecks.length && (subChecks.length - argumentDefinitions.length) % metadata.repeatLastArgs !== 0) {
-      return ArraySize.error();
+    return undefined;
+  }
+  static fromCoordinates(sheet, x1, y1, x2, y2) {
+    return new AbsoluteCellRange((0, _Cell.simpleCellAddress)(sheet, x1, y1), (0, _Cell.simpleCellAddress)(sheet, x2, y2));
+  }
+  isFinite() {
+    return Number.isFinite(this.size());
+  }
+  doesOverlap(other) {
+    if (this.start.sheet != other.start.sheet) {
+      return false;
     }
-    while (argumentDefinitions.length < subChecks.length) {
-      argumentDefinitions.push(...argumentDefinitions.slice(argumentDefinitions.length - metadata.repeatLastArgs));
+    if (this.end.row < other.start.row || this.start.row > other.end.row) {
+      return false;
     }
-    let maxWidth = 1;
-    let maxHeight = 1;
-    for (let i = 0; i < subChecks.length; i++) {
-      if (argumentDefinitions[i].argumentType !== _FunctionPlugin.FunctionArgumentType.RANGE && argumentDefinitions[i].argumentType !== _FunctionPlugin.FunctionArgumentType.ANY) {
-        maxHeight = Math.max(maxHeight, subChecks[i].height);
-        maxWidth = Math.max(maxWidth, subChecks[i].width);
+    if (this.end.col < other.start.col || this.start.col > other.end.col) {
+      return false;
+    }
+    return true;
+  }
+  addressInRange(address) {
+    if (this.sheet !== address.sheet) {
+      return false;
+    }
+    return this.start.row <= address.row && this.end.row >= address.row && this.start.col <= address.col && this.end.col >= address.col;
+  }
+  columnInRange(address) {
+    if (this.sheet !== address.sheet) {
+      return false;
+    }
+    return this.start.col <= address.col && this.end.col >= address.col;
+  }
+  rowInRange(address) {
+    if (this.sheet !== address.sheet) {
+      return false;
+    }
+    return this.start.row <= address.row && this.end.row >= address.row;
+  }
+  containsRange(range) {
+    return this.addressInRange(range.start) && this.addressInRange(range.end);
+  }
+  intersectionWith(other) {
+    if (this.sheet !== other.start.sheet) {
+      return undefined;
+    }
+    const startRow = Math.max(this.start.row, other.start.row);
+    const endRow = Math.min(this.end.row, other.end.row);
+    const startCol = Math.max(this.start.col, other.start.col);
+    const endCol = Math.min(this.end.col, other.end.col);
+    if (startRow > endRow || startCol > endCol) {
+      return undefined;
+    }
+    return new AbsoluteCellRange((0, _Cell.simpleCellAddress)(this.sheet, startCol, startRow), (0, _Cell.simpleCellAddress)(this.sheet, endCol, endRow));
+  }
+  includesRow(row) {
+    return this.start.row < row && this.end.row >= row;
+  }
+  includesColumn(column) {
+    return this.start.col < column && this.end.col >= column;
+  }
+  shiftByRows(numberOfRows) {
+    this.start.row += numberOfRows;
+    this.end.row += numberOfRows;
+  }
+  expandByRows(numberOfRows) {
+    this.end.row += numberOfRows;
+  }
+  shiftByColumns(numberOfColumns) {
+    this.start.col += numberOfColumns;
+    this.end.col += numberOfColumns;
+  }
+  shifted(byCols, byRows) {
+    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, this.start.col + byCols, this.start.row + byRows), this.width(), this.height());
+  }
+  expandByColumns(numberOfColumns) {
+    this.end.col += numberOfColumns;
+  }
+  moveToSheet(toSheet) {
+    this.start.sheet = toSheet;
+    this.end.sheet = toSheet;
+  }
+  removeSpan(span) {
+    if (span instanceof _Span.RowsSpan) {
+      this.removeRows(span.start, span.end);
+    } else {
+      this.removeColumns(span.start, span.end);
+    }
+  }
+  shouldBeRemoved() {
+    return this.width() <= 0 || this.height() <= 0;
+  }
+  rangeWithSameWidth(startRow, numberOfRows) {
+    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, this.start.col, startRow), this.width(), numberOfRows);
+  }
+  rangeWithSameHeight(startColumn, numberOfColumns) {
+    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, startColumn, this.start.row), numberOfColumns, this.height());
+  }
+  toString() {
+    return `${this.start.sheet},${this.start.col},${this.start.row},${this.end.col},${this.end.row}`;
+  }
+  width() {
+    return this.end.col - this.start.col + 1;
+  }
+  height() {
+    return this.end.row - this.start.row + 1;
+  }
+  size() {
+    return this.height() * this.width();
+  }
+  arrayOfAddressesInRange() {
+    const result = [];
+    for (let y = 0; y < this.height(); ++y) {
+      result[y] = [];
+      for (let x = 0; x < this.width(); ++x) {
+        const value = (0, _Cell.simpleCellAddress)(this.sheet, this.start.col + x, this.start.row + y);
+        result[y].push(value);
       }
     }
-    return new ArraySize(maxWidth, maxHeight);
+    return result;
+  }
+  withStart(newStart) {
+    return new AbsoluteCellRange(newStart, this.end);
+  }
+  sameDimensionsAs(other) {
+    return this.width() === other.width() && this.height() === other.height();
+  }
+  sameAs(other) {
+    return (0, _Cell.equalSimpleCellAddress)(this.start, other.start) && (0, _Cell.equalSimpleCellAddress)(this.end, other.end);
+  }
+  addressesArrayMap(dependencyGraph, op) {
+    const ret = [];
+    let currentRow = this.start.row;
+    while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
+      let currentColumn = this.start.col;
+      const tmp = [];
+      while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
+        tmp.push(op((0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow)));
+        currentColumn++;
+      }
+      ret.push(tmp);
+      currentRow++;
+    }
+    return ret;
+  }
+  addresses(dependencyGraph) {
+    const ret = [];
+    let currentRow = this.start.row;
+    const limitRow = this.effectiveEndRow(dependencyGraph);
+    const limitColumn = this.effectiveEndColumn(dependencyGraph);
+    while (currentRow <= limitRow) {
+      let currentColumn = this.start.col;
+      while (currentColumn <= limitColumn) {
+        ret.push((0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow));
+        currentColumn++;
+      }
+      currentRow++;
+    }
+    return ret;
+  }
+  *addressesWithDirection(right, bottom, dependencyGraph) {
+    if (right > 0) {
+      if (bottom > 0) {
+        let currentRow = this.effectiveEndRow(dependencyGraph);
+        while (currentRow >= this.start.row) {
+          let currentColumn = this.effectiveEndColumn(dependencyGraph);
+          while (currentColumn >= this.start.col) {
+            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
+            currentColumn -= 1;
+          }
+          currentRow -= 1;
+        }
+      } else {
+        let currentRow = this.start.row;
+        while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
+          let currentColumn = this.effectiveEndColumn(dependencyGraph);
+          while (currentColumn >= this.start.col) {
+            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
+            currentColumn -= 1;
+          }
+          currentRow += 1;
+        }
+      }
+    } else {
+      if (bottom > 0) {
+        let currentRow = this.effectiveEndRow(dependencyGraph);
+        while (currentRow >= this.start.row) {
+          let currentColumn = this.start.col;
+          while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
+            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
+            currentColumn += 1;
+          }
+          currentRow -= 1;
+        }
+      } else {
+        let currentRow = this.start.row;
+        while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
+          let currentColumn = this.start.col;
+          while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
+            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
+            currentColumn += 1;
+          }
+          currentRow += 1;
+        }
+      }
+    }
+  }
+  getAddress(col, row) {
+    if (col < 0 || row < 0 || row > this.height() - 1 || col > this.width() - 1) {
+      throw Error('Index out of bound');
+    }
+    return (0, _Cell.simpleCellAddress)(this.start.sheet, this.start.col + col, this.start.row + row);
+  }
+  exceedsSheetSizeLimits(maxColumns, maxRows) {
+    return this.end.col >= maxColumns || this.end.row >= maxRows;
+  }
+  effectiveEndColumn(_dependencyGraph) {
+    return this.end.col;
+  }
+  effectiveEndRow(_dependencyGraph) {
+    return this.end.row;
+  }
+  effectiveWidth(_dependencyGraph) {
+    return this.width();
+  }
+  effectiveHeight(_dependencyGraph) {
+    return this.height();
+  }
+  removeRows(rowStart, rowEnd) {
+    if (rowStart > this.end.row) {
+      return;
+    }
+    if (rowEnd < this.start.row) {
+      const numberOfRows = rowEnd - rowStart + 1;
+      return this.shiftByRows(-numberOfRows);
+    }
+    if (rowStart <= this.start.row) {
+      this.start.row = rowStart;
+    }
+    this.end.row -= Math.min(rowEnd, this.end.row) - rowStart + 1;
+  }
+  removeColumns(columnStart, columnEnd) {
+    if (columnStart > this.end.col) {
+      return;
+    }
+    if (columnEnd < this.start.col) {
+      const numberOfColumns = columnEnd - columnStart + 1;
+      return this.shiftByColumns(-numberOfColumns);
+    }
+    if (columnStart <= this.start.col) {
+      this.start.col = columnStart;
+    }
+    this.end.col -= Math.min(columnEnd, this.end.col) - columnStart + 1;
   }
 }
-exports.ArraySizePredictor = ArraySizePredictor;
+exports.AbsoluteCellRange = AbsoluteCellRange;
+class AbsoluteColumnRange extends AbsoluteCellRange {
+  constructor(sheet, columnStart, columnEnd) {
+    super((0, _Cell.simpleCellAddress)(sheet, columnStart, 0), (0, _Cell.simpleCellAddress)(sheet, columnEnd, Number.POSITIVE_INFINITY));
+  }
+  static fromColumnRange(x, baseAddress) {
+    const start = x.start.toSimpleColumnAddress(baseAddress);
+    const end = x.end.toSimpleColumnAddress(baseAddress);
+    if (start.sheet !== end.sheet) {
+      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
+    }
+    return new AbsoluteColumnRange(start.sheet, start.col, end.col);
+  }
+  shouldBeRemoved() {
+    return this.width() <= 0;
+  }
+  shiftByRows(_numberOfRows) {
+    return;
+  }
+  expandByRows(_numberOfRows) {
+    return;
+  }
+  shifted(byCols, _byRows) {
+    return new AbsoluteColumnRange(this.sheet, this.start.col + byCols, this.end.col + byCols);
+  }
+  rangeWithSameHeight(startColumn, numberOfColumns) {
+    return new AbsoluteColumnRange(this.sheet, startColumn, startColumn + numberOfColumns - 1);
+  }
+  exceedsSheetSizeLimits(maxColumns, _maxRows) {
+    return this.end.col >= maxColumns;
+  }
+  effectiveEndRow(dependencyGraph) {
+    return this.effectiveHeight(dependencyGraph) - 1;
+  }
+  effectiveHeight(dependencyGraph) {
+    return dependencyGraph.getSheetHeight(this.sheet);
+  }
+  removeRows(_rowStart, _rowEnd) {
+    return;
+  }
+}
+exports.AbsoluteColumnRange = AbsoluteColumnRange;
+class AbsoluteRowRange extends AbsoluteCellRange {
+  constructor(sheet, rowStart, rowEnd) {
+    super((0, _Cell.simpleCellAddress)(sheet, 0, rowStart), (0, _Cell.simpleCellAddress)(sheet, Number.POSITIVE_INFINITY, rowEnd));
+  }
+  static fromRowRangeAst(x, baseAddress) {
+    const start = x.start.toSimpleRowAddress(baseAddress);
+    const end = x.end.toSimpleRowAddress(baseAddress);
+    if (start.sheet !== end.sheet) {
+      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
+    }
+    return new AbsoluteRowRange(start.sheet, start.row, end.row);
+  }
+  shouldBeRemoved() {
+    return this.height() <= 0;
+  }
+  shiftByColumns(_numberOfColumns) {
+    return;
+  }
+  expandByColumns(_numberOfColumns) {
+    return;
+  }
+  shifted(byCols, byRows) {
+    return new AbsoluteRowRange(this.sheet, this.start.row + byRows, this.end.row + byRows);
+  }
+  rangeWithSameWidth(startRow, numberOfRows) {
+    return new AbsoluteRowRange(this.sheet, startRow, startRow + numberOfRows - 1);
+  }
+  exceedsSheetSizeLimits(_maxColumns, maxRows) {
+    return this.end.row >= maxRows;
+  }
+  effectiveEndColumn(dependencyGraph) {
+    return this.effectiveWidth(dependencyGraph) - 1;
+  }
+  effectiveWidth(dependencyGraph) {
+    return dependencyGraph.getSheetWidth(this.sheet);
+  }
+  removeColumns(_columnStart, _columnEnd) {
+    return;
+  }
+}
+exports.AbsoluteRowRange = AbsoluteRowRange;
 
 /***/ }),
 /* 2 */
@@ -2685,451 +2956,13 @@ module.exports = function (it) {
 
 
 exports.__esModule = true;
-exports.WRONG_RANGE_SIZE = exports.AbsoluteRowRange = exports.AbsoluteColumnRange = exports.AbsoluteCellRange = void 0;
-exports.isSimpleCellRange = isSimpleCellRange;
-exports.simpleCellRange = void 0;
-__webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errors = __webpack_require__(106);
-var _parser = __webpack_require__(78);
-var _Span = __webpack_require__(100);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-const WRONG_RANGE_SIZE = 'AbsoluteCellRange: Wrong range size';
-exports.WRONG_RANGE_SIZE = WRONG_RANGE_SIZE;
-function isSimpleCellRange(obj) {
-  if (obj && (typeof obj === 'object' || typeof obj === 'function')) {
-    return 'start' in obj && (0, _Cell.isSimpleCellAddress)(obj.start) && 'end' in obj && (0, _Cell.isSimpleCellAddress)(obj.end);
-  } else {
-    return false;
-  }
-}
-const simpleCellRange = (start, end) => ({
-  start,
-  end
-});
-exports.simpleCellRange = simpleCellRange;
-class AbsoluteCellRange {
-  constructor(start, end) {
-    if (start.sheet !== end.sheet) {
-      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
-    }
-    this.start = (0, _Cell.simpleCellAddress)(start.sheet, start.col, start.row);
-    this.end = (0, _Cell.simpleCellAddress)(end.sheet, end.col, end.row);
-  }
-  get sheet() {
-    return this.start.sheet;
-  }
-  static fromSimpleCellAddresses(start, end) {
-    if (start.sheet !== end.sheet) {
-      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
-    }
-    const width = end.col - start.col;
-    const height = end.row - start.row;
-    if (Number.isFinite(height) && Number.isFinite(width)) {
-      return new AbsoluteCellRange(start, end);
-    }
-    if (Number.isFinite(height)) {
-      return new AbsoluteRowRange(start.sheet, start.row, end.row);
-    }
-    return new AbsoluteColumnRange(start.sheet, start.col, end.col);
-  }
-  static fromAst(ast, baseAddress) {
-    if (ast.type === _parser.AstNodeType.CELL_RANGE) {
-      return AbsoluteCellRange.fromCellRange(ast, baseAddress);
-    } else if (ast.type === _parser.AstNodeType.COLUMN_RANGE) {
-      return AbsoluteColumnRange.fromColumnRange(ast, baseAddress);
-    } else {
-      return AbsoluteRowRange.fromRowRangeAst(ast, baseAddress);
-    }
-  }
-  static fromAstOrUndef(ast, baseAddress) {
-    try {
-      return AbsoluteCellRange.fromAst(ast, baseAddress);
-    } catch (_e) {
-      return undefined;
-    }
-  }
-  static fromCellRange(x, baseAddress) {
-    return new AbsoluteCellRange(x.start.toSimpleCellAddress(baseAddress), x.end.toSimpleCellAddress(baseAddress));
-  }
-  static spanFrom(topLeftCorner, width, height) {
-    const ret = AbsoluteCellRange.spanFromOrUndef(topLeftCorner, width, height);
-    if (ret === undefined) {
-      throw new Error(WRONG_RANGE_SIZE);
-    }
-    return ret;
-  }
-  static spanFromOrUndef(topLeftCorner, width, height) {
-    if (!Number.isFinite(width) && Number.isFinite(height)) {
-      if (topLeftCorner.col !== 0) {
-        return undefined;
-      }
-      return new AbsoluteRowRange(topLeftCorner.sheet, topLeftCorner.row, topLeftCorner.row + height - 1);
-    } else if (!Number.isFinite(height) && Number.isFinite(width)) {
-      if (topLeftCorner.row !== 0) {
-        return undefined;
-      }
-      return new AbsoluteColumnRange(topLeftCorner.sheet, topLeftCorner.col, topLeftCorner.col + width - 1);
-    } else if (Number.isFinite(height) && Number.isFinite(width)) {
-      return new AbsoluteCellRange(topLeftCorner, (0, _Cell.simpleCellAddress)(topLeftCorner.sheet, topLeftCorner.col + width - 1, topLeftCorner.row + height - 1));
-    }
-    return undefined;
-  }
-  static fromCoordinates(sheet, x1, y1, x2, y2) {
-    return new AbsoluteCellRange((0, _Cell.simpleCellAddress)(sheet, x1, y1), (0, _Cell.simpleCellAddress)(sheet, x2, y2));
-  }
-  isFinite() {
-    return Number.isFinite(this.size());
-  }
-  doesOverlap(other) {
-    if (this.start.sheet != other.start.sheet) {
-      return false;
-    }
-    if (this.end.row < other.start.row || this.start.row > other.end.row) {
-      return false;
-    }
-    if (this.end.col < other.start.col || this.start.col > other.end.col) {
-      return false;
-    }
-    return true;
-  }
-  addressInRange(address) {
-    if (this.sheet !== address.sheet) {
-      return false;
-    }
-    return this.start.row <= address.row && this.end.row >= address.row && this.start.col <= address.col && this.end.col >= address.col;
-  }
-  columnInRange(address) {
-    if (this.sheet !== address.sheet) {
-      return false;
-    }
-    return this.start.col <= address.col && this.end.col >= address.col;
-  }
-  rowInRange(address) {
-    if (this.sheet !== address.sheet) {
-      return false;
-    }
-    return this.start.row <= address.row && this.end.row >= address.row;
-  }
-  containsRange(range) {
-    return this.addressInRange(range.start) && this.addressInRange(range.end);
-  }
-  intersectionWith(other) {
-    if (this.sheet !== other.start.sheet) {
-      return undefined;
-    }
-    const startRow = Math.max(this.start.row, other.start.row);
-    const endRow = Math.min(this.end.row, other.end.row);
-    const startCol = Math.max(this.start.col, other.start.col);
-    const endCol = Math.min(this.end.col, other.end.col);
-    if (startRow > endRow || startCol > endCol) {
-      return undefined;
-    }
-    return new AbsoluteCellRange((0, _Cell.simpleCellAddress)(this.sheet, startCol, startRow), (0, _Cell.simpleCellAddress)(this.sheet, endCol, endRow));
-  }
-  includesRow(row) {
-    return this.start.row < row && this.end.row >= row;
-  }
-  includesColumn(column) {
-    return this.start.col < column && this.end.col >= column;
-  }
-  shiftByRows(numberOfRows) {
-    this.start.row += numberOfRows;
-    this.end.row += numberOfRows;
-  }
-  expandByRows(numberOfRows) {
-    this.end.row += numberOfRows;
-  }
-  shiftByColumns(numberOfColumns) {
-    this.start.col += numberOfColumns;
-    this.end.col += numberOfColumns;
-  }
-  shifted(byCols, byRows) {
-    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, this.start.col + byCols, this.start.row + byRows), this.width(), this.height());
-  }
-  expandByColumns(numberOfColumns) {
-    this.end.col += numberOfColumns;
-  }
-  moveToSheet(toSheet) {
-    this.start.sheet = toSheet;
-    this.end.sheet = toSheet;
-  }
-  removeSpan(span) {
-    if (span instanceof _Span.RowsSpan) {
-      this.removeRows(span.start, span.end);
-    } else {
-      this.removeColumns(span.start, span.end);
-    }
-  }
-  shouldBeRemoved() {
-    return this.width() <= 0 || this.height() <= 0;
-  }
-  rangeWithSameWidth(startRow, numberOfRows) {
-    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, this.start.col, startRow), this.width(), numberOfRows);
-  }
-  rangeWithSameHeight(startColumn, numberOfColumns) {
-    return AbsoluteCellRange.spanFrom((0, _Cell.simpleCellAddress)(this.sheet, startColumn, this.start.row), numberOfColumns, this.height());
-  }
-  toString() {
-    return `${this.start.sheet},${this.start.col},${this.start.row},${this.end.col},${this.end.row}`;
-  }
-  width() {
-    return this.end.col - this.start.col + 1;
-  }
-  height() {
-    return this.end.row - this.start.row + 1;
-  }
-  size() {
-    return this.height() * this.width();
-  }
-  arrayOfAddressesInRange() {
-    const result = [];
-    for (let y = 0; y < this.height(); ++y) {
-      result[y] = [];
-      for (let x = 0; x < this.width(); ++x) {
-        const value = (0, _Cell.simpleCellAddress)(this.sheet, this.start.col + x, this.start.row + y);
-        result[y].push(value);
-      }
-    }
-    return result;
-  }
-  withStart(newStart) {
-    return new AbsoluteCellRange(newStart, this.end);
-  }
-  sameDimensionsAs(other) {
-    return this.width() === other.width() && this.height() === other.height();
-  }
-  sameAs(other) {
-    return (0, _Cell.equalSimpleCellAddress)(this.start, other.start) && (0, _Cell.equalSimpleCellAddress)(this.end, other.end);
-  }
-  addressesArrayMap(dependencyGraph, op) {
-    const ret = [];
-    let currentRow = this.start.row;
-    while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
-      let currentColumn = this.start.col;
-      const tmp = [];
-      while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
-        tmp.push(op((0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow)));
-        currentColumn++;
-      }
-      ret.push(tmp);
-      currentRow++;
-    }
-    return ret;
-  }
-  addresses(dependencyGraph) {
-    const ret = [];
-    let currentRow = this.start.row;
-    const limitRow = this.effectiveEndRow(dependencyGraph);
-    const limitColumn = this.effectiveEndColumn(dependencyGraph);
-    while (currentRow <= limitRow) {
-      let currentColumn = this.start.col;
-      while (currentColumn <= limitColumn) {
-        ret.push((0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow));
-        currentColumn++;
-      }
-      currentRow++;
-    }
-    return ret;
-  }
-  *addressesWithDirection(right, bottom, dependencyGraph) {
-    if (right > 0) {
-      if (bottom > 0) {
-        let currentRow = this.effectiveEndRow(dependencyGraph);
-        while (currentRow >= this.start.row) {
-          let currentColumn = this.effectiveEndColumn(dependencyGraph);
-          while (currentColumn >= this.start.col) {
-            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
-            currentColumn -= 1;
-          }
-          currentRow -= 1;
-        }
-      } else {
-        let currentRow = this.start.row;
-        while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
-          let currentColumn = this.effectiveEndColumn(dependencyGraph);
-          while (currentColumn >= this.start.col) {
-            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
-            currentColumn -= 1;
-          }
-          currentRow += 1;
-        }
-      }
-    } else {
-      if (bottom > 0) {
-        let currentRow = this.effectiveEndRow(dependencyGraph);
-        while (currentRow >= this.start.row) {
-          let currentColumn = this.start.col;
-          while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
-            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
-            currentColumn += 1;
-          }
-          currentRow -= 1;
-        }
-      } else {
-        let currentRow = this.start.row;
-        while (currentRow <= this.effectiveEndRow(dependencyGraph)) {
-          let currentColumn = this.start.col;
-          while (currentColumn <= this.effectiveEndColumn(dependencyGraph)) {
-            yield (0, _Cell.simpleCellAddress)(this.start.sheet, currentColumn, currentRow);
-            currentColumn += 1;
-          }
-          currentRow += 1;
-        }
-      }
-    }
-  }
-  getAddress(col, row) {
-    if (col < 0 || row < 0 || row > this.height() - 1 || col > this.width() - 1) {
-      throw Error('Index out of bound');
-    }
-    return (0, _Cell.simpleCellAddress)(this.start.sheet, this.start.col + col, this.start.row + row);
-  }
-  exceedsSheetSizeLimits(maxColumns, maxRows) {
-    return this.end.col >= maxColumns || this.end.row >= maxRows;
-  }
-  effectiveEndColumn(_dependencyGraph) {
-    return this.end.col;
-  }
-  effectiveEndRow(_dependencyGraph) {
-    return this.end.row;
-  }
-  effectiveWidth(_dependencyGraph) {
-    return this.width();
-  }
-  effectiveHeight(_dependencyGraph) {
-    return this.height();
-  }
-  removeRows(rowStart, rowEnd) {
-    if (rowStart > this.end.row) {
-      return;
-    }
-    if (rowEnd < this.start.row) {
-      const numberOfRows = rowEnd - rowStart + 1;
-      return this.shiftByRows(-numberOfRows);
-    }
-    if (rowStart <= this.start.row) {
-      this.start.row = rowStart;
-    }
-    this.end.row -= Math.min(rowEnd, this.end.row) - rowStart + 1;
-  }
-  removeColumns(columnStart, columnEnd) {
-    if (columnStart > this.end.col) {
-      return;
-    }
-    if (columnEnd < this.start.col) {
-      const numberOfColumns = columnEnd - columnStart + 1;
-      return this.shiftByColumns(-numberOfColumns);
-    }
-    if (columnStart <= this.start.col) {
-      this.start.col = columnStart;
-    }
-    this.end.col -= Math.min(columnEnd, this.end.col) - columnStart + 1;
-  }
-}
-exports.AbsoluteCellRange = AbsoluteCellRange;
-class AbsoluteColumnRange extends AbsoluteCellRange {
-  constructor(sheet, columnStart, columnEnd) {
-    super((0, _Cell.simpleCellAddress)(sheet, columnStart, 0), (0, _Cell.simpleCellAddress)(sheet, columnEnd, Number.POSITIVE_INFINITY));
-  }
-  static fromColumnRange(x, baseAddress) {
-    const start = x.start.toSimpleColumnAddress(baseAddress);
-    const end = x.end.toSimpleColumnAddress(baseAddress);
-    if (start.sheet !== end.sheet) {
-      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
-    }
-    return new AbsoluteColumnRange(start.sheet, start.col, end.col);
-  }
-  shouldBeRemoved() {
-    return this.width() <= 0;
-  }
-  shiftByRows(_numberOfRows) {
-    return;
-  }
-  expandByRows(_numberOfRows) {
-    return;
-  }
-  shifted(byCols, _byRows) {
-    return new AbsoluteColumnRange(this.sheet, this.start.col + byCols, this.end.col + byCols);
-  }
-  rangeWithSameHeight(startColumn, numberOfColumns) {
-    return new AbsoluteColumnRange(this.sheet, startColumn, startColumn + numberOfColumns - 1);
-  }
-  exceedsSheetSizeLimits(maxColumns, _maxRows) {
-    return this.end.col >= maxColumns;
-  }
-  effectiveEndRow(dependencyGraph) {
-    return this.effectiveHeight(dependencyGraph) - 1;
-  }
-  effectiveHeight(dependencyGraph) {
-    return dependencyGraph.getSheetHeight(this.sheet);
-  }
-  removeRows(_rowStart, _rowEnd) {
-    return;
-  }
-}
-exports.AbsoluteColumnRange = AbsoluteColumnRange;
-class AbsoluteRowRange extends AbsoluteCellRange {
-  constructor(sheet, rowStart, rowEnd) {
-    super((0, _Cell.simpleCellAddress)(sheet, 0, rowStart), (0, _Cell.simpleCellAddress)(sheet, Number.POSITIVE_INFINITY, rowEnd));
-  }
-  static fromRowRangeAst(x, baseAddress) {
-    const start = x.start.toSimpleRowAddress(baseAddress);
-    const end = x.end.toSimpleRowAddress(baseAddress);
-    if (start.sheet !== end.sheet) {
-      throw new _errors.SheetsNotEqual(start.sheet, end.sheet);
-    }
-    return new AbsoluteRowRange(start.sheet, start.row, end.row);
-  }
-  shouldBeRemoved() {
-    return this.height() <= 0;
-  }
-  shiftByColumns(_numberOfColumns) {
-    return;
-  }
-  expandByColumns(_numberOfColumns) {
-    return;
-  }
-  shifted(byCols, byRows) {
-    return new AbsoluteRowRange(this.sheet, this.start.row + byRows, this.end.row + byRows);
-  }
-  rangeWithSameWidth(startRow, numberOfRows) {
-    return new AbsoluteRowRange(this.sheet, startRow, startRow + numberOfRows - 1);
-  }
-  exceedsSheetSizeLimits(_maxColumns, maxRows) {
-    return this.end.row >= maxRows;
-  }
-  effectiveEndColumn(dependencyGraph) {
-    return this.effectiveWidth(dependencyGraph) - 1;
-  }
-  effectiveWidth(dependencyGraph) {
-    return dependencyGraph.getSheetWidth(this.sheet);
-  }
-  removeColumns(_columnStart, _columnEnd) {
-    return;
-  }
-}
-exports.AbsoluteRowRange = AbsoluteRowRange;
-
-/***/ }),
-/* 74 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
 exports.invalidSimpleRowAddress = exports.invalidSimpleColumnAddress = exports.invalidSimpleCellAddress = exports.getCellValueType = exports.getCellValueFormat = exports.getCellValueDetailedType = exports.getCellType = exports.equalSimpleCellAddress = exports.addressKey = exports.absoluteSheetReference = exports.ErrorType = exports.CellValueTypeOrd = exports.CellValueType = exports.CellValueNoNumber = exports.CellValueJustNumber = exports.CellValueDetailedType = exports.CellType = exports.CellError = void 0;
 exports.isSimpleCellAddress = isSimpleCellAddress;
 exports.simpleRowAddress = exports.simpleColumnAddress = exports.simpleCellAddress = exports.movedSimpleCellAddress = void 0;
-var _DependencyGraph = __webpack_require__(75);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
+var _DependencyGraph = __webpack_require__(74);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -3316,7 +3149,7 @@ const equalSimpleCellAddress = (left, right) => {
 exports.equalSimpleCellAddress = equalSimpleCellAddress;
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3324,40 +3157,40 @@ exports.equalSimpleCellAddress = equalSimpleCellAddress;
 
 exports.__esModule = true;
 exports.ValueCellVertex = exports.TopSort = exports.SparseStrategy = exports.SheetMapping = exports.RangeVertex = exports.RangeMapping = exports.ParsingErrorVertex = exports.ImmutableAddressMapping = exports.Graph = exports.FormulaCellVertex = exports.EmptyCellVertex = exports.DependencyGraph = exports.DenseStrategy = exports.ArrayVertex = exports.ArrayMapping = exports.AddressMapping = void 0;
-var _DependencyGraph = __webpack_require__(76);
+var _DependencyGraph = __webpack_require__(75);
 exports.DependencyGraph = _DependencyGraph.DependencyGraph;
-var _AddressMapping = __webpack_require__(105);
+var _AddressMapping = __webpack_require__(110);
 exports.AddressMapping = _AddressMapping.AddressMapping;
-var _ImmutableAddressMapping = __webpack_require__(119);
+var _ImmutableAddressMapping = __webpack_require__(124);
 exports.ImmutableAddressMapping = _ImmutableAddressMapping.ImmutableAddressMapping;
-var _Graph = __webpack_require__(112);
+var _Graph = __webpack_require__(117);
 exports.Graph = _Graph.Graph;
-var _TopSort = __webpack_require__(113);
+var _TopSort = __webpack_require__(118);
 exports.TopSort = _TopSort.TopSort;
-var _RangeMapping = __webpack_require__(115);
+var _RangeMapping = __webpack_require__(120);
 exports.RangeMapping = _RangeMapping.RangeMapping;
-var _SheetMapping = __webpack_require__(116);
+var _SheetMapping = __webpack_require__(121);
 exports.SheetMapping = _SheetMapping.SheetMapping;
-var _ArrayMapping = __webpack_require__(107);
+var _ArrayMapping = __webpack_require__(112);
 exports.ArrayMapping = _ArrayMapping.ArrayMapping;
-var _FormulaCellVertex = __webpack_require__(109);
+var _FormulaCellVertex = __webpack_require__(114);
 exports.FormulaCellVertex = _FormulaCellVertex.FormulaCellVertex;
 exports.ArrayVertex = _FormulaCellVertex.ArrayVertex;
-var _EmptyCellVertex = __webpack_require__(120);
+var _EmptyCellVertex = __webpack_require__(125);
 exports.EmptyCellVertex = _EmptyCellVertex.EmptyCellVertex;
-var _ValueCellVertex = __webpack_require__(121);
+var _ValueCellVertex = __webpack_require__(126);
 exports.ValueCellVertex = _ValueCellVertex.ValueCellVertex;
-var _ParsingErrorVertex = __webpack_require__(122);
+var _ParsingErrorVertex = __webpack_require__(127);
 exports.ParsingErrorVertex = _ParsingErrorVertex.ParsingErrorVertex;
-var _RangeVertex = __webpack_require__(111);
+var _RangeVertex = __webpack_require__(116);
 exports.RangeVertex = _RangeVertex.RangeVertex;
-var _SparseStrategy = __webpack_require__(123);
+var _SparseStrategy = __webpack_require__(128);
 exports.SparseStrategy = _SparseStrategy.SparseStrategy;
-var _DenseStrategy = __webpack_require__(124);
+var _DenseStrategy = __webpack_require__(129);
 exports.DenseStrategy = _DenseStrategy.DenseStrategy;
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3366,24 +3199,24 @@ exports.DenseStrategy = _DenseStrategy.DenseStrategy;
 exports.__esModule = true;
 exports.DependencyGraph = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _absolutizeDependencies = __webpack_require__(77);
-var _Cell = __webpack_require__(74);
-var _ContentChanges = __webpack_require__(97);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-var _parser = __webpack_require__(78);
-var _Span = __webpack_require__(100);
-var _statistics = __webpack_require__(101);
-var _2 = __webpack_require__(75);
-var _AddressMapping = __webpack_require__(105);
-var _ArrayMapping = __webpack_require__(107);
-var _collectAddressesDependentToRange = __webpack_require__(108);
-var _FormulaCellVertex = __webpack_require__(109);
-var _Graph = __webpack_require__(112);
-var _RangeMapping = __webpack_require__(115);
-var _SheetMapping = __webpack_require__(116);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _absolutizeDependencies = __webpack_require__(76);
+var _Cell = __webpack_require__(73);
+var _ContentChanges = __webpack_require__(96);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+var _parser = __webpack_require__(77);
+var _Span = __webpack_require__(105);
+var _statistics = __webpack_require__(106);
+var _2 = __webpack_require__(74);
+var _AddressMapping = __webpack_require__(110);
+var _ArrayMapping = __webpack_require__(112);
+var _collectAddressesDependentToRange = __webpack_require__(113);
+var _FormulaCellVertex = __webpack_require__(114);
+var _Graph = __webpack_require__(117);
+var _RangeMapping = __webpack_require__(120);
+var _SheetMapping = __webpack_require__(121);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -4383,7 +4216,7 @@ class DependencyGraph {
 exports.DependencyGraph = DependencyGraph;
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4391,9 +4224,9 @@ exports.DependencyGraph = DependencyGraph;
 
 exports.__esModule = true;
 exports.filterDependenciesOutOfScope = exports.absolutizeDependencies = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _parser = __webpack_require__(78);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _parser = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -4424,7 +4257,7 @@ const filterDependenciesOutOfScope = deps => {
 exports.filterDependenciesOutOfScope = filterDependenciesOutOfScope;
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4432,32 +4265,32 @@ exports.filterDependenciesOutOfScope = filterDependenciesOutOfScope;
 
 exports.__esModule = true;
 exports.simpleCellRangeToString = exports.simpleCellRangeFromString = exports.simpleCellAddressToString = exports.simpleCellAddressFromString = exports.collectDependencies = exports.cellAddressFromString = exports.buildProcedureAst = exports.buildParsingErrorAst = exports.buildLexerConfig = exports.buildCellRangeAst = exports.buildCellErrorAst = exports.Unparser = exports.RowRangeDependency = exports.ParsingErrorType = exports.ParserWithCaching = exports.NamedExpressionDependency = exports.FormulaLexer = exports.ColumnRangeDependency = exports.CellRangeDependency = exports.CellAddress = exports.AstNodeType = exports.AddressDependency = void 0;
-var _addressRepresentationConverters = __webpack_require__(79);
+var _addressRepresentationConverters = __webpack_require__(78);
 exports.cellAddressFromString = _addressRepresentationConverters.cellAddressFromString;
 exports.simpleCellAddressFromString = _addressRepresentationConverters.simpleCellAddressFromString;
 exports.simpleCellAddressToString = _addressRepresentationConverters.simpleCellAddressToString;
 exports.simpleCellRangeFromString = _addressRepresentationConverters.simpleCellRangeFromString;
 exports.simpleCellRangeToString = _addressRepresentationConverters.simpleCellRangeToString;
-var _CellAddress = __webpack_require__(80);
+var _CellAddress = __webpack_require__(79);
 exports.CellAddress = _CellAddress.CellAddress;
-var _ParserWithCaching = __webpack_require__(84);
+var _ParserWithCaching = __webpack_require__(83);
 exports.ParserWithCaching = _ParserWithCaching.ParserWithCaching;
-var _collectDependencies = __webpack_require__(95);
+var _collectDependencies = __webpack_require__(94);
 exports.collectDependencies = _collectDependencies.collectDependencies;
-var _LexerConfig = __webpack_require__(91);
+var _LexerConfig = __webpack_require__(90);
 exports.buildLexerConfig = _LexerConfig.buildLexerConfig;
-var _FormulaParser = __webpack_require__(89);
+var _FormulaParser = __webpack_require__(88);
 exports.FormulaLexer = _FormulaParser.FormulaLexer;
-var _Ast = __webpack_require__(86);
+var _Ast = __webpack_require__(85);
 exports.AstNodeType = _Ast.AstNodeType;
 exports.ParsingErrorType = _Ast.ParsingErrorType;
 exports.buildProcedureAst = _Ast.buildProcedureAst;
 exports.buildCellRangeAst = _Ast.buildCellRangeAst;
 exports.buildParsingErrorAst = _Ast.buildParsingErrorAst;
 exports.buildCellErrorAst = _Ast.buildCellErrorAst;
-var _Unparser = __webpack_require__(94);
+var _Unparser = __webpack_require__(93);
 exports.Unparser = _Unparser.Unparser;
-var _RelativeDependency = __webpack_require__(96);
+var _RelativeDependency = __webpack_require__(95);
 exports.AddressDependency = _RelativeDependency.AddressDependency;
 exports.CellRangeDependency = _RelativeDependency.CellRangeDependency;
 exports.ColumnRangeDependency = _RelativeDependency.ColumnRangeDependency;
@@ -4465,7 +4298,7 @@ exports.RowRangeDependency = _RelativeDependency.RowRangeDependency;
 exports.NamedExpressionDependency = _RelativeDependency.NamedExpressionDependency;
 
 /***/ }),
-/* 79 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4477,12 +4310,12 @@ exports.columnIndexToLabel = columnIndexToLabel;
 exports.rowAddressFromString = exports.rowAddressFromImmutableReference = void 0;
 exports.sheetIndexToString = sheetIndexToString;
 exports.simpleCellRangeToString = exports.simpleCellRangeFromString = exports.simpleCellAddressToString = exports.simpleCellAddressFromString = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _CellAddress = __webpack_require__(80);
-var _ColumnAddress = __webpack_require__(81);
-var _parserConsts = __webpack_require__(83);
-var _RowAddress = __webpack_require__(82);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _CellAddress = __webpack_require__(79);
+var _ColumnAddress = __webpack_require__(80);
+var _parserConsts = __webpack_require__(82);
+var _RowAddress = __webpack_require__(81);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -4753,7 +4586,7 @@ function extractSheetNumber(regexResult, sheetMapping) {
 }
 
 /***/ }),
-/* 80 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4761,10 +4594,10 @@ function extractSheetNumber(regexResult, sheetMapping) {
 
 exports.__esModule = true;
 exports.CellReferenceType = exports.CellAddress = void 0;
-var _Cell = __webpack_require__(74);
-var _addressRepresentationConverters = __webpack_require__(79);
-var _ColumnAddress = __webpack_require__(81);
-var _RowAddress = __webpack_require__(82);
+var _Cell = __webpack_require__(73);
+var _addressRepresentationConverters = __webpack_require__(78);
+var _ColumnAddress = __webpack_require__(80);
+var _RowAddress = __webpack_require__(81);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -4926,7 +4759,7 @@ class CellAddress {
 exports.CellAddress = CellAddress;
 
 /***/ }),
-/* 81 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4934,8 +4767,8 @@ exports.CellAddress = CellAddress;
 
 exports.__esModule = true;
 exports.ReferenceType = exports.ColumnAddress = void 0;
-var _Cell = __webpack_require__(74);
-var _addressRepresentationConverters = __webpack_require__(79);
+var _Cell = __webpack_require__(73);
+var _addressRepresentationConverters = __webpack_require__(78);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -5029,7 +4862,7 @@ class ColumnAddress {
 exports.ColumnAddress = ColumnAddress;
 
 /***/ }),
-/* 82 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5037,8 +4870,8 @@ exports.ColumnAddress = ColumnAddress;
 
 exports.__esModule = true;
 exports.RowAddress = void 0;
-var _Cell = __webpack_require__(74);
-var _ColumnAddress = __webpack_require__(81);
+var _Cell = __webpack_require__(73);
+var _ColumnAddress = __webpack_require__(80);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -5125,7 +4958,7 @@ class RowAddress {
 exports.RowAddress = RowAddress;
 
 /***/ }),
-/* 83 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5179,7 +5012,7 @@ const IMMUTABLE_COL_REFERENCE_PATTERN = 'REF\\("col","([0-9a-fA-F-]+)",(true|fal
 exports.IMMUTABLE_COL_REFERENCE_PATTERN = IMMUTABLE_COL_REFERENCE_PATTERN;
 
 /***/ }),
-/* 84 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5188,18 +5021,18 @@ exports.IMMUTABLE_COL_REFERENCE_PATTERN = IMMUTABLE_COL_REFERENCE_PATTERN;
 exports.__esModule = true;
 exports.ParserWithCaching = void 0;
 __webpack_require__(2);
-var _chevrotain = __webpack_require__(85);
-var _Cell = __webpack_require__(74);
-var _ = __webpack_require__(78);
-var _addressRepresentationConverters = __webpack_require__(79);
-var _Ast = __webpack_require__(86);
-var _binaryOpTokenMap = __webpack_require__(87);
-var _Cache = __webpack_require__(88);
-var _FormulaParser = __webpack_require__(89);
-var _LexerConfig = __webpack_require__(91);
-var _Unparser = __webpack_require__(94);
-var _ColumnAddress = __webpack_require__(81);
-var _RowAddress = __webpack_require__(82);
+var _chevrotain = __webpack_require__(84);
+var _Cell = __webpack_require__(73);
+var _ = __webpack_require__(77);
+var _addressRepresentationConverters = __webpack_require__(78);
+var _Ast = __webpack_require__(85);
+var _binaryOpTokenMap = __webpack_require__(86);
+var _Cache = __webpack_require__(87);
+var _FormulaParser = __webpack_require__(88);
+var _LexerConfig = __webpack_require__(90);
+var _Unparser = __webpack_require__(93);
+var _ColumnAddress = __webpack_require__(80);
+var _RowAddress = __webpack_require__(81);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -5578,13 +5411,13 @@ class ParserWithCaching {
 exports.ParserWithCaching = ParserWithCaching;
 
 /***/ }),
-/* 85 */
+/* 84 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__85__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__84__;
 
 /***/ }),
-/* 86 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5594,7 +5427,7 @@ exports.__esModule = true;
 exports.buildTimesOpAst = exports.buildStringAst = exports.buildRowRangeAst = exports.buildProcedureAst = exports.buildPowerOpAst = exports.buildPlusUnaryOpAst = exports.buildPlusOpAst = exports.buildPercentOpAst = exports.buildParsingErrorAst = exports.buildParenthesisAst = exports.buildNumberAst = exports.buildNotEqualOpAst = exports.buildNamedExpressionAst = exports.buildMinusUnaryOpAst = exports.buildMinusOpAst = exports.buildLessThanOrEqualOpAst = exports.buildLessThanOpAst = exports.buildGreaterThanOrEqualOpAst = exports.buildGreaterThanOpAst = exports.buildErrorWithRawInputAst = exports.buildEqualsOpAst = exports.buildEmptyArgAst = exports.buildDivOpAst = exports.buildConcatenateOpAst = exports.buildColumnRangeAst = exports.buildCellReferenceAst = exports.buildCellRangeAst = exports.buildCellErrorAst = exports.buildArrayAst = exports.RangeSheetReferenceType = exports.ParsingErrorType = exports.AstNodeType = void 0;
 exports.imageWithWhitespace = imageWithWhitespace;
 exports.parsingError = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -5874,7 +5707,7 @@ function imageWithWhitespace(image, leadingWhitespace) {
 }
 
 /***/ }),
-/* 87 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5882,7 +5715,7 @@ function imageWithWhitespace(image, leadingWhitespace) {
 
 exports.__esModule = true;
 exports.binaryOpTokenMap = void 0;
-var _Ast = __webpack_require__(86);
+var _Ast = __webpack_require__(85);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -5905,7 +5738,7 @@ const binaryOpTokenMap = {
 exports.binaryOpTokenMap = binaryOpTokenMap;
 
 /***/ }),
-/* 88 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5913,7 +5746,7 @@ exports.binaryOpTokenMap = binaryOpTokenMap;
 
 exports.__esModule = true;
 exports.doesContainFunctions = exports.Cache = void 0;
-var _ = __webpack_require__(78);
+var _ = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -6000,7 +5833,7 @@ const doesContainFunctions = (ast, functionCriterion) => {
 exports.doesContainFunctions = doesContainFunctions;
 
 /***/ }),
-/* 89 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6009,13 +5842,13 @@ exports.doesContainFunctions = doesContainFunctions;
 exports.__esModule = true;
 exports.FormulaParser = exports.FormulaLexer = void 0;
 __webpack_require__(2);
-var _chevrotain = __webpack_require__(85);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _addressRepresentationConverters = __webpack_require__(79);
-var _Ast = __webpack_require__(86);
-var _CellAddress = __webpack_require__(80);
-var _LexerConfig = __webpack_require__(91);
+var _chevrotain = __webpack_require__(84);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _addressRepresentationConverters = __webpack_require__(78);
+var _Ast = __webpack_require__(85);
+var _CellAddress = __webpack_require__(79);
+var _LexerConfig = __webpack_require__(90);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -6861,7 +6694,7 @@ class FormulaLexer {
 exports.FormulaLexer = FormulaLexer;
 
 /***/ }),
-/* 90 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6949,7 +6782,7 @@ ErrorMessage.NamedExpressionName = arg => `Named expression ${arg} not recognize
 ErrorMessage.LicenseKey = arg => `License key is ${arg}.`;
 
 /***/ }),
-/* 91 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6957,10 +6790,10 @@ ErrorMessage.LicenseKey = arg => `License key is ${arg}.`;
 
 exports.__esModule = true;
 exports.buildLexerConfig = exports.TimesOp = exports.StringLiteral = exports.RowRange = exports.RangeSeparator = exports.RParen = exports.ProcedureName = exports.PowerOp = exports.PlusOp = exports.PercentOp = exports.NotEqualOp = exports.NamedExpression = exports.MultiplicationOp = exports.MinusOp = exports.LessThanOrEqualOp = exports.LessThanOp = exports.LParen = exports.ImmutableRowReference = exports.ImmutableRowRange = exports.ImmutableColReference = exports.ImmutableColRange = exports.ImmutableCellReference = exports.GreaterThanOrEqualOp = exports.GreaterThanOp = exports.ErrorLiteral = exports.EqualsOp = exports.DivOp = exports.ConcatenateOp = exports.ColumnRange = exports.CellReference = exports.BooleanOp = exports.ArrayRParen = exports.ArrayLParen = exports.AdditionOp = void 0;
-var _chevrotain = __webpack_require__(85);
-var _parserConsts = __webpack_require__(83);
-var _CellReferenceMatcher = __webpack_require__(92);
-var _NamedExpressionMatcher = __webpack_require__(93);
+var _chevrotain = __webpack_require__(84);
+var _parserConsts = __webpack_require__(82);
+var _CellReferenceMatcher = __webpack_require__(91);
+var _NamedExpressionMatcher = __webpack_require__(92);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7237,7 +7070,7 @@ const buildLexerConfig = config => {
 exports.buildLexerConfig = buildLexerConfig;
 
 /***/ }),
-/* 92 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7245,7 +7078,7 @@ exports.buildLexerConfig = buildLexerConfig;
 
 exports.__esModule = true;
 exports.CellReferenceMatcher = void 0;
-var _parserConsts = __webpack_require__(83);
+var _parserConsts = __webpack_require__(82);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7278,7 +7111,7 @@ class CellReferenceMatcher {
 exports.CellReferenceMatcher = CellReferenceMatcher;
 
 /***/ }),
-/* 93 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7286,7 +7119,7 @@ exports.CellReferenceMatcher = CellReferenceMatcher;
 
 exports.__esModule = true;
 exports.NamedExpressionMatcher = void 0;
-var _parserConsts = __webpack_require__(83);
+var _parserConsts = __webpack_require__(82);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7322,7 +7155,7 @@ class NamedExpressionMatcher {
 exports.NamedExpressionMatcher = NamedExpressionMatcher;
 
 /***/ }),
-/* 94 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7331,14 +7164,14 @@ exports.NamedExpressionMatcher = NamedExpressionMatcher;
 exports.__esModule = true;
 exports.Unparser = void 0;
 exports.formatNumber = formatNumber;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _index = __webpack_require__(0);
-var _addressRepresentationConverters = __webpack_require__(79);
-var _Ast = __webpack_require__(86);
-var _binaryOpTokenMap = __webpack_require__(87);
-var _CellAddress = __webpack_require__(80);
-var _ColumnAddress = __webpack_require__(81);
-var _RowAddress = __webpack_require__(82);
+var _addressRepresentationConverters = __webpack_require__(78);
+var _Ast = __webpack_require__(85);
+var _binaryOpTokenMap = __webpack_require__(86);
+var _CellAddress = __webpack_require__(79);
+var _ColumnAddress = __webpack_require__(80);
+var _RowAddress = __webpack_require__(81);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7591,7 +7424,7 @@ function formatNumber(number, decimalSeparator) {
 }
 
 /***/ }),
-/* 95 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7600,7 +7433,7 @@ function formatNumber(number, decimalSeparator) {
 exports.__esModule = true;
 exports.collectDependencies = void 0;
 __webpack_require__(2);
-var _ = __webpack_require__(78);
+var _ = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7689,7 +7522,7 @@ const collectDependencies = (ast, functionRegistry) => {
 exports.collectDependencies = collectDependencies;
 
 /***/ }),
-/* 96 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7697,7 +7530,7 @@ exports.collectDependencies = collectDependencies;
 
 exports.__esModule = true;
 exports.RowRangeDependency = exports.NamedExpressionDependency = exports.ColumnRangeDependency = exports.CellRangeDependency = exports.AddressDependency = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
+var _AbsoluteCellRange = __webpack_require__(1);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7757,7 +7590,7 @@ class NamedExpressionDependency {
 exports.NamedExpressionDependency = NamedExpressionDependency;
 
 /***/ }),
-/* 97 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7766,8 +7599,8 @@ exports.NamedExpressionDependency = NamedExpressionDependency;
 exports.__esModule = true;
 exports.ContentChanges = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _SimpleRangeValue = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
+var _SimpleRangeValue = __webpack_require__(97);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -7827,7 +7660,7 @@ class ContentChanges {
 exports.ContentChanges = ContentChanges;
 
 /***/ }),
-/* 98 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7836,10 +7669,10 @@ exports.ContentChanges = ContentChanges;
 exports.__esModule = true;
 exports.SimpleRangeValue = void 0;
 __webpack_require__(2);
-var _ArraySize = __webpack_require__(1);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
+var _ArraySize = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -8035,3413 +7868,179 @@ class SimpleRangeValue {
 exports.SimpleRangeValue = SimpleRangeValue;
 
 /***/ }),
-/* 99 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.__esModule = true;
-exports.TimeNumber = exports.RichNumber = exports.PercentNumber = exports.NumberType = exports.EmptyValue = exports.DateTimeNumber = exports.DateNumber = exports.CurrencyNumber = void 0;
-exports.cloneNumber = cloneNumber;
-exports.getFormatOfExtendedNumber = getFormatOfExtendedNumber;
-exports.getRawValue = getRawValue;
-exports.getTypeFormatOfExtendedNumber = getTypeFormatOfExtendedNumber;
-exports.getTypeOfExtendedNumber = getTypeOfExtendedNumber;
-exports.isExtendedNumber = isExtendedNumber;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-/**
- * A symbol representing an empty cell value.
- */
-const EmptyValue = Symbol('Empty value');
-exports.EmptyValue = EmptyValue;
-function getRawValue(num) {
-  if (num instanceof RichNumber) {
-    return num.val;
-  } else {
-    return num;
-  }
-}
-class RichNumber {
-  constructor(val, format) {
-    this.val = val;
-    this.format = format;
-  }
-  fromNumber(val) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return new this.constructor(val);
-  }
-}
-exports.RichNumber = RichNumber;
-function cloneNumber(val, newVal) {
-  if (typeof val === 'number') {
-    return newVal;
-  } else {
-    const ret = val.fromNumber(newVal);
-    ret.format = val.format;
-    return ret;
-  }
-}
-class DateNumber extends RichNumber {
-  getDetailedType() {
-    return NumberType.NUMBER_DATE;
-  }
-}
-exports.DateNumber = DateNumber;
-class CurrencyNumber extends RichNumber {
-  getDetailedType() {
-    return NumberType.NUMBER_CURRENCY;
-  }
-}
-exports.CurrencyNumber = CurrencyNumber;
-class TimeNumber extends RichNumber {
-  getDetailedType() {
-    return NumberType.NUMBER_TIME;
-  }
-}
-exports.TimeNumber = TimeNumber;
-class DateTimeNumber extends RichNumber {
-  getDetailedType() {
-    return NumberType.NUMBER_DATETIME;
-  }
-}
-exports.DateTimeNumber = DateTimeNumber;
-class PercentNumber extends RichNumber {
-  getDetailedType() {
-    return NumberType.NUMBER_PERCENT;
-  }
-}
-exports.PercentNumber = PercentNumber;
-function isExtendedNumber(val) {
-  return typeof val === 'number' || val instanceof RichNumber;
-}
-var NumberType;
-exports.NumberType = NumberType;
-(function (NumberType) {
-  NumberType["NUMBER_RAW"] = "NUMBER_RAW";
-  NumberType["NUMBER_DATE"] = "NUMBER_DATE";
-  NumberType["NUMBER_TIME"] = "NUMBER_TIME";
-  NumberType["NUMBER_DATETIME"] = "NUMBER_DATETIME";
-  NumberType["NUMBER_CURRENCY"] = "NUMBER_CURRENCY";
-  NumberType["NUMBER_PERCENT"] = "NUMBER_PERCENT";
-})(NumberType || (exports.NumberType = NumberType = {}));
-function getTypeOfExtendedNumber(num) {
-  if (num instanceof RichNumber) {
-    return num.getDetailedType();
-  } else {
-    return NumberType.NUMBER_RAW;
-  }
-}
-function getFormatOfExtendedNumber(num) {
-  if (num instanceof RichNumber) {
-    return num.format;
-  } else {
-    return undefined;
-  }
-}
-function getTypeFormatOfExtendedNumber(num) {
-  if (num instanceof RichNumber) {
-    return {
-      type: num.getDetailedType(),
-      format: num.format
-    };
-  } else {
-    return {
-      type: NumberType.NUMBER_RAW
-    };
-  }
-}
-
-/***/ }),
-/* 100 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.RowsSpan = exports.ColumnsSpan = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-/*
- * A class representing a set of rows in specific sheet
- */
-class RowsSpan {
-  constructor(sheet, rowStart, rowEnd) {
-    this.sheet = sheet;
-    this.rowStart = rowStart;
-    this.rowEnd = rowEnd;
-    if (rowStart < 0) {
-      throw Error('Starting row cant be less than 0');
-    }
-    if (rowEnd < rowStart) {
-      throw Error('Row span cant end before start');
-    }
-  }
-  get numberOfRows() {
-    return this.rowEnd - this.rowStart + 1;
-  }
-  get start() {
-    return this.rowStart;
-  }
-  get end() {
-    return this.rowEnd;
-  }
-  static fromNumberOfRows(sheet, rowStart, numberOfRows) {
-    return new RowsSpan(sheet, rowStart, rowStart + numberOfRows - 1);
-  }
-  static fromRowStartAndEnd(sheet, rowStart, rowEnd) {
-    return new RowsSpan(sheet, rowStart, rowEnd);
-  }
-  *rows() {
-    for (let col = this.rowStart; col <= this.rowEnd; ++col) {
-      yield col;
-    }
-  }
-  intersect(otherSpan) {
-    if (this.sheet !== otherSpan.sheet) {
-      throw Error('Can\'t intersect spans from different sheets');
-    }
-    const start = Math.max(this.rowStart, otherSpan.rowStart);
-    const end = Math.min(this.rowEnd, otherSpan.rowEnd);
-    if (start > end) {
-      return null;
-    }
-    return new RowsSpan(this.sheet, start, end);
-  }
-  firstRow() {
-    return new RowsSpan(this.sheet, this.rowStart, this.rowStart);
-  }
-}
-/*
- * A class representing a set of columns in specific sheet
- */
-exports.RowsSpan = RowsSpan;
-class ColumnsSpan {
-  constructor(sheet, columnStart, columnEnd) {
-    this.sheet = sheet;
-    this.columnStart = columnStart;
-    this.columnEnd = columnEnd;
-    if (columnStart < 0) {
-      throw Error('Starting column cant be less than 0');
-    }
-    if (columnEnd < columnStart) {
-      throw Error('Column span cant end before start');
-    }
-  }
-  get numberOfColumns() {
-    return this.columnEnd - this.columnStart + 1;
-  }
-  get start() {
-    return this.columnStart;
-  }
-  get end() {
-    return this.columnEnd;
-  }
-  static fromNumberOfColumns(sheet, columnStart, numberOfColumns) {
-    return new ColumnsSpan(sheet, columnStart, columnStart + numberOfColumns - 1);
-  }
-  static fromColumnStartAndEnd(sheet, columnStart, columnEnd) {
-    return new ColumnsSpan(sheet, columnStart, columnEnd);
-  }
-  *columns() {
-    for (let col = this.columnStart; col <= this.columnEnd; ++col) {
-      yield col;
-    }
-  }
-  intersect(otherSpan) {
-    if (this.sheet !== otherSpan.sheet) {
-      throw Error('Can\'t intersect spans from different sheets');
-    }
-    const start = Math.max(this.columnStart, otherSpan.columnStart);
-    const end = Math.min(this.columnEnd, otherSpan.columnEnd);
-    if (start > end) {
-      return null;
-    }
-    return new ColumnsSpan(this.sheet, start, end);
-  }
-  firstColumn() {
-    return new ColumnsSpan(this.sheet, this.columnStart, this.columnStart);
-  }
-}
-exports.ColumnsSpan = ColumnsSpan;
-
-/***/ }),
-/* 101 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.Statistics = exports.StatType = exports.EmptyStatistics = void 0;
-var _EmptyStatistics = __webpack_require__(102);
-exports.EmptyStatistics = _EmptyStatistics.EmptyStatistics;
-var _Statistics = __webpack_require__(103);
-exports.Statistics = _Statistics.Statistics;
-var _StatType = __webpack_require__(104);
-exports.StatType = _StatType.StatType;
-
-/***/ }),
-/* 102 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.EmptyStatistics = void 0;
-var _Statistics = __webpack_require__(103);
+exports.ArraySizePredictor = exports.ArraySize = void 0;
+__webpack_require__(2);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _InterpreterState = __webpack_require__(99);
+var _FunctionPlugin = __webpack_require__(100);
+var _parser = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
 
-/** Do not store stats in the memory. Stats are not needed on daily basis */
-class EmptyStatistics extends _Statistics.Statistics {
-  /** @inheritDoc */
-  incrementCriterionFunctionFullCacheUsed() {
-    // do nothing
+class ArraySize {
+  constructor(width, height, isRef = false) {
+    this.width = width;
+    this.height = height;
+    this.isRef = isRef;
+    if (width <= 0 || height <= 0) {
+      throw Error('Incorrect array size');
+    }
   }
-  /** @inheritDoc */
-  incrementCriterionFunctionPartialCacheUsed() {
-    // do nothing
+  static fromArray(array) {
+    return new ArraySize(array.length > 0 ? array[0].length : 0, array.length);
   }
-  /** @inheritDoc */
-  start(_name) {
-    // do nothing
+  static error() {
+    return new ArraySize(1, 1, true);
   }
-  /** @inheritDoc */
-  end(_name) {
-    // do nothing
+  static scalar() {
+    return new ArraySize(1, 1, false);
+  }
+  isScalar() {
+    return this.width <= 1 && this.height <= 1 || this.isRef;
   }
 }
-exports.EmptyStatistics = EmptyStatistics;
-
-/***/ }),
-/* 103 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.Statistics = void 0;
-var _StatType = __webpack_require__(104);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Provides tracking performance statistics to the engine
- */
-class Statistics {
-  constructor() {
-    this.stats = new Map([[_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, 0], [_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, 0]]);
-    this.startTimes = new Map();
-  }
-  incrementCriterionFunctionFullCacheUsed() {
-    var _a;
-    const newValue = ((_a = this.stats.get(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED)) !== null && _a !== void 0 ? _a : 0) + 1;
-    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, newValue);
-  }
-  incrementCriterionFunctionPartialCacheUsed() {
-    var _a;
-    const newValue = ((_a = this.stats.get(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED)) !== null && _a !== void 0 ? _a : 0) + 1;
-    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, newValue);
-  }
-  /**
-   * Resets statistics
-   */
-  reset() {
-    this.stats.clear();
-    this.startTimes.clear();
-    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, 0);
-    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, 0);
-  }
-  /**
-   * Starts tracking particular statistic.
-   *
-   * @param name - statistic to start tracking
-   */
-  start(name) {
-    if (this.startTimes.get(name)) {
-      throw Error(`Statistics ${name} already started`);
-    } else {
-      this.startTimes.set(name, Date.now());
-    }
-  }
-  /**
-   * Stops tracking particular statistic.
-   * Raise error if tracking statistic wasn't started.
-   *
-   * @param name - statistic to stop tracking
-   */
-  end(name) {
-    var _a;
-    const now = Date.now();
-    const startTime = this.startTimes.get(name);
-    if (startTime) {
-      let values = (_a = this.stats.get(name)) !== null && _a !== void 0 ? _a : 0;
-      values += now - startTime;
-      this.stats.set(name, values);
-      this.startTimes.delete(name);
-    } else {
-      throw Error(`Statistics ${name} not started`);
-    }
-  }
-  /**
-   * Measure given statistic as execution of given function.
-   *
-   * @param name - statistic to track
-   * @param func - function to call
-   * @returns result of the function call
-   */
-  measure(name, func) {
-    this.start(name);
-    const result = func();
-    this.end(name);
-    return result;
-  }
-  /**
-   * Returns the snapshot of current results
-   */
-  snapshot() {
-    return new Map(this.stats);
-  }
+exports.ArraySize = ArraySize;
+function arraySizeForBinaryOp(leftArraySize, rightArraySize) {
+  return new ArraySize(Math.max(leftArraySize.width, rightArraySize.width), Math.max(leftArraySize.height, rightArraySize.height));
 }
-exports.Statistics = Statistics;
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.StatType = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-var StatType;
-exports.StatType = StatType;
-(function (StatType) {
-  /* build engine */
-  StatType["BUILD_ENGINE_TOTAL"] = "BUILD_ENGINE_TOTAL";
-  StatType["PARSER"] = "PARSER";
-  StatType["GRAPH_BUILD"] = "GRAPH_BUILD";
-  StatType["COLLECT_DEPENDENCIES"] = "COLLECT_DEPENDENCIES";
-  StatType["PROCESS_DEPENDENCIES"] = "PROCESS_DEPENDENCIES";
-  StatType["TOP_SORT"] = "TOP_SORT";
-  StatType["BUILD_COLUMN_INDEX"] = "BUILD_COLUMN_INDEX";
-  StatType["EVALUATION"] = "EVALUATION";
-  StatType["VLOOKUP"] = "VLOOKUP";
-  /* crud adjustments */
-  StatType["TRANSFORM_ASTS"] = "TRANSFORM_ASTS";
-  StatType["TRANSFORM_ASTS_POSTPONED"] = "TRANSFORM_ASTS_POSTPONED";
-  StatType["ADJUSTING_ADDRESS_MAPPING"] = "ADJUSTING_ADDRESS_MAPPING";
-  StatType["ADJUSTING_ARRAY_MAPPING"] = "ADJUSTING_ARRAY_MAPPING";
-  StatType["ADJUSTING_RANGES"] = "ADJUSTING_RANGES";
-  StatType["ADJUSTING_GRAPH"] = "ADJUSTING_GRAPH";
-  /* criterion cache */
-  StatType["CRITERION_FUNCTION_FULL_CACHE_USED"] = "CRITERION_FUNCTION_FULL_CACHE_USED";
-  StatType["CRITERION_FUNCTION_PARTIAL_CACHE_USED"] = "CRITERION_FUNCTION_PARTIAL_CACHE_USED";
-})(StatType || (exports.StatType = StatType = {}));
-
-/***/ }),
-/* 105 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.AddressMapping = void 0;
-var _errors = __webpack_require__(106);
-var _InterpreterValue = __webpack_require__(99);
-var _index = __webpack_require__(75);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class AddressMapping {
-  constructor(policy) {
-    this.policy = policy;
-    this.mapping = new Map();
-  }
-  /** @inheritDoc */
-  getCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(address.sheet);
-    }
-    return sheetMapping.getCell(address);
-  }
-  fetchCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(address.sheet);
-    }
-    const vertex = sheetMapping.getCell(address);
-    if (!vertex) {
-      throw Error('Vertex for address missing in AddressMapping');
-    }
-    return vertex;
-  }
-  strategyFor(sheetId) {
-    const strategy = this.mapping.get(sheetId);
-    if (strategy === undefined) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return strategy;
-  }
-  addSheet(sheetId, strategy) {
-    if (this.mapping.has(sheetId)) {
-      throw Error('Sheet already added');
-    }
-    this.mapping.set(sheetId, strategy);
-  }
-  autoAddSheet(sheetId, sheetBoundaries) {
-    const {
-      height,
-      width,
-      fill
-    } = sheetBoundaries;
-    const strategyConstructor = this.policy.call(fill);
-    this.addSheet(sheetId, new strategyConstructor(width, height));
-  }
-  getCellValue(address) {
-    const vertex = this.getCell(address);
-    if (vertex === undefined) {
-      return _InterpreterValue.EmptyValue;
-    } else if (vertex instanceof _index.ArrayVertex) {
-      return vertex.getArrayCellValue(address);
-    } else {
-      return vertex.getCellValue();
-    }
-  }
-  getRawValue(address) {
-    const vertex = this.getCell(address);
-    if (vertex instanceof _index.ValueCellVertex) {
-      return vertex.getValues().rawValue;
-    } else if (vertex instanceof _index.ArrayVertex) {
-      return vertex.getArrayCellRawValue(address);
-    } else {
-      return null;
-    }
-  }
-  /** @inheritDoc */
-  setCell(address, newVertex) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized');
-    }
-    sheetMapping.setCell(address, newVertex);
-  }
-  moveCell(source, destination) {
-    const sheetMapping = this.mapping.get(source.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized.');
-    }
-    if (source.sheet !== destination.sheet) {
-      throw Error('Cannot move cells between sheets.');
-    }
-    if (sheetMapping.has(destination)) {
-      throw new Error('Cannot move cell. Destination already occupied.');
-    }
-    const vertex = sheetMapping.getCell(source);
-    if (vertex === undefined) {
-      throw new Error('Cannot move cell. No cell with such address.');
-    }
-    this.setCell(destination, vertex);
-    this.removeCell(source);
-  }
-  removeCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized');
-    }
-    sheetMapping.removeCell(address);
-  }
-  /** @inheritDoc */
-  has(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      return false;
-    }
-    return sheetMapping.has(address);
-  }
-  /** @inheritDoc */
-  getHeight(sheetId) {
-    const sheetMapping = this.mapping.get(sheetId);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return sheetMapping.getHeight();
-  }
-  /** @inheritDoc */
-  getWidth(sheetId) {
-    const sheetMapping = this.mapping.get(sheetId);
-    if (!sheetMapping) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return sheetMapping.getWidth();
-  }
-  addRows(sheet, row, numberOfRows) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
-    sheetMapping.addRows(row, numberOfRows);
-  }
-  removeRows(removedRows) {
-    const sheetMapping = this.mapping.get(removedRows.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(removedRows.sheet);
-    }
-    sheetMapping.removeRows(removedRows);
-  }
-  removeSheet(sheetId) {
-    this.mapping.delete(sheetId);
-  }
-  addColumns(sheet, column, numberOfColumns) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
-    sheetMapping.addColumns(column, numberOfColumns);
-  }
-  removeColumns(removedColumns) {
-    const sheetMapping = this.mapping.get(removedColumns.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(removedColumns.sheet);
-    }
-    sheetMapping.removeColumns(removedColumns);
-  }
-  *verticesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).verticesFromRowsSpan(rowsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *verticesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).verticesFromColumnsSpan(columnsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
-  }
-
-  *entriesFromRowsSpan(rowsSpan) {
-    yield* this.mapping.get(rowsSpan.sheet).entriesFromRowsSpan(rowsSpan);
-  }
-  *entriesFromColumnsSpan(columnsSpan) {
-    yield* this.mapping.get(columnsSpan.sheet).entriesFromColumnsSpan(columnsSpan);
-  }
-  *entries() {
-    for (const [sheet, mapping] of this.mapping.entries()) {
-      yield* mapping.getEntries(sheet);
-    }
-  }
-  *sheetEntries(sheet) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping !== undefined) {
-      yield* sheetMapping.getEntries(sheet);
-    } else {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
-  }
+function arraySizeForUnaryOp(arraySize) {
+  return new ArraySize(arraySize.width, arraySize.height);
 }
-exports.AddressMapping = AddressMapping;
-
-/***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.UnableToParseError = exports.TargetLocationHasArrayError = exports.SourceLocationHasArrayError = exports.SheetsNotEqual = exports.SheetSizeLimitExceededError = exports.SheetNameAlreadyTakenError = exports.ProtectedFunctionTranslationError = exports.ProtectedFunctionError = exports.NothingToPasteError = exports.NotAFormulaError = exports.NoSheetWithNameError = exports.NoSheetWithIdError = exports.NoRelativeAddressesAllowedError = exports.NoOperationToUndoError = exports.NoOperationToRedoError = exports.NamedExpressionNameIsInvalidError = exports.NamedExpressionNameIsAlreadyTakenError = exports.NamedExpressionDoesNotExistError = exports.MissingTranslationError = exports.LanguageNotRegisteredError = exports.LanguageAlreadyRegisteredError = exports.InvalidArgumentsError = exports.InvalidAddressError = exports.FunctionPluginValidationError = exports.ExpectedValueOfTypeError = exports.ExpectedOneOfValuesError = exports.EvaluationSuspendedError = exports.ConfigValueTooSmallError = exports.ConfigValueTooBigError = exports.ConfigValueEmpty = exports.AliasAlreadyExisting = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-/**
- * Error thrown when the sheet of a given ID does not exist.
- */
-class NoSheetWithIdError extends Error {
-  constructor(sheetId) {
-    super(`There's no sheet with id = ${sheetId}`);
+class ArraySizePredictor {
+  constructor(config, functionRegistry) {
+    this.config = config;
+    this.functionRegistry = functionRegistry;
   }
-}
-/**
- * Error thrown when the sheet of a given name does not exist.
- */
-exports.NoSheetWithIdError = NoSheetWithIdError;
-class NoSheetWithNameError extends Error {
-  constructor(sheetName) {
-    super(`There's no sheet with name '${sheetName}'`);
+  checkArraySize(ast, formulaAddress) {
+    return this.checkArraySizeForAst(ast, {
+      formulaAddress,
+      arraysFlag: this.config.useArrayArithmetic
+    });
   }
-}
-/**
- * Error thrown when the sheet of a given name already exists.
- */
-exports.NoSheetWithNameError = NoSheetWithNameError;
-class SheetNameAlreadyTakenError extends Error {
-  constructor(sheetName) {
-    super(`Sheet with name ${sheetName} already exists`);
-  }
-}
-/**
- * Error thrown when loaded sheet size exceeds configured limits.
- */
-exports.SheetNameAlreadyTakenError = SheetNameAlreadyTakenError;
-class SheetSizeLimitExceededError extends Error {
-  constructor() {
-    super('Sheet size limit exceeded');
-  }
-}
-/**
- * Error thrown when the the provided string is not a valid formula, i.e does not start with "="
- */
-exports.SheetSizeLimitExceededError = SheetSizeLimitExceededError;
-class NotAFormulaError extends Error {
-  constructor() {
-    super('This is not a formula');
-  }
-}
-/**
- * Error thrown when the given address is invalid.
- */
-exports.NotAFormulaError = NotAFormulaError;
-class InvalidAddressError extends Error {
-  constructor(address) {
-    super(`Address (row = ${address.row}, col = ${address.col}) is invalid`);
-  }
-}
-/**
- * Error thrown when the given arguments are invalid
- */
-exports.InvalidAddressError = InvalidAddressError;
-class InvalidArgumentsError extends Error {
-  constructor(expectedArguments) {
-    super(`Invalid arguments, expected ${expectedArguments}`);
-  }
-}
-/**
- * Error thrown when the given sheets are not equal.
- */
-exports.InvalidArgumentsError = InvalidArgumentsError;
-class SheetsNotEqual extends Error {
-  constructor(sheet1, sheet2) {
-    super(`Sheets ${sheet1} and ${sheet2} are not equal.`);
-  }
-}
-/**
- * Error thrown when the given named expression already exists in the workbook and therefore it cannot be added.
- */
-exports.SheetsNotEqual = SheetsNotEqual;
-class NamedExpressionNameIsAlreadyTakenError extends Error {
-  constructor(expressionName) {
-    super(`Name of Named Expression '${expressionName}' is already present`);
-  }
-}
-/**
- * Error thrown when the name given for the named expression is invalid.
- */
-exports.NamedExpressionNameIsAlreadyTakenError = NamedExpressionNameIsAlreadyTakenError;
-class NamedExpressionNameIsInvalidError extends Error {
-  constructor(expressionName) {
-    super(`Name of Named Expression '${expressionName}' is invalid`);
-  }
-}
-/**
- * Error thrown when the given named expression does not exist.
- */
-exports.NamedExpressionNameIsInvalidError = NamedExpressionNameIsInvalidError;
-class NamedExpressionDoesNotExistError extends Error {
-  constructor(expressionName) {
-    super(`Named Expression '${expressionName}' does not exist`);
-  }
-}
-/**
- * Error thrown when there are no operations to be undone by the [[undo]] method.
- */
-exports.NamedExpressionDoesNotExistError = NamedExpressionDoesNotExistError;
-class NoOperationToUndoError extends Error {
-  constructor() {
-    super('There is no operation to undo');
-  }
-}
-/**
- * Error thrown when there are no operations to redo by the [[redo]] method.
- */
-exports.NoOperationToUndoError = NoOperationToUndoError;
-class NoOperationToRedoError extends Error {
-  constructor() {
-    super('There is no operation to redo');
-  }
-}
-/**
- * Error thrown when there is nothing to paste by the [[paste]] method.
- */
-exports.NoOperationToRedoError = NoOperationToRedoError;
-class NothingToPasteError extends Error {
-  constructor() {
-    super('There is nothing to paste');
-  }
-}
-exports.NothingToPasteError = NothingToPasteError;
-function replacer(key, val) {
-  switch (typeof val) {
-    case 'function':
-    case 'symbol':
-      return val.toString();
-    case 'bigint':
-      return 'BigInt(' + val.toString() + ')';
-    default:
-      {
-        if (val instanceof RegExp) {
-          return 'RegExp(' + val.toString() + ')';
-        } else {
-          return val;
+  checkArraySizeForAst(ast, state) {
+    switch (ast.type) {
+      case _parser.AstNodeType.FUNCTION_CALL:
+        {
+          return this.checkArraySizeForFunction(ast, state);
         }
-      }
-  }
-}
-/**
- * Error thrown when the given value cannot be parsed.
- *
- * Checks against the validity in:
- *
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[setCellsContents]]
- */
-class UnableToParseError extends Error {
-  constructor(value) {
-    super(`Unable to parse value: ${JSON.stringify(value, replacer, 4)}`);
-  }
-}
-/**
- * Error thrown when the expected value type differs from the given value type.
- * It also displays the expected type.
- * This error might be thrown while setting or updating the [[ConfigParams]].
- * The following methods accept [[ConfigParams]] as a parameter:
- *
- * @see [[buildEmpty]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[updateConfig]]
- */
-exports.UnableToParseError = UnableToParseError;
-class ExpectedValueOfTypeError extends Error {
-  constructor(expectedType, paramName) {
-    super(`Expected value of type: ${expectedType} for config parameter: ${paramName}`);
-  }
-}
-/**
- * Error thrown when supplied config parameter value is an empty string.
- * This error might be thrown while setting or updating the [[ConfigParams]].
- * The following methods accept [[ConfigParams]] as a parameter:
- *
- * @see [[buildEmpty]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[updateConfig]]
- */
-exports.ExpectedValueOfTypeError = ExpectedValueOfTypeError;
-class ConfigValueEmpty extends Error {
-  constructor(paramName) {
-    super(`Config parameter ${paramName} cannot be empty.`);
-  }
-}
-/**
- * Error thrown when supplied config parameter value is too small.
- * This error might be thrown while setting or updating the [[ConfigParams]].
- * The following methods accept [[ConfigParams]] as a parameter:
- *
- * @see [[buildEmpty]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[updateConfig]]
- */
-exports.ConfigValueEmpty = ConfigValueEmpty;
-class ConfigValueTooSmallError extends Error {
-  constructor(paramName, minimum) {
-    super(`Config parameter ${paramName} should be at least ${minimum}`);
-  }
-}
-/**
- * Error thrown when supplied config parameter value is too big.
- * This error might be thrown while setting or updating the [[ConfigParams]].
- * The following methods accept [[ConfigParams]] as a parameter:
- *
- * @see [[buildEmpty]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[updateConfig]]
- */
-exports.ConfigValueTooSmallError = ConfigValueTooSmallError;
-class ConfigValueTooBigError extends Error {
-  constructor(paramName, maximum) {
-    super(`Config parameter ${paramName} should be at most ${maximum}`);
-  }
-}
-/**
- * Error thrown when the value was expected to be set for a config parameter.
- * It also displays the expected value.
- * This error might be thrown while setting or updating the [[ConfigParams]].
- * The following methods accept [[ConfigParams]] as a parameter:
- *
- * @see [[buildEmpty]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- * @see [[updateConfig]]
- */
-exports.ConfigValueTooBigError = ConfigValueTooBigError;
-class ExpectedOneOfValuesError extends Error {
-  constructor(values, paramName) {
-    super(`Expected one of ${values} for config parameter: ${paramName}`);
-  }
-}
-/**
- * Error thrown when computations become suspended.
- * To perform any other action wait for the batch to complete or resume the evaluation.
- * Relates to:
- *
- * @see [[batch]]
- * @see [[suspendEvaluation]]
- * @see [[resumeEvaluation]]
- */
-exports.ExpectedOneOfValuesError = ExpectedOneOfValuesError;
-class EvaluationSuspendedError extends Error {
-  constructor() {
-    super('Computations are suspended');
-  }
-}
-/**
- * Error thrown when translation is missing in translation package.
- */
-exports.EvaluationSuspendedError = EvaluationSuspendedError;
-class MissingTranslationError extends Error {
-  constructor(key) {
-    super(`Translation for ${key} is missing in the translation package you're using.`);
-  }
-}
-/**
- * Error thrown when trying to override protected translation.
- *
- * @see [[registerLanguage]]
- * @see [[registerFunction]]
- * @see [[registerFunctionPlugin]]
- */
-exports.MissingTranslationError = MissingTranslationError;
-class ProtectedFunctionTranslationError extends Error {
-  constructor(key) {
-    super(`Cannot register translation for function with id: ${key}`);
-  }
-}
-/**
- * Error thrown when trying to retrieve not registered language
- *
- * @see [[getLanguage]]
- * @see [[unregisterLanguage]]
- */
-exports.ProtectedFunctionTranslationError = ProtectedFunctionTranslationError;
-class LanguageNotRegisteredError extends Error {
-  constructor() {
-    super('Language not registered.');
-  }
-}
-/**
- * Error thrown when trying to register already registered language
- *
- * @see [[registerLanguage]]
- */
-exports.LanguageNotRegisteredError = LanguageNotRegisteredError;
-class LanguageAlreadyRegisteredError extends Error {
-  constructor() {
-    super('Language already registered.');
-  }
-}
-/**
- * Error thrown when function plugin is invalid.
- *
- * @see [[registerFunction]]
- * @see [[registerFunctionPlugin]]
- * @see [[buildFromArray]]
- * @see [[buildFromSheets]]
- */
-exports.LanguageAlreadyRegisteredError = LanguageAlreadyRegisteredError;
-class FunctionPluginValidationError extends Error {
-  static functionNotDeclaredInPlugin(functionId, pluginName) {
-    return new FunctionPluginValidationError(`Function with id ${functionId} not declared in plugin ${pluginName}`);
-  }
-  static functionMethodNotFound(functionName, pluginName) {
-    return new FunctionPluginValidationError(`Function method ${functionName} not found in plugin ${pluginName}`);
-  }
-}
-/**
- * Error thrown when trying to register, override or remove function with reserved id.
- *
- * @see [[registerFunctionPlugin]]
- * @see [[registerFunction]]
- * @see [[unregisterFunction]]
- */
-exports.FunctionPluginValidationError = FunctionPluginValidationError;
-class ProtectedFunctionError extends Error {
-  static cannotRegisterFunctionWithId(functionId) {
-    return new ProtectedFunctionError(`Cannot register function with id ${functionId}`);
-  }
-  static cannotUnregisterFunctionWithId(functionId) {
-    return new ProtectedFunctionError(`Cannot unregister function with id ${functionId}`);
-  }
-  static cannotUnregisterProtectedPlugin() {
-    return new ProtectedFunctionError('Cannot unregister protected plugin');
-  }
-}
-/**
- * Error thrown when selected source location has an array.
- */
-exports.ProtectedFunctionError = ProtectedFunctionError;
-class SourceLocationHasArrayError extends Error {
-  constructor() {
-    super('Cannot perform this operation, source location has an array inside.');
-  }
-}
-/**
- * Error thrown when selected target location has an array.
- *
- * @see [[addRows]]
- * @see [[addColumns]]
- * @see [[moveCells]]
- * @see [[moveRows]]
- * @see [[moveColumns]]
- * @see [[paste]]
- */
-exports.SourceLocationHasArrayError = SourceLocationHasArrayError;
-class TargetLocationHasArrayError extends Error {
-  constructor() {
-    super('Cannot perform this operation, target location has an array inside.');
-  }
-}
-/**
- * Error thrown when named expression contains relative addresses.
- *
- * @see [[addNamedExpression]]
- * @see [[changeNamedExpression]]
- */
-exports.TargetLocationHasArrayError = TargetLocationHasArrayError;
-class NoRelativeAddressesAllowedError extends Error {
-  constructor() {
-    super('Relative addresses not allowed in named expressions.');
-  }
-}
-/**
- * Error thrown when alias to a function is already defined.
- *
- * @see [[registerFunctionPlugin]]
- * @see [[registerFunction]]
- */
-exports.NoRelativeAddressesAllowedError = NoRelativeAddressesAllowedError;
-class AliasAlreadyExisting extends Error {
-  constructor(name, pluginName) {
-    super(`Alias id ${name} in plugin ${pluginName} already defined as a function or alias.`);
-  }
-}
-exports.AliasAlreadyExisting = AliasAlreadyExisting;
-
-/***/ }),
-/* 107 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ArrayMapping = void 0;
-__webpack_require__(2);
-var _Cell = __webpack_require__(74);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class ArrayMapping {
-  constructor() {
-    this.arrayMapping = new Map();
-  }
-  getArray(range) {
-    const array = this.getArrayByCorner(range.start);
-    if (array === null || array === void 0 ? void 0 : array.getRange().sameAs(range)) {
-      return array;
-    }
-    return;
-  }
-  getArrayByCorner(address) {
-    return this.arrayMapping.get((0, _Cell.addressKey)(address));
-  }
-  setArray(range, vertex) {
-    this.arrayMapping.set((0, _Cell.addressKey)(range.start), vertex);
-  }
-  removeArray(range) {
-    if (typeof range === 'string') {
-      this.arrayMapping.delete(range);
-    } else {
-      this.arrayMapping.delete((0, _Cell.addressKey)(range.start));
-    }
-  }
-  count() {
-    return this.arrayMapping.size;
-  }
-  *arraysInRows(rowsSpan) {
-    for (const [mtxKey, mtx] of this.arrayMapping.entries()) {
-      if (mtx.spansThroughSheetRows(rowsSpan.sheet, rowsSpan.rowStart, rowsSpan.rowEnd)) {
-        yield [mtxKey, mtx];
-      }
-    }
-  }
-  *arraysInCols(col) {
-    for (const [mtxKey, mtx] of this.arrayMapping.entries()) {
-      if (mtx.spansThroughSheetColumn(col.sheet, col.columnStart, col.columnEnd)) {
-        yield [mtxKey, mtx];
-      }
-    }
-  }
-  isFormulaArrayInRow(sheet, row) {
-    for (const mtx of this.arrayMapping.values()) {
-      if (mtx.spansThroughSheetRows(sheet, row)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  isFormulaArrayInAllRows(span) {
-    let result = true;
-    for (const row of span.rows()) {
-      if (!this.isFormulaArrayInRow(span.sheet, row)) {
-        result = false;
-      }
-    }
-    return result;
-  }
-  isFormulaArrayInColumn(sheet, column) {
-    for (const mtx of this.arrayMapping.values()) {
-      if (mtx.spansThroughSheetColumn(sheet, column)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  isFormulaArrayInAllColumns(span) {
-    let result = true;
-    for (const col of span.columns()) {
-      if (!this.isFormulaArrayInColumn(span.sheet, col)) {
-        result = false;
-      }
-    }
-    return result;
-  }
-  isFormulaArrayInRange(range) {
-    for (const mtx of this.arrayMapping.values()) {
-      if (mtx.getRange().doesOverlap(range)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  isFormulaArrayAtAddress(address) {
-    for (const mtx of this.arrayMapping.values()) {
-      if (mtx.getRange().addressInRange(address)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  moveArrayVerticesAfterRowByRows(sheet, row, numberOfRows) {
-    this.updateArrayVerticesInSheet(sheet, (key, vertex) => {
-      const range = vertex.getRange();
-      return row <= range.start.row ? [range.shifted(0, numberOfRows), vertex] : undefined;
-    });
-  }
-  moveArrayVerticesAfterColumnByColumns(sheet, column, numberOfColumns) {
-    this.updateArrayVerticesInSheet(sheet, (key, vertex) => {
-      const range = vertex.getRange();
-      return column <= range.start.col ? [range.shifted(numberOfColumns, 0), vertex] : undefined;
-    });
-  }
-  updateArrayVerticesInSheet(sheet, fn) {
-    const updated = Array();
-    for (const [key, vertex] of this.arrayMapping.entries()) {
-      if (vertex.sheet !== sheet) {
-        continue;
-      }
-      const result = fn(key, vertex);
-      if (result !== undefined) {
-        this.removeArray(key);
-        updated.push(result);
-      }
-    }
-    updated.forEach(([range, array]) => {
-      this.setArray(range, array);
-    });
-  }
-}
-exports.ArrayMapping = ArrayMapping;
-
-/***/ }),
-/* 108 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.collectAddressesDependentToRange = void 0;
-var _parser = __webpack_require__(78);
-var _FormulaCellVertex = __webpack_require__(109);
-var _RangeVertex = __webpack_require__(111);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-const collectAddressesDependentToRange = (functionRegistry, vertex, range, lazilyTransformingAstService, dependencyGraph) => {
-  if (vertex instanceof _RangeVertex.RangeVertex) {
-    const intersection = vertex.range.intersectionWith(range);
-    if (intersection !== undefined) {
-      return Array.from(intersection.addresses(dependencyGraph));
-    } else {
-      return [];
-    }
-  }
-  let formula;
-  let address;
-  if (vertex instanceof _FormulaCellVertex.FormulaVertex) {
-    formula = vertex.getFormula(lazilyTransformingAstService);
-    address = vertex.getAddress(lazilyTransformingAstService);
-  } else {
-    return [];
-  }
-  return (0, _parser.collectDependencies)(formula, functionRegistry).filter(d => d instanceof _parser.AddressDependency).map(d => d.dependency.toSimpleCellAddress(address)).filter(d => range.addressInRange(d));
-};
-exports.collectAddressesDependentToRange = collectAddressesDependentToRange;
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.FormulaVertex = exports.FormulaCellVertex = exports.ArrayVertex = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
-var _ArraySize = __webpack_require__(1);
-var _ArrayValue = __webpack_require__(110);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _Span = __webpack_require__(100);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class FormulaVertex {
-  constructor(formula, cellAddress, version) {
-    this.formula = formula;
-    this.cellAddress = cellAddress;
-    this.version = version;
-  }
-  get width() {
-    return 1;
-  }
-  get height() {
-    return 1;
-  }
-  static fromAst(formula, address, size, version) {
-    if (size.isScalar()) {
-      return new FormulaCellVertex(formula, address, version);
-    } else {
-      return new ArrayVertex(formula, address, size, version);
-    }
-  }
-  /**
-   * Returns formula stored in this vertex
-   */
-  getFormula(updatingService) {
-    this.ensureRecentData(updatingService);
-    return this.formula;
-  }
-  ensureRecentData(updatingService) {
-    if (this.version != updatingService.version()) {
-      const [newAst, newAddress, newVersion] = updatingService.applyTransformations(this.formula, this.cellAddress, this.version);
-      this.formula = newAst;
-      this.cellAddress = newAddress;
-      this.version = newVersion;
-    }
-  }
-  /**
-   * Returns address of the cell associated with vertex
-   */
-  getAddress(updatingService) {
-    this.ensureRecentData(updatingService);
-    return this.cellAddress;
-  }
-}
-exports.FormulaVertex = FormulaVertex;
-class ArrayVertex extends FormulaVertex {
-  constructor(formula, cellAddress, size, version = 0) {
-    super(formula, cellAddress, version);
-    if (size.isRef) {
-      this.array = new _ArrayValue.ErroredArray(new _Cell.CellError(_Cell.ErrorType.REF, _errorMessage.ErrorMessage.NoSpaceForArrayResult), _ArraySize.ArraySize.error());
-    } else {
-      this.array = new _ArrayValue.NotComputedArray(size);
-    }
-  }
-  get width() {
-    return this.array.width();
-  }
-  get height() {
-    return this.array.height();
-  }
-  get sheet() {
-    return this.cellAddress.sheet;
-  }
-  get leftCorner() {
-    return this.cellAddress;
-  }
-  setCellValue(value) {
-    if (value instanceof _Cell.CellError) {
-      this.setErrorValue(value);
-      return value;
-    }
-    const array = _ArrayValue.ArrayValue.fromInterpreterValue(value);
-    array.resize(this.array.size);
-    this.array = array;
-    return value;
-  }
-  getCellValue() {
-    if (this.array instanceof _ArrayValue.NotComputedArray) {
-      throw Error('Array not computed yet.');
-    }
-    return this.array.simpleRangeValue();
-  }
-  valueOrUndef() {
-    if (this.array instanceof _ArrayValue.NotComputedArray) {
-      return undefined;
-    }
-    return this.array.simpleRangeValue();
-  }
-  getArrayCellValue(address) {
-    const col = address.col - this.cellAddress.col;
-    const row = address.row - this.cellAddress.row;
-    try {
-      return this.array.get(col, row);
-    } catch (e) {
-      return new _Cell.CellError(_Cell.ErrorType.REF);
-    }
-  }
-  getArrayCellRawValue(address) {
-    const val = this.getArrayCellValue(address);
-    if (val instanceof _Cell.CellError || val === _InterpreterValue.EmptyValue) {
-      return undefined;
-    } else {
-      return (0, _InterpreterValue.getRawValue)(val);
-    }
-  }
-  setArrayCellValue(address, value) {
-    const col = address.col - this.cellAddress.col;
-    const row = address.row - this.cellAddress.row;
-    if (this.array instanceof _ArrayValue.ArrayValue) {
-      this.array.set(col, row, value);
-    }
-  }
-  setNoSpace() {
-    this.array = new _ArrayValue.ErroredArray(new _Cell.CellError(_Cell.ErrorType.SPILL, _errorMessage.ErrorMessage.NoSpaceForArrayResult), _ArraySize.ArraySize.error());
-    return this.getCellValue();
-  }
-  getRange() {
-    return _AbsoluteCellRange.AbsoluteCellRange.spanFrom(this.cellAddress, this.width, this.height);
-  }
-  getRangeOrUndef() {
-    return _AbsoluteCellRange.AbsoluteCellRange.spanFromOrUndef(this.cellAddress, this.width, this.height);
-  }
-  setAddress(address) {
-    this.cellAddress = address;
-  }
-  setFormula(newFormula) {
-    this.formula = newFormula;
-  }
-  spansThroughSheetRows(sheet, startRow, endRow = startRow) {
-    return this.cellAddress.sheet === sheet && this.cellAddress.row <= endRow && startRow < this.cellAddress.row + this.height;
-  }
-  spansThroughSheetColumn(sheet, col, columnEnd = col) {
-    return this.cellAddress.sheet === sheet && this.cellAddress.col <= columnEnd && col < this.cellAddress.col + this.width;
-  }
-  isComputed() {
-    return !(this.array instanceof _ArrayValue.NotComputedArray);
-  }
-  columnsFromArray() {
-    return _Span.ColumnsSpan.fromNumberOfColumns(this.cellAddress.sheet, this.cellAddress.col, this.width);
-  }
-  rowsFromArray() {
-    return _Span.RowsSpan.fromNumberOfRows(this.cellAddress.sheet, this.cellAddress.row, this.height);
-  }
-  /**
-   * No-op as array vertices are transformed eagerly.
-   */
-  ensureRecentData(_updatingService) {}
-  isLeftCorner(address) {
-    return (0, _Cell.equalSimpleCellAddress)(this.cellAddress, address);
-  }
-  setErrorValue(error) {
-    this.array = new _ArrayValue.ErroredArray(error, this.array.size);
-  }
-}
-/**
- * Represents vertex which keeps formula
- */
-exports.ArrayVertex = ArrayVertex;
-class FormulaCellVertex extends FormulaVertex {
-  constructor( /** Formula in AST format */
-  formula, /** Address which this vertex represents */
-  address, version) {
-    super(formula, address, version);
-  }
-  valueOrUndef() {
-    return this.cachedCellValue;
-  }
-  /**
-   * Sets computed cell value stored in this vertex
-   */
-  setCellValue(cellValue) {
-    this.cachedCellValue = cellValue;
-    return this.cachedCellValue;
-  }
-  /**
-   * Returns cell value stored in vertex
-   */
-  getCellValue() {
-    if (this.cachedCellValue !== undefined) {
-      return this.cachedCellValue;
-    } else {
-      throw Error('Value of the formula cell is not computed.');
-    }
-  }
-  isComputed() {
-    return this.cachedCellValue !== undefined;
-  }
-}
-exports.FormulaCellVertex = FormulaCellVertex;
-
-/***/ }),
-/* 110 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.NotComputedArray = exports.ErroredArray = exports.ArrayValue = void 0;
-__webpack_require__(2);
-var _ArraySize = __webpack_require__(1);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class NotComputedArray {
-  constructor(size) {
-    this.size = size;
-  }
-  width() {
-    return this.size.width;
-  }
-  height() {
-    return this.size.height;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  get(col, row) {
-    throw Error('Array not computed yet.');
-  }
-  simpleRangeValue() {
-    throw Error('Array not computed yet.');
-  }
-}
-exports.NotComputedArray = NotComputedArray;
-class ArrayValue {
-  constructor(array) {
-    this.size = new _ArraySize.ArraySize(array.length > 0 ? array[0].length : 0, array.length);
-    this.array = array;
-  }
-  static fromInterpreterValue(value) {
-    if (value instanceof _SimpleRangeValue.SimpleRangeValue) {
-      return new ArrayValue(value.data);
-    } else {
-      return new ArrayValue([[value]]);
-    }
-  }
-  simpleRangeValue() {
-    return _SimpleRangeValue.SimpleRangeValue.onlyValues(this.array);
-  }
-  addRows(aboveRow, numberOfRows) {
-    this.array.splice(aboveRow, 0, ...this.nullArrays(numberOfRows, this.width()));
-    this.size.height += numberOfRows;
-  }
-  addColumns(aboveColumn, numberOfColumns) {
-    for (let i = 0; i < this.height(); i++) {
-      this.array[i].splice(aboveColumn, 0, ...new Array(numberOfColumns).fill(_InterpreterValue.EmptyValue));
-    }
-    this.size.width += numberOfColumns;
-  }
-  removeRows(startRow, endRow) {
-    if (this.outOfBound(0, startRow) || this.outOfBound(0, endRow)) {
-      throw Error('Array index out of bound');
-    }
-    const numberOfRows = endRow - startRow + 1;
-    this.array.splice(startRow, numberOfRows);
-    this.size.height -= numberOfRows;
-  }
-  removeColumns(leftmostColumn, rightmostColumn) {
-    if (this.outOfBound(leftmostColumn, 0) || this.outOfBound(rightmostColumn, 0)) {
-      throw Error('Array index out of bound');
-    }
-    const numberOfColumns = rightmostColumn - leftmostColumn + 1;
-    for (const row of this.array) {
-      row.splice(leftmostColumn, numberOfColumns);
-    }
-    this.size.width -= numberOfColumns;
-  }
-  nullArrays(count, size) {
-    const result = [];
-    for (let i = 0; i < count; ++i) {
-      result.push(new Array(size).fill(_InterpreterValue.EmptyValue));
-    }
-    return result;
-  }
-  get(col, row) {
-    if (this.outOfBound(col, row)) {
-      throw Error('Array index out of bound');
-    }
-    return this.array[row][col];
-  }
-  set(col, row, value) {
-    if (this.outOfBound(col, row)) {
-      throw Error('Array index out of bound');
-    }
-    this.array[row][col] = value;
-  }
-  width() {
-    return this.size.width;
-  }
-  height() {
-    return this.size.height;
-  }
-  raw() {
-    return this.array;
-  }
-  resize(newSize) {
-    if (this.height() < newSize.height && isFinite(newSize.height)) {
-      this.addRows(this.height(), newSize.height - this.height());
-    }
-    if (this.height() > newSize.height) {
-      throw Error('Resizing to smaller array');
-    }
-    if (this.width() < newSize.width && isFinite(newSize.width)) {
-      this.addColumns(this.width(), newSize.width - this.width());
-    }
-    if (this.width() > newSize.width) {
-      throw Error('Resizing to smaller array');
-    }
-  }
-  outOfBound(col, row) {
-    return col < 0 || row < 0 || row > this.size.height - 1 || col > this.size.width - 1;
-  }
-}
-exports.ArrayValue = ArrayValue;
-class ErroredArray {
-  constructor(error, size) {
-    this.error = error;
-    this.size = size;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  get(col, row) {
-    return this.error;
-  }
-  width() {
-    return this.size.width;
-  }
-  height() {
-    return this.size.height;
-  }
-  simpleRangeValue() {
-    return this.error;
-  }
-}
-exports.ErroredArray = ErroredArray;
-
-/***/ }),
-/* 111 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.RangeVertex = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-/**
- * Represents vertex bound to range
- */
-class RangeVertex {
-  constructor(range) {
-    this.range = range;
-    this.functionCache = new Map();
-    this.criterionFunctionCache = new Map();
-    this.dependentCacheRanges = new Set();
-    this.bruteForce = false;
-  }
-  get start() {
-    return this.range.start;
-  }
-  get end() {
-    return this.range.end;
-  }
-  get sheet() {
-    return this.range.start.sheet;
-  }
-  /**
-   * Returns cached value stored for given function
-   *
-   * @param functionName - name of the function
-   */
-  getFunctionValue(functionName) {
-    return this.functionCache.get(functionName);
-  }
-  /**
-   * Stores cached value for given function
-   *
-   * @param functionName - name of the function
-   * @param value - cached value
-   */
-  setFunctionValue(functionName, value) {
-    this.functionCache.set(functionName, value);
-  }
-  /**
-   * Returns cached value for given cache key and criterion text representation
-   *
-   * @param cacheKey - key to retrieve from the cache
-   * @param criterionString - criterion text (ex. '<=5')
-   */
-  getCriterionFunctionValue(cacheKey, criterionString) {
-    var _a;
-    return (_a = this.getCriterionFunctionValues(cacheKey).get(criterionString)) === null || _a === void 0 ? void 0 : _a[0];
-  }
-  /**
-   * Returns all cached values stored for given criterion function
-   *
-   * @param cacheKey - key to retrieve from the cache
-   */
-  getCriterionFunctionValues(cacheKey) {
-    var _a;
-    return (_a = this.criterionFunctionCache.get(cacheKey)) !== null && _a !== void 0 ? _a : new Map();
-  }
-  /**
-   * Stores all values for given criterion function
-   *
-   * @param cacheKey - key to store in the cache
-   * @param values - map with values
-   */
-  setCriterionFunctionValues(cacheKey, values) {
-    this.criterionFunctionCache.set(cacheKey, values);
-  }
-  addDependentCacheRange(dependentRange) {
-    if (dependentRange !== this) {
-      this.dependentCacheRanges.add(dependentRange);
-    }
-  }
-  /**
-   * Clears function cache
-   */
-  clearCache() {
-    this.functionCache.clear();
-    this.criterionFunctionCache.clear();
-    this.dependentCacheRanges.forEach(range => range.criterionFunctionCache.clear());
-    this.dependentCacheRanges.clear();
-  }
-  /**
-   * Returns start of the range (it's top-left corner)
-   */
-  getStart() {
-    return this.start;
-  }
-  /**
-   * Returns end of the range (it's bottom-right corner)
-   */
-  getEnd() {
-    return this.end;
-  }
-}
-exports.RangeVertex = RangeVertex;
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.Graph = void 0;
-__webpack_require__(2);
-var _TopSort = __webpack_require__(113);
-var _ProcessableValue = __webpack_require__(114);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Provides directed graph structure.
- *
- * Idea for performance improvement:
- * - use Set<Node>[] instead of NodeId[][] for edgesSparseArray
- */
-class Graph {
-  constructor(dependencyQuery) {
-    this.dependencyQuery = dependencyQuery;
-    /**
-     * A sparse array. The value nodesSparseArray[n] exists if and only if node n is in the graph.
-     * @private
-     */
-    this.nodesSparseArray = [];
-    /**
-     * A sparse array. The value edgesSparseArray[n] exists if and only if node n is in the graph.
-     * The edgesSparseArray[n] is also a sparse array. It may contain removed nodes. To make sure check nodesSparseArray.
-     * @private
-     */
-    this.edgesSparseArray = [];
-    /**
-     * A mapping from node to its id. The value nodesIds.get(node) exists if and only if node is in the graph.
-     * @private
-     */
-    this.nodesIds = new Map();
-    /**
-     * A ProcessableValue object.
-     * @private
-     */
-    this.dirtyAndVolatileNodeIds = new _ProcessableValue.ProcessableValue({
-      dirty: [],
-      volatile: []
-    }, r => this.processDirtyAndVolatileNodeIds(r));
-    /**
-     * A set of node ids. The value infiniteRangeIds.get(nodeId) exists if and only if node is in the graph.
-     * @private
-     */
-    this.infiniteRangeIds = new Set();
-    /**
-     * A dense array. It may contain duplicates and removed nodes.
-     * @private
-     */
-    this.changingWithStructureNodeIds = [];
-    this.nextId = 0;
-  }
-  /**
-   * Iterate over all nodes the in graph
-   */
-  getNodes() {
-    return this.nodesSparseArray.filter(node => node !== undefined);
-  }
-  /**
-   * Checks whether a node is present in graph
-   *
-   * @param node - node to check
-   */
-  hasNode(node) {
-    return this.nodesIds.has(node);
-  }
-  /**
-   * Checks whether exists edge between nodes. If one or both of nodes are not present in graph, returns false.
-   *
-   * @param fromNode - node from which edge is outcoming
-   * @param toNode - node to which edge is incoming
-   */
-  existsEdge(fromNode, toNode) {
-    const fromId = this.getNodeId(fromNode);
-    const toId = this.getNodeId(toNode);
-    if (fromId === undefined || toId === undefined) {
-      return false;
-    }
-    return this.edgesSparseArray[fromId].includes(toId);
-  }
-  /**
-   * Returns nodes adjacent to given node. May contain removed nodes.
-   *
-   * @param node - node to which adjacent nodes we want to retrieve
-   *
-   * Idea for performance improvement:
-   * - return an array instead of set
-   */
-  adjacentNodes(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      throw this.missingNodeError(node);
-    }
-    return new Set(this.edgesSparseArray[id].filter(id => id !== undefined).map(id => this.nodesSparseArray[id]));
-  }
-  /**
-   * Returns number of nodes adjacent to given node. Contrary to adjacentNodes(), this method returns only nodes that are present in graph.
-   *
-   * @param node - node to which adjacent nodes we want to retrieve
-   */
-  adjacentNodesCount(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      throw this.missingNodeError(node);
-    }
-    return this.fixEdgesArrayForNode(id).length;
-  }
-  /**
-   * Adds node to a graph
-   *
-   * @param node - a node to be added
-   */
-  addNodeAndReturnId(node) {
-    const idOfExistingNode = this.nodesIds.get(node);
-    if (idOfExistingNode !== undefined) {
-      return idOfExistingNode;
-    }
-    const newId = this.nextId;
-    this.nextId++;
-    this.nodesSparseArray[newId] = node;
-    this.edgesSparseArray[newId] = [];
-    this.nodesIds.set(node, newId);
-    return newId;
-  }
-  /**
-   * Adds edge between nodes.
-   *
-   * The nodes had to be added to the graph before, or the error will be raised
-   *
-   * @param fromNode - node from which edge is outcoming
-   * @param toNode - node to which edge is incoming
-   */
-  addEdge(fromNode, toNode) {
-    const fromId = this.getNodeIdIfNotNumber(fromNode);
-    const toId = this.getNodeIdIfNotNumber(toNode);
-    if (fromId === undefined) {
-      throw this.missingNodeError(fromNode);
-    }
-    if (toId === undefined) {
-      throw this.missingNodeError(toNode);
-    }
-    if (this.edgesSparseArray[fromId].includes(toId)) {
-      return;
-    }
-    this.edgesSparseArray[fromId].push(toId);
-  }
-  /**
-   * Removes node from graph
-   */
-  removeNode(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      throw this.missingNodeError(node);
-    }
-    if (this.edgesSparseArray[id].length > 0) {
-      this.edgesSparseArray[id].forEach(adjacentId => this.dirtyAndVolatileNodeIds.rawValue.dirty.push(adjacentId));
-      this.dirtyAndVolatileNodeIds.markAsModified();
-    }
-    const dependencies = this.removeDependencies(node);
-    delete this.nodesSparseArray[id];
-    delete this.edgesSparseArray[id];
-    this.infiniteRangeIds.delete(id);
-    this.nodesIds.delete(node);
-    return dependencies;
-  }
-  /**
-   * Removes edge between nodes.
-   */
-  removeEdge(fromNode, toNode) {
-    const fromId = this.getNodeIdIfNotNumber(fromNode);
-    const toId = this.getNodeIdIfNotNumber(toNode);
-    if (fromId === undefined) {
-      throw this.missingNodeError(fromNode);
-    }
-    if (toId === undefined) {
-      throw this.missingNodeError(toNode);
-    }
-    const indexOfToId = this.edgesSparseArray[fromId].indexOf(toId);
-    if (indexOfToId === -1) {
-      throw new Error('Edge does not exist');
-    }
-    delete this.edgesSparseArray[fromId][indexOfToId];
-  }
-  /**
-   * Removes edge between nodes if it exists.
-   */
-  removeEdgeIfExists(fromNode, toNode) {
-    const fromId = this.getNodeId(fromNode);
-    const toId = this.getNodeId(toNode);
-    if (fromId === undefined) {
-      return;
-    }
-    if (toId === undefined) {
-      return;
-    }
-    const indexOfToId = this.edgesSparseArray[fromId].indexOf(toId);
-    if (indexOfToId === -1) {
-      return;
-    }
-    delete this.edgesSparseArray[fromId][indexOfToId];
-  }
-  /**
-   * Sorts the whole graph topologically. Nodes that are on cycles are kept separate.
-   */
-  topSortWithScc() {
-    return this.getTopSortedWithSccSubgraphFrom(this.getNodes(), () => true, () => {});
-  }
-  /**
-   * Sorts the graph topologically. Nodes that are on cycles are kept separate.
-   *
-   * @param modifiedNodes - seed for computation. The algorithm assumes that only these nodes have changed since the last run.
-   * @param operatingFunction - recomputes value of a node, and returns whether a change occurred
-   * @param onCycle - action to be performed when node is on cycle
-   */
-  getTopSortedWithSccSubgraphFrom(modifiedNodes, operatingFunction, onCycle) {
-    const topSortAlgorithm = new _TopSort.TopSort(this.nodesSparseArray, this.edgesSparseArray);
-    const modifiedNodesIds = modifiedNodes.map(node => this.getNodeId(node)).filter(id => id !== undefined);
-    return topSortAlgorithm.getTopSortedWithSccSubgraphFrom(modifiedNodesIds, operatingFunction, onCycle);
-  }
-  /**
-   * Marks node as volatile.
-   */
-  markNodeAsVolatile(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      return;
-    }
-    this.dirtyAndVolatileNodeIds.rawValue.volatile.push(id);
-    this.dirtyAndVolatileNodeIds.markAsModified();
-  }
-  /**
-   * Marks node as dirty.
-   */
-  markNodeAsDirty(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      return;
-    }
-    this.dirtyAndVolatileNodeIds.rawValue.dirty.push(id);
-    this.dirtyAndVolatileNodeIds.markAsModified();
-  }
-  /**
-   * Returns an array of nodes that are marked as dirty and/or volatile.
-   */
-  getDirtyAndVolatileNodes() {
-    return this.dirtyAndVolatileNodeIds.getProcessedValue();
-  }
-  /**
-   * Clears dirty nodes.
-   */
-  clearDirtyNodes() {
-    this.dirtyAndVolatileNodeIds.rawValue.dirty = [];
-    this.dirtyAndVolatileNodeIds.markAsModified();
-  }
-  /**
-   * Marks node as changingWithStructure.
-   */
-  markNodeAsChangingWithStructure(node) {
-    const id = this.getNodeId(node);
-    if (id === undefined) {
-      return;
-    }
-    this.changingWithStructureNodeIds.push(id);
-  }
-  /**
-   * Marks all nodes marked as changingWithStructure as dirty.
-   */
-  markChangingWithStructureNodesAsDirty() {
-    if (this.changingWithStructureNodeIds.length <= 0) {
-      return;
-    }
-    this.dirtyAndVolatileNodeIds.rawValue.dirty = [...this.dirtyAndVolatileNodeIds.rawValue.dirty, ...this.changingWithStructureNodeIds];
-    this.dirtyAndVolatileNodeIds.markAsModified();
-  }
-  /**
-   * Marks node as infinite range.
-   */
-  markNodeAsInfiniteRange(node) {
-    const id = this.getNodeIdIfNotNumber(node);
-    if (id === undefined) {
-      return;
-    }
-    this.infiniteRangeIds.add(id);
-  }
-  /**
-   * Returns an array of nodes marked as infinite ranges
-   */
-  getInfiniteRanges() {
-    return [...this.infiniteRangeIds].map(id => ({
-      node: this.nodesSparseArray[id],
-      id
-    }));
-  }
-  /**
-   * Returns the internal id of a node.
-   */
-  getNodeId(node) {
-    return this.nodesIds.get(node);
-  }
-  /**
-   *
-   */
-  getNodeIdIfNotNumber(node) {
-    return typeof node === 'number' ? node : this.nodesIds.get(node);
-  }
-  /**
-   * Removes invalid neighbors of a given node from the edges array and returns adjacent nodes for the input node.
-   */
-  fixEdgesArrayForNode(id) {
-    const adjacentNodeIds = this.edgesSparseArray[id];
-    this.edgesSparseArray[id] = adjacentNodeIds.filter(adjacentId => adjacentId !== undefined && this.nodesSparseArray[adjacentId]);
-    return this.edgesSparseArray[id];
-  }
-  /**
-   * Removes edges from the given node to its dependencies based on the dependencyQuery function.
-   */
-  removeDependencies(node) {
-    const dependencies = this.dependencyQuery(node);
-    dependencies.forEach(([_, dependency]) => {
-      this.removeEdgeIfExists(dependency, node);
-    });
-    return dependencies;
-  }
-  /**
-   * processFn for dirtyAndVolatileNodeIds ProcessableValue instance
-   * @private
-   */
-  processDirtyAndVolatileNodeIds({
-    dirty,
-    volatile
-  }) {
-    return [...new Set([...dirty, ...volatile])].map(id => this.nodesSparseArray[id]).filter(node => node !== undefined);
-  }
-  /**
-   * Returns error for missing node.
-   */
-  missingNodeError(node) {
-    return new Error(`Unknown node ${node}`);
-  }
-}
-exports.Graph = Graph;
-
-/***/ }),
-/* 113 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.TopSort = void 0;
-__webpack_require__(2);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-// node status life cycle: undefined -> ON_STACK -> PROCESSED -> POPPED
-var NodeVisitStatus;
-(function (NodeVisitStatus) {
-  NodeVisitStatus[NodeVisitStatus["ON_STACK"] = 0] = "ON_STACK";
-  NodeVisitStatus[NodeVisitStatus["PROCESSED"] = 1] = "PROCESSED";
-  NodeVisitStatus[NodeVisitStatus["POPPED"] = 2] = "POPPED";
-})(NodeVisitStatus || (NodeVisitStatus = {}));
-/**
- * An algorithm class. Provides an iterative implementation of Tarjan's algorithm for finding strongly connected components
- */
-class TopSort {
-  constructor(nodesSparseArray = [], edgesSparseArray = []) {
-    this.nodesSparseArray = nodesSparseArray;
-    this.edgesSparseArray = edgesSparseArray;
-    this.entranceTime = [];
-    this.low = [];
-    this.parent = [];
-    this.inSCC = [];
-    this.nodeStatus = [];
-    this.order = [];
-    this.sccNonSingletons = [];
-    this.timeCounter = 0;
-  }
-  /**
-   * An iterative implementation of Tarjan's algorithm for finding strongly connected components.
-   * Returns vertices in order of topological sort, but vertices that are on cycles are kept separate.
-   *
-   * @param modifiedNodes - seed for computation. During engine init run, all of the vertices of grap. In recomputation run, changed vertices.
-   * @param operatingFunction - recomputes value of a node, and returns whether a change occured
-   * @param onCycle - action to be performed when node is on cycle
-   */
-  getTopSortedWithSccSubgraphFrom(modifiedNodeIds, operatingFunction, onCycle) {
-    const modifiedNodeIdsReversed = modifiedNodeIds.reverse();
-    modifiedNodeIdsReversed.forEach(id => this.runDFS(id));
-    return this.postprocess(modifiedNodeIdsReversed, onCycle, operatingFunction);
-  }
-  /**
-   * Returns adjacent nodes of a given node.
-   */
-  getAdjacentNodeIds(id) {
-    return this.edgesSparseArray[id].filter(adjacentId => adjacentId !== undefined && this.nodesSparseArray[adjacentId]);
-  }
-  /**
-   * Runs DFS starting from a given node.
-   */
-  runDFS(v) {
-    if (this.nodeStatus[v] !== undefined) {
-      return;
-    }
-    this.nodeStatus[v] = NodeVisitStatus.ON_STACK;
-    const DFSstack = [v];
-    const SCCstack = [];
-    while (DFSstack.length > 0) {
-      const u = DFSstack[DFSstack.length - 1];
-      switch (this.nodeStatus[u]) {
-        case NodeVisitStatus.ON_STACK:
-          {
-            this.handleOnStack(u, SCCstack, DFSstack);
-            break;
+      case _parser.AstNodeType.COLUMN_RANGE:
+      case _parser.AstNodeType.ROW_RANGE:
+      case _parser.AstNodeType.CELL_RANGE:
+        {
+          const range = _AbsoluteCellRange.AbsoluteCellRange.fromAstOrUndef(ast, state.formulaAddress);
+          if (range === undefined) {
+            return ArraySize.error();
+          } else {
+            return new ArraySize(range.width(), range.height(), true);
           }
-        case NodeVisitStatus.PROCESSED:
-          {
-            // leaving this DFS subtree
-            this.handleProcessed(u, SCCstack, DFSstack);
-            break;
-          }
-        case NodeVisitStatus.POPPED:
-          {
-            // it's a 'shadow' copy, we already processed this vertex and can ignore it
-            DFSstack.pop();
-            break;
-          }
-      }
-    }
-  }
-  /**
-   * Handles a node that is on stack.
-   */
-  handleOnStack(u, SCCstack, DFSstack) {
-    this.entranceTime[u] = this.timeCounter;
-    this.low[u] = this.timeCounter;
-    this.timeCounter++;
-    SCCstack.push(u);
-    this.getAdjacentNodeIds(u).forEach(t => {
-      if (this.entranceTime[t] === undefined) {
-        DFSstack.push(t);
-        this.parent[t] = u;
-        this.nodeStatus[t] = NodeVisitStatus.ON_STACK;
-      }
-    });
-    this.nodeStatus[u] = NodeVisitStatus.PROCESSED;
-  }
-  /**
-   * Handles a node that is already processed.
-   */
-  handleProcessed(u, SCCstack, DFSstack) {
-    let uLow = this.entranceTime[u];
-    this.getAdjacentNodeIds(u).forEach(t => {
-      if (this.inSCC[t]) {
-        return;
-      }
-      uLow = this.parent[t] === u ? Math.min(uLow, this.low[t]) : Math.min(uLow, this.entranceTime[t]);
-    });
-    this.low[u] = uLow;
-    if (uLow === this.entranceTime[u]) {
-      const currentSCC = [];
-      do {
-        currentSCC.push(SCCstack[SCCstack.length - 1]);
-        SCCstack.pop();
-      } while (currentSCC[currentSCC.length - 1] !== u);
-      currentSCC.forEach(t => {
-        this.inSCC[t] = true;
-      });
-      this.order.push(...currentSCC);
-      if (currentSCC.length > 1) {
-        currentSCC.forEach(t => {
-          this.sccNonSingletons[t] = true;
-        });
-      }
-    }
-    DFSstack.pop();
-    this.nodeStatus[u] = NodeVisitStatus.POPPED;
-  }
-  /**
-   * Postprocesses the result of Tarjan's algorithm.
-   */
-  postprocess(modifiedNodeIds, onCycle, operatingFunction) {
-    const shouldBeUpdatedMapping = [];
-    modifiedNodeIds.forEach(t => {
-      shouldBeUpdatedMapping[t] = true;
-    });
-    const sorted = [];
-    const cycled = [];
-    this.order.reverse();
-    this.order.forEach(t => {
-      const adjacentNodes = this.getAdjacentNodeIds(t);
-      // The following line is a potential performance bottleneck.
-      // Array.includes() is O(n) operation, which makes the whole algorithm O(n^2).
-      // Idea for improvement: use Set<T>[] instead of number[][] for edgesSparseArray.
-      if (this.sccNonSingletons[t] || adjacentNodes.includes(t)) {
-        cycled.push(this.nodesSparseArray[t]);
-        onCycle(this.nodesSparseArray[t]);
-        adjacentNodes.forEach(s => shouldBeUpdatedMapping[s] = true);
-      } else {
-        sorted.push(this.nodesSparseArray[t]);
-        if (shouldBeUpdatedMapping[t] && operatingFunction(this.nodesSparseArray[t])) {
-          adjacentNodes.forEach(s => shouldBeUpdatedMapping[s] = true);
         }
-      }
-    });
-    return {
-      sorted,
-      cycled
-    };
-  }
-}
-exports.TopSort = TopSort;
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ProcessableValue = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-class ProcessableValue {
-  constructor(rawValue, processFn) {
-    this.rawValue = rawValue;
-    this.processFn = processFn;
-    this.processedValue = null;
-  }
-  getProcessedValue() {
-    if (this.processedValue === null) {
-      this.processedValue = this.processFn(this.rawValue);
-    }
-    return this.processedValue;
-  }
-  markAsModified() {
-    this.processedValue = null;
-  }
-}
-exports.ProcessableValue = ProcessableValue;
-
-/***/ }),
-/* 115 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.RangeMapping = void 0;
-__webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Mapping from address ranges to range vertices
- */
-class RangeMapping {
-  constructor() {
-    /** Map in which actual data is stored. */
-    this.rangeMapping = new Map();
-  }
-  getMappingSize(sheet) {
-    var _a, _b;
-    return (_b = (_a = this.rangeMapping.get(sheet)) === null || _a === void 0 ? void 0 : _a.size) !== null && _b !== void 0 ? _b : 0;
-  }
-  /**
-   * Saves range vertex
-   *
-   * @param vertex - vertex to save
-   */
-  setRange(vertex) {
-    let sheetMap = this.rangeMapping.get(vertex.getStart().sheet);
-    if (sheetMap === undefined) {
-      sheetMap = new Map();
-      this.rangeMapping.set(vertex.getStart().sheet, sheetMap);
-    }
-    const key = keyFromAddresses(vertex.getStart(), vertex.getEnd());
-    sheetMap.set(key, vertex);
-  }
-  removeRange(vertex) {
-    const sheet = vertex.getStart().sheet;
-    const sheetMap = this.rangeMapping.get(sheet);
-    if (sheetMap === undefined) {
-      return;
-    }
-    const key = keyFromAddresses(vertex.getStart(), vertex.getEnd());
-    sheetMap.delete(key);
-    if (sheetMap.size === 0) {
-      this.rangeMapping.delete(sheet);
-    }
-  }
-  /**
-   * Returns associated vertex for given range
-   *
-   * @param start - top-left corner of the range
-   * @param end - bottom-right corner of the range
-   */
-  getRange(start, end) {
-    const sheetMap = this.rangeMapping.get(start.sheet);
-    const key = keyFromAddresses(start, end);
-    return sheetMap === null || sheetMap === void 0 ? void 0 : sheetMap.get(key);
-  }
-  fetchRange(start, end) {
-    const maybeRange = this.getRange(start, end);
-    if (!maybeRange) {
-      throw Error('Range does not exist');
-    }
-    return maybeRange;
-  }
-  truncateRanges(span, coordinate) {
-    const verticesToRemove = Array();
-    const updated = Array();
-    const verticesWithChangedSize = Array();
-    const sheet = span.sheet;
-    for (const [key, vertex] of this.entriesFromSheet(span.sheet)) {
-      const range = vertex.range;
-      if (span.start <= coordinate(vertex.range.end)) {
-        range.removeSpan(span);
-        if (range.shouldBeRemoved()) {
-          this.removeByKey(sheet, key);
-          verticesToRemove.push(vertex);
-        } else {
-          updated.push([key, vertex]);
+      case _parser.AstNodeType.ARRAY:
+        {
+          const heights = [];
+          const widths = [];
+          for (const row of ast.args) {
+            const sizes = row.map(ast => this.checkArraySizeForAst(ast, state));
+            const h = Math.min(...sizes.map(size => size.height));
+            const w = sizes.reduce((total, size) => total + size.width, 0);
+            heights.push(h);
+            widths.push(w);
+          }
+          const height = heights.reduce((total, h) => total + h, 0);
+          const width = Math.min(...widths);
+          return new ArraySize(width, height);
         }
-        verticesWithChangedSize.push(vertex);
-      }
-    }
-    const verticesToMerge = [];
-    updated.sort((left, right) => compareBy(left[1], right[1], coordinate));
-    for (const [oldKey, vertex] of updated) {
-      const newKey = keyFromRange(vertex.range);
-      if (newKey === oldKey) {
-        continue;
-      }
-      const existingVertex = this.getByKey(sheet, newKey);
-      this.removeByKey(sheet, oldKey);
-      if (existingVertex !== undefined && vertex != existingVertex) {
-        verticesToMerge.push([existingVertex, vertex]);
-      } else {
-        this.setRange(vertex);
-      }
-    }
-    return {
-      verticesToRemove,
-      verticesToMerge,
-      verticesWithChangedSize
-    };
-  }
-  moveAllRangesInSheetAfterRowByRows(sheet, row, numberOfRows) {
-    return this.updateVerticesFromSheet(sheet, (key, vertex) => {
-      if (row <= vertex.start.row) {
-        vertex.range.shiftByRows(numberOfRows);
-        return {
-          changedSize: false,
-          vertex: vertex
-        };
-      } else if (row > vertex.start.row && row <= vertex.end.row) {
-        vertex.range.expandByRows(numberOfRows);
-        return {
-          changedSize: true,
-          vertex: vertex
-        };
-      } else {
-        return undefined;
-      }
-    });
-  }
-  moveAllRangesInSheetAfterColumnByColumns(sheet, column, numberOfColumns) {
-    return this.updateVerticesFromSheet(sheet, (key, vertex) => {
-      if (column <= vertex.start.col) {
-        vertex.range.shiftByColumns(numberOfColumns);
-        return {
-          changedSize: false,
-          vertex: vertex
-        };
-      } else if (column > vertex.start.col && column <= vertex.end.col) {
-        vertex.range.expandByColumns(numberOfColumns);
-        return {
-          changedSize: true,
-          vertex: vertex
-        };
-      } else {
-        return undefined;
-      }
-    });
-  }
-  moveRangesInsideSourceRange(sourceRange, toRight, toBottom, toSheet) {
-    this.updateVerticesFromSheet(sourceRange.sheet, (key, vertex) => {
-      if (sourceRange.containsRange(vertex.range)) {
-        vertex.range.shiftByColumns(toRight);
-        vertex.range.shiftByRows(toBottom);
-        vertex.range.moveToSheet(toSheet);
-        return {
-          changedSize: false,
-          vertex: vertex
-        };
-      } else {
-        return undefined;
-      }
-    });
-  }
-  removeRangesInSheet(sheet) {
-    if (this.rangeMapping.has(sheet)) {
-      const ranges = this.rangeMapping.get(sheet).values();
-      this.rangeMapping.delete(sheet);
-      return ranges;
-    }
-    return [][Symbol.iterator]();
-  }
-  *rangesInSheet(sheet) {
-    const sheetMap = this.rangeMapping.get(sheet);
-    if (!sheetMap) {
-      return;
-    }
-    yield* sheetMap.values();
-  }
-  *rangeVerticesContainedInRange(sourceRange) {
-    for (const rangeVertex of this.rangesInSheet(sourceRange.sheet)) {
-      if (sourceRange.containsRange(rangeVertex.range)) {
-        yield rangeVertex;
-      }
+      case _parser.AstNodeType.STRING:
+      case _parser.AstNodeType.NUMBER:
+        return ArraySize.scalar();
+      case _parser.AstNodeType.CELL_REFERENCE:
+        return new ArraySize(1, 1, true);
+      case _parser.AstNodeType.DIV_OP:
+      case _parser.AstNodeType.CONCATENATE_OP:
+      case _parser.AstNodeType.EQUALS_OP:
+      case _parser.AstNodeType.GREATER_THAN_OP:
+      case _parser.AstNodeType.GREATER_THAN_OR_EQUAL_OP:
+      case _parser.AstNodeType.LESS_THAN_OP:
+      case _parser.AstNodeType.LESS_THAN_OR_EQUAL_OP:
+      case _parser.AstNodeType.MINUS_OP:
+      case _parser.AstNodeType.NOT_EQUAL_OP:
+      case _parser.AstNodeType.PLUS_OP:
+      case _parser.AstNodeType.POWER_OP:
+      case _parser.AstNodeType.TIMES_OP:
+        {
+          const left = this.checkArraySizeForAst(ast.left, state);
+          const right = this.checkArraySizeForAst(ast.right, state);
+          if (!state.arraysFlag && (left.height > 1 || left.width > 1 || right.height > 1 || right.width > 1)) {
+            return ArraySize.error();
+          }
+          return arraySizeForBinaryOp(left, right);
+        }
+      case _parser.AstNodeType.MINUS_UNARY_OP:
+      case _parser.AstNodeType.PLUS_UNARY_OP:
+      case _parser.AstNodeType.PERCENT_OP:
+        {
+          const val = this.checkArraySizeForAst(ast.value, state);
+          if (!state.arraysFlag && (val.height > 1 || val.width > 1)) {
+            return ArraySize.error();
+          }
+          return arraySizeForUnaryOp(val);
+        }
+      case _parser.AstNodeType.PARENTHESIS:
+        {
+          return this.checkArraySizeForAst(ast.expression, state);
+        }
+      case _parser.AstNodeType.EMPTY:
+        return ArraySize.error();
+      default:
+        return ArraySize.error();
     }
   }
-  /**
-   * Finds smaller range does have own vertex.
-   *
-   * @param range
-   */
-  findSmallerRange(range) {
-    if (range.height() > 1 && Number.isFinite(range.height())) {
-      const valuesRangeEndRowLess = (0, _Cell.simpleCellAddress)(range.end.sheet, range.end.col, range.end.row - 1);
-      const rowLessVertex = this.getRange(range.start, valuesRangeEndRowLess);
-      if (rowLessVertex !== undefined) {
-        const restRange = _AbsoluteCellRange.AbsoluteCellRange.fromSimpleCellAddresses((0, _Cell.simpleCellAddress)(range.start.sheet, range.start.col, range.end.row), range.end);
-        return {
-          smallerRangeVertex: rowLessVertex,
-          restRange
-        };
-      }
+  checkArraySizeForFunction(ast, state) {
+    const metadata = this.functionRegistry.getMetadata(ast.procedureName);
+    const pluginArraySizeFunction = this.functionRegistry.getArraySizeFunction(ast.procedureName);
+    if (pluginArraySizeFunction !== undefined) {
+      return pluginArraySizeFunction(ast, state);
     }
-    return {
-      restRange: range
-    };
-  }
-  *entriesFromSheet(sheet) {
-    const sheetMap = this.rangeMapping.get(sheet);
-    if (!sheetMap) {
-      return;
-    }
-    yield* sheetMap.entries();
-  }
-  removeByKey(sheet, key) {
-    this.rangeMapping.get(sheet).delete(key);
-  }
-  getByKey(sheet, key) {
-    var _a;
-    return (_a = this.rangeMapping.get(sheet)) === null || _a === void 0 ? void 0 : _a.get(key);
-  }
-  updateVerticesFromSheet(sheet, fn) {
-    const updated = Array();
-    for (const [key, vertex] of this.entriesFromSheet(sheet)) {
-      const result = fn(key, vertex);
-      if (result !== undefined) {
-        this.removeByKey(sheet, key);
-        updated.push(result);
-      }
-    }
-    updated.forEach(entry => {
-      this.setRange(entry.vertex);
-    });
-    return {
-      verticesWithChangedSize: updated.filter(entry => entry.changedSize).map(entry => entry.vertex)
-    };
-  }
-}
-exports.RangeMapping = RangeMapping;
-function keyFromAddresses(start, end) {
-  return `${start.col},${start.row},${end.col},${end.row}`;
-}
-function keyFromRange(range) {
-  return keyFromAddresses(range.start, range.end);
-}
-const compareBy = (left, right, coordinate) => {
-  const leftStart = coordinate(left.range.start);
-  const rightStart = coordinate(left.range.start);
-  if (leftStart === rightStart) {
-    const leftEnd = coordinate(left.range.end);
-    const rightEnd = coordinate(right.range.end);
-    return leftEnd - rightEnd;
-  } else {
-    return leftStart - rightStart;
-  }
-};
-
-/***/ }),
-/* 116 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.SheetMapping = void 0;
-var _errors = __webpack_require__(106);
-var _i18n = __webpack_require__(117);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-function canonicalize(sheetDisplayName) {
-  return sheetDisplayName.toLowerCase();
-}
-class Sheet {
-  constructor(id, displayName) {
-    this.id = id;
-    this.displayName = displayName;
-  }
-  get canonicalName() {
-    return canonicalize(this.displayName);
-  }
-}
-class SheetMapping {
-  constructor(languages) {
-    this.languages = languages;
-    this.mappingFromCanonicalName = new Map();
-    this.mappingFromId = new Map();
-    this.lastSheetId = -1;
-    this.fetch = sheetName => {
-      const sheet = this.mappingFromCanonicalName.get(canonicalize(sheetName));
-      if (sheet === undefined) {
-        throw new _errors.NoSheetWithNameError(sheetName);
-      }
-      return sheet.id;
-    };
-    this.get = sheetName => {
+    const subChecks = ast.args.map(arg => {
       var _a;
-      return (_a = this.mappingFromCanonicalName.get(canonicalize(sheetName))) === null || _a === void 0 ? void 0 : _a.id;
-    };
-    this.fetchDisplayName = sheetId => {
-      return this.fetchSheetById(sheetId).displayName;
-    };
-    this.sheetNamePrefix = languages.getUITranslation(_i18n.UIElement.NEW_SHEET_PREFIX);
-  }
-  addSheet(newSheetDisplayName = `${this.sheetNamePrefix}${this.lastSheetId + 2}`) {
-    const newSheetCanonicalName = canonicalize(newSheetDisplayName);
-    if (this.mappingFromCanonicalName.has(newSheetCanonicalName)) {
-      throw new _errors.SheetNameAlreadyTakenError(newSheetDisplayName);
-    }
-    this.lastSheetId++;
-    const sheet = new Sheet(this.lastSheetId, newSheetDisplayName);
-    this.store(sheet);
-    return sheet.id;
-  }
-  removeSheet(sheetId) {
-    const sheet = this.fetchSheetById(sheetId);
-    if (sheetId == this.lastSheetId) {
-      --this.lastSheetId;
-    }
-    this.mappingFromCanonicalName.delete(sheet.canonicalName);
-    this.mappingFromId.delete(sheet.id);
-  }
-  getDisplayName(sheetId) {
-    var _a;
-    return (_a = this.mappingFromId.get(sheetId)) === null || _a === void 0 ? void 0 : _a.displayName;
-  }
-  *displayNames() {
-    for (const sheet of this.mappingFromCanonicalName.values()) {
-      yield sheet.displayName;
-    }
-  }
-  numberOfSheets() {
-    return this.mappingFromCanonicalName.size;
-  }
-  hasSheetWithId(sheetId) {
-    return this.mappingFromId.has(sheetId);
-  }
-  hasSheetWithName(sheetName) {
-    return this.mappingFromCanonicalName.has(canonicalize(sheetName));
-  }
-  renameSheet(sheetId, newDisplayName) {
-    const sheet = this.fetchSheetById(sheetId);
-    const currentDisplayName = sheet.displayName;
-    if (currentDisplayName === newDisplayName) {
-      return undefined;
-    }
-    const sheetWithThisCanonicalName = this.mappingFromCanonicalName.get(canonicalize(newDisplayName));
-    if (sheetWithThisCanonicalName !== undefined && sheetWithThisCanonicalName.id !== sheet.id) {
-      throw new _errors.SheetNameAlreadyTakenError(newDisplayName);
-    }
-    const currentCanonicalName = sheet.canonicalName;
-    this.mappingFromCanonicalName.delete(currentCanonicalName);
-    sheet.displayName = newDisplayName;
-    this.store(sheet);
-    return currentDisplayName;
-  }
-  sheetNames() {
-    return Array.from(this.mappingFromId.values()).map(s => s.displayName);
-  }
-  store(sheet) {
-    this.mappingFromId.set(sheet.id, sheet);
-    this.mappingFromCanonicalName.set(sheet.canonicalName, sheet);
-  }
-  fetchSheetById(sheetId) {
-    const sheet = this.mappingFromId.get(sheetId);
-    if (sheet === undefined) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return sheet;
-  }
-}
-exports.SheetMapping = SheetMapping;
-
-/***/ }),
-/* 117 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.UIElement = void 0;
-var _TranslationPackage = __webpack_require__(118);
-exports.buildTranslationPackage = _TranslationPackage.buildTranslationPackage;
-exports.TranslationPackage = _TranslationPackage.TranslationPackage;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-var UIElement;
-exports.UIElement = UIElement;
-(function (UIElement) {
-  UIElement["NEW_SHEET_PREFIX"] = "NEW_SHEET_PREFIX";
-})(UIElement || (exports.UIElement = UIElement = {}));
-
-/***/ }),
-/* 118 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.TranslationPackage = void 0;
-exports.buildTranslationPackage = buildTranslationPackage;
-__webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errors = __webpack_require__(106);
-var _index = __webpack_require__(117);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class TranslationPackage {
-  constructor(functions, errors, ui) {
-    this.functions = functions;
-    this.errors = errors;
-    this.ui = ui;
-    this._protectedTranslations = {
-      'VERSION': 'VERSION'
-    };
-    this.checkUI();
-    this.checkErrors();
-    this.checkFunctionTranslations(this.functions);
-    Object.assign(this.functions, this._protectedTranslations);
-  }
-  extendFunctions(additionalFunctionTranslations) {
-    this.checkFunctionTranslations(additionalFunctionTranslations);
-    Object.assign(this.functions, additionalFunctionTranslations);
-  }
-  buildFunctionMapping() {
-    return Object.keys(this.functions).reduce((ret, key) => {
-      ret[this.functions[key]] = key;
-      return ret;
-    }, {});
-  }
-  buildErrorMapping() {
-    return Object.keys(this.errors).reduce((ret, key) => {
-      ret[this.errors[key]] = key;
-      return ret;
-    }, {});
-  }
-  isFunctionTranslated(key) {
-    return this.functions[key] !== undefined;
-  }
-  getFunctionTranslations(functionIds) {
-    const translations = [];
-    for (const functionId of functionIds) {
-      if (this.isFunctionTranslated(functionId)) {
-        translations.push(this.functions[functionId]);
-      }
-    }
-    return translations;
-  }
-  getFunctionTranslation(key) {
-    const val = this.functions[key];
-    if (val === undefined) {
-      throw new _errors.MissingTranslationError(`functions.${key}`);
-    } else {
-      return val;
-    }
-  }
-  getMaybeFunctionTranslation(key) {
-    return this.functions[key];
-  }
-  getErrorTranslation(key) {
-    if (key === _Cell.ErrorType.LIC) {
-      return `#${_Cell.ErrorType.LIC}!`;
-    }
-    const val = this.errors[key];
-    if (val === undefined) {
-      throw new _errors.MissingTranslationError(`errors.${key}`);
-    } else {
-      return val;
-    }
-  }
-  getUITranslation(key) {
-    const val = this.ui[key];
-    if (val === undefined) {
-      throw new _errors.MissingTranslationError(`ui.${key}`);
-    } else {
-      return val;
-    }
-  }
-  checkUI() {
-    for (const key of Object.values(_index.UIElement)) {
-      if (!(key in this.ui)) {
-        throw new _errors.MissingTranslationError(`ui.${key}`);
-      }
-    }
-  }
-  checkErrors() {
-    for (const key of Object.values(_Cell.ErrorType)) {
-      if (!(key in this.errors) && key !== _Cell.ErrorType.LIC) {
-        throw new _errors.MissingTranslationError(`errors.${key}`);
-      }
-    }
-  }
-  checkFunctionTranslations(functions) {
-    const functionNames = new Set(Object.getOwnPropertyNames(functions));
-    for (const protectedTranslation of Object.getOwnPropertyNames(this._protectedTranslations)) {
-      if (functionNames.has(protectedTranslation)) {
-        throw new _errors.ProtectedFunctionTranslationError(protectedTranslation);
-      }
-    }
-  }
-}
-exports.TranslationPackage = TranslationPackage;
-function buildTranslationPackage(rawTranslationPackage) {
-  return new TranslationPackage(Object.assign({}, rawTranslationPackage.functions), Object.assign({}, rawTranslationPackage.errors), Object.assign({}, rawTranslationPackage.ui));
-}
-
-/***/ }),
-/* 119 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ImmutableAddressMapping = void 0;
-var _errors = __webpack_require__(106);
-var _InterpreterValue = __webpack_require__(99);
-var _index = __webpack_require__(75);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class ImmutableAddressMapping extends _index.AddressMapping {
-  constructor(policy, immutableMapping) {
-    super(policy);
-    this.policy = policy;
-    this.immutableMapping = immutableMapping;
-  }
-  getCellId(address) {
-    return this.getCell(address).id;
-  }
-  setCellId(address, id) {
-    const vertex = this.getCell(address);
-    if (vertex) vertex.id = id;
-  }
-  getColId(address) {
-    return this.immutableMapping.getColId(address);
-  }
-  getRowId(address) {
-    return this.immutableMapping.getRowId(address);
-  }
-  /** @inheritDoc */
-  getCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(address.sheet);
-    }
-    return sheetMapping.getCell(address);
-  }
-  fetchCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(address.sheet);
-    }
-    const vertex = sheetMapping.getCell(address);
-    if (!vertex) {
-      throw Error('Vertex for address missing in AddressMapping');
-    }
-    return vertex;
-  }
-  addSheet(sheetId, strategy) {
-    if (this.mapping.has(sheetId)) {
-      throw Error('Sheet already added');
-    }
-    this.mapping.set(sheetId, strategy);
-  }
-  autoAddSheet(sheetId, sheetBoundaries) {
-    const {
-      height,
-      width,
-      fill
-    } = sheetBoundaries;
-    const strategyConstructor = this.policy.call(fill);
-    this.addSheet(sheetId, new strategyConstructor(width, height));
-  }
-  getCellValue(address) {
-    const vertex = this.getCell(address);
-    if (vertex === undefined) {
-      return _InterpreterValue.EmptyValue;
-    } else if (vertex instanceof _index.ArrayVertex) {
-      return vertex.getArrayCellValue(address);
-    } else {
-      return vertex.getCellValue();
-    }
-  }
-  getRawValue(address) {
-    const vertex = this.getCell(address);
-    if (vertex instanceof _index.ValueCellVertex) {
-      return vertex.getValues().rawValue;
-    } else if (vertex instanceof _index.ArrayVertex) {
-      return vertex.getArrayCellRawValue(address);
-    } else {
-      return null;
-    }
-  }
-  /** @inheritDoc */
-  setCell(address, newVertex) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized');
-    }
-    // PERF: Optimize this using LazilyTransformingAstService version
-    if (newVertex.id === undefined) newVertex.id = this.immutableMapping.getCellId(address);
-    sheetMapping.setCell(address, newVertex);
-  }
-  moveCell(source, destination) {
-    const sheetMapping = this.mapping.get(source.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized.');
-    }
-    if (source.sheet !== destination.sheet) {
-      throw Error('Cannot move cells between sheets.');
-    }
-    if (sheetMapping.has(destination)) {
-      throw new Error('Cannot move cell. Destination already occupied.');
-    }
-    const vertex = sheetMapping.getCell(source);
-    if (vertex === undefined) {
-      throw new Error('Cannot move cell. No cell with such address.');
-    }
-    this.setCell(destination, vertex);
-    this.removeCell(source);
-  }
-  removeCell(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (!sheetMapping) {
-      throw Error('Sheet not initialized');
-    }
-    sheetMapping.removeCell(address);
-  }
-  /** @inheritDoc */
-  has(address) {
-    const sheetMapping = this.mapping.get(address.sheet);
-    if (sheetMapping === undefined) {
-      return false;
-    }
-    return sheetMapping.has(address);
-  }
-  /** @inheritDoc */
-  getHeight(sheetId) {
-    const sheetMapping = this.mapping.get(sheetId);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return sheetMapping.getHeight();
-  }
-  /** @inheritDoc */
-  getWidth(sheetId) {
-    const sheetMapping = this.mapping.get(sheetId);
-    if (!sheetMapping) {
-      throw new _errors.NoSheetWithIdError(sheetId);
-    }
-    return sheetMapping.getWidth();
-  }
-  addRows(sheet, row, numberOfRows) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
-    sheetMapping.addRows(row, numberOfRows);
-  }
-  removeRows(removedRows) {
-    const sheetMapping = this.mapping.get(removedRows.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(removedRows.sheet);
-    }
-    sheetMapping.removeRows(removedRows);
-  }
-  removeSheet(sheetId) {
-    this.mapping.delete(sheetId);
-  }
-  addColumns(sheet, column, numberOfColumns) {
-    const sheetMapping = this.mapping.get(sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(sheet);
-    }
-    sheetMapping.addColumns(column, numberOfColumns);
-  }
-  removeColumns(removedColumns) {
-    const sheetMapping = this.mapping.get(removedColumns.sheet);
-    if (sheetMapping === undefined) {
-      throw new _errors.NoSheetWithIdError(removedColumns.sheet);
-    }
-    sheetMapping.removeColumns(removedColumns);
-  }
-}
-exports.ImmutableAddressMapping = ImmutableAddressMapping;
-
-/***/ }),
-/* 120 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.EmptyCellVertex = void 0;
-var _InterpreterValue = __webpack_require__(99);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Represents singleton vertex bound to all empty cells
- */
-class EmptyCellVertex {
-  constructor() {}
-  /**
-   * Retrieves cell value bound to that singleton
-   */
-  getCellValue() {
-    return _InterpreterValue.EmptyValue;
-  }
-}
-exports.EmptyCellVertex = EmptyCellVertex;
-
-/***/ }),
-/* 121 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ValueCellVertex = void 0;
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-/**
- * Represents vertex which keeps static cell value
- */
-class ValueCellVertex {
-  /** Static cell value. */
-  constructor(parsedValue, rawValue) {
-    this.parsedValue = parsedValue;
-    this.rawValue = rawValue;
-  }
-  getValues() {
-    return {
-      parsedValue: this.parsedValue,
-      rawValue: this.rawValue
-    };
-  }
-  setValues(values) {
-    this.parsedValue = values.parsedValue;
-    this.rawValue = values.rawValue;
-  }
-  /**
-   * Returns cell value stored in vertex
-   */
-  getCellValue() {
-    return this.parsedValue;
-  }
-  setCellValue(_cellValue) {
-    throw Error('SetCellValue is deprecated for ValueCellVertex');
-  }
-}
-exports.ValueCellVertex = ValueCellVertex;
-
-/***/ }),
-/* 122 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.ParsingErrorVertex = void 0;
-var _Cell = __webpack_require__(74);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-class ParsingErrorVertex {
-  constructor(errors, rawInput) {
-    this.errors = errors;
-    this.rawInput = rawInput;
-  }
-  getCellValue() {
-    return _Cell.CellError.parsingError();
-  }
-  getFormula() {
-    return this.rawInput;
-  }
-}
-exports.ParsingErrorVertex = ParsingErrorVertex;
-
-/***/ }),
-/* 123 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.SparseStrategy = void 0;
-var _Cell = __webpack_require__(74);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Mapping from cell addresses to vertices
- *
- * Uses Map to store addresses, having minimal memory usage for sparse sheets but not necessarily constant set/lookup.
- */
-class SparseStrategy {
-  constructor(width, height) {
-    this.width = width;
-    this.height = height;
-    /**
-     * Map of Maps in which actual data is stored.
-     *
-     * Key of map in first level is column number.
-     * Key of map in second level is row number.
-     */
-    this.mapping = new Map();
-  }
-  /** @inheritDoc */
-  getCell(address) {
-    var _a;
-    return (_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.get(address.row);
-  }
-  /** @inheritDoc */
-  setCell(address, newVertex) {
-    this.width = Math.max(this.width, address.col + 1);
-    this.height = Math.max(this.height, address.row + 1);
-    let colMapping = this.mapping.get(address.col);
-    if (!colMapping) {
-      colMapping = new Map();
-      this.mapping.set(address.col, colMapping);
-    }
-    colMapping.set(address.row, newVertex);
-  }
-  /** @inheritDoc */
-  has(address) {
-    var _a;
-    return !!((_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.get(address.row));
-  }
-  /** @inheritDoc */
-  getHeight() {
-    return this.height;
-  }
-  /** @inheritDoc */
-  getWidth() {
-    return this.width;
-  }
-  removeCell(address) {
-    var _a;
-    (_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.delete(address.row);
-  }
-  addRows(row, numberOfRows) {
-    this.mapping.forEach(rowMapping => {
-      const tmpMapping = new Map();
-      rowMapping.forEach((vertex, rowNumber) => {
-        if (rowNumber >= row) {
-          tmpMapping.set(rowNumber + numberOfRows, vertex);
-          rowMapping.delete(rowNumber);
-        }
-      });
-      tmpMapping.forEach((vertex, rowNumber) => {
-        rowMapping.set(rowNumber, vertex);
-      });
+      return this.checkArraySizeForAst(arg, new _InterpreterState.InterpreterState(state.formulaAddress, state.arraysFlag || ((_a = metadata === null || metadata === void 0 ? void 0 : metadata.arrayFunction) !== null && _a !== void 0 ? _a : false)));
     });
-    this.height += numberOfRows;
-  }
-  addColumns(column, numberOfColumns) {
-    const tmpMapping = new Map();
-    this.mapping.forEach((rowMapping, colNumber) => {
-      if (colNumber >= column) {
-        tmpMapping.set(colNumber + numberOfColumns, rowMapping);
-        this.mapping.delete(colNumber);
-      }
-    });
-    tmpMapping.forEach((rowMapping, colNumber) => {
-      this.mapping.set(colNumber, rowMapping);
-    });
-    this.width += numberOfColumns;
-  }
-  removeRows(removedRows) {
-    this.mapping.forEach(rowMapping => {
-      const tmpMapping = new Map();
-      rowMapping.forEach((vertex, rowNumber) => {
-        if (rowNumber >= removedRows.rowStart) {
-          rowMapping.delete(rowNumber);
-          if (rowNumber > removedRows.rowEnd) {
-            tmpMapping.set(rowNumber - removedRows.numberOfRows, vertex);
-          }
-        }
-      });
-      tmpMapping.forEach((vertex, rowNumber) => {
-        rowMapping.set(rowNumber, vertex);
-      });
-    });
-    const rightmostRowRemoved = Math.min(this.height - 1, removedRows.rowEnd);
-    const numberOfRowsRemoved = Math.max(0, rightmostRowRemoved - removedRows.rowStart + 1);
-    this.height = Math.max(0, this.height - numberOfRowsRemoved);
-  }
-  removeColumns(removedColumns) {
-    const tmpMapping = new Map();
-    this.mapping.forEach((rowMapping, colNumber) => {
-      if (colNumber >= removedColumns.columnStart) {
-        this.mapping.delete(colNumber);
-        if (colNumber > removedColumns.columnEnd) {
-          tmpMapping.set(colNumber - removedColumns.numberOfColumns, rowMapping);
-        }
-      }
-    });
-    tmpMapping.forEach((rowMapping, colNumber) => {
-      this.mapping.set(colNumber, rowMapping);
-    });
-    const rightmostColumnRemoved = Math.min(this.width - 1, removedColumns.columnEnd);
-    const numberOfColumnsRemoved = Math.max(0, rightmostColumnRemoved - removedColumns.columnStart + 1);
-    this.width = Math.max(0, this.width - numberOfColumnsRemoved);
-  }
-  *getEntries(sheet) {
-    for (const [colNumber, col] of this.mapping) {
-      for (const [rowNumber, value] of col) {
-        yield [(0, _Cell.simpleCellAddress)(sheet, colNumber, rowNumber), value];
+    if (metadata === undefined || metadata.expandRanges || !state.arraysFlag || metadata.vectorizationForbidden || metadata.parameters === undefined) {
+      return new ArraySize(1, 1);
+    }
+    const argumentDefinitions = [...metadata.parameters];
+    if (metadata.repeatLastArgs === undefined && argumentDefinitions.length < subChecks.length) {
+      return ArraySize.error();
+    }
+    if (metadata.repeatLastArgs !== undefined && argumentDefinitions.length < subChecks.length && (subChecks.length - argumentDefinitions.length) % metadata.repeatLastArgs !== 0) {
+      return ArraySize.error();
+    }
+    while (argumentDefinitions.length < subChecks.length) {
+      argumentDefinitions.push(...argumentDefinitions.slice(argumentDefinitions.length - metadata.repeatLastArgs));
+    }
+    let maxWidth = 1;
+    let maxHeight = 1;
+    for (let i = 0; i < subChecks.length; i++) {
+      if (argumentDefinitions[i].argumentType !== _FunctionPlugin.FunctionArgumentType.RANGE && argumentDefinitions[i].argumentType !== _FunctionPlugin.FunctionArgumentType.ANY) {
+        maxHeight = Math.max(maxHeight, subChecks[i].height);
+        maxWidth = Math.max(maxWidth, subChecks[i].width);
       }
     }
-  }
-  *verticesFromColumn(column) {
-    const colMapping = this.mapping.get(column);
-    if (colMapping === undefined) {
-      return;
-    }
-    for (const [_, vertex] of colMapping) {
-      yield vertex;
-    }
-  }
-  *verticesFromRow(row) {
-    for (const colMapping of this.mapping.values()) {
-      const rowVertex = colMapping.get(row);
-      if (rowVertex !== undefined) {
-        yield rowVertex;
-      }
-    }
-  }
-  *verticesFromColumnsSpan(columnsSpan) {
-    for (const column of columnsSpan.columns()) {
-      const colMapping = this.mapping.get(column);
-      if (colMapping === undefined) {
-        continue;
-      }
-      for (const [_, vertex] of colMapping) {
-        yield vertex;
-      }
-    }
-  }
-  *verticesFromRowsSpan(rowsSpan) {
-    for (const colMapping of this.mapping.values()) {
-      for (const row of rowsSpan.rows()) {
-        const rowVertex = colMapping.get(row);
-        if (rowVertex !== undefined) {
-          yield rowVertex;
-        }
-      }
-    }
-  }
-  *entriesFromRowsSpan(rowsSpan) {
-    for (const [col, colMapping] of this.mapping.entries()) {
-      for (const row of rowsSpan.rows()) {
-        const rowVertex = colMapping.get(row);
-        if (rowVertex !== undefined) {
-          yield [(0, _Cell.simpleCellAddress)(rowsSpan.sheet, col, row), rowVertex];
-        }
-      }
-    }
-  }
-  *entriesFromColumnsSpan(columnsSpan) {
-    for (const col of columnsSpan.columns()) {
-      const colMapping = this.mapping.get(col);
-      if (colMapping !== undefined) {
-        for (const [row, vertex] of colMapping.entries()) {
-          yield [(0, _Cell.simpleCellAddress)(columnsSpan.sheet, col, row), vertex];
-        }
-      }
-    }
-  }
-  *vertices() {
-    for (const [_, col] of this.mapping) {
-      for (const [_, value] of col) {
-        if (value !== undefined) {
-          yield value;
-        }
-      }
-    }
+    return new ArraySize(maxWidth, maxHeight);
   }
 }
-exports.SparseStrategy = SparseStrategy;
+exports.ArraySizePredictor = ArraySizePredictor;
 
 /***/ }),
-/* 124 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.DenseStrategy = void 0;
-__webpack_require__(2);
-var _Cell = __webpack_require__(74);
-/**
- * @license
- * Copyright (c) 2023 Handsoncode. All rights reserved.
- */
-
-/**
- * Mapping from cell addresses to vertices
- *
- * Uses Array to store addresses, having minimal memory usage for dense sheets and constant set/lookup.
- */
-class DenseStrategy {
-  /**
-   * @param width - width of the stored sheet
-   * @param height - height of the stored sheet
-   */
-  constructor(width, height) {
-    this.width = width;
-    this.height = height;
-    this.mapping = new Array(height);
-    for (let i = 0; i < height; i++) {
-      this.mapping[i] = new Array(width);
-    }
-  }
-  /** @inheritDoc */
-  getCell(address) {
-    return this.getCellVertex(address.col, address.row);
-  }
-  /** @inheritDoc */
-  setCell(address, newVertex) {
-    this.width = Math.max(this.width, address.col + 1);
-    this.height = Math.max(this.height, address.row + 1);
-    const rowMapping = this.mapping[address.row];
-    if (!rowMapping) {
-      this.mapping[address.row] = new Array(this.width);
-    }
-    this.mapping[address.row][address.col] = newVertex;
-  }
-  /** @inheritDoc */
-  has(address) {
-    const row = this.mapping[address.row];
-    if (!row) {
-      return false;
-    }
-    return !!row[address.col];
-  }
-  /** @inheritDoc */
-  getHeight() {
-    return this.height;
-  }
-  /** @inheritDoc */
-  getWidth() {
-    return this.width;
-  }
-  removeCell(address) {
-    if (this.mapping[address.row] !== undefined) {
-      delete this.mapping[address.row][address.col];
-    }
-  }
-  addRows(row, numberOfRows) {
-    const newRows = [];
-    for (let i = 0; i < numberOfRows; i++) {
-      newRows.push(new Array(this.width));
-    }
-    this.mapping.splice(row, 0, ...newRows);
-    this.height += numberOfRows;
-  }
-  addColumns(column, numberOfColumns) {
-    for (let i = 0; i < this.height; i++) {
-      this.mapping[i].splice(column, 0, ...new Array(numberOfColumns));
-    }
-    this.width += numberOfColumns;
-  }
-  removeRows(removedRows) {
-    this.mapping.splice(removedRows.rowStart, removedRows.numberOfRows);
-    const rightmostRowRemoved = Math.min(this.height - 1, removedRows.rowEnd);
-    const numberOfRowsRemoved = Math.max(0, rightmostRowRemoved - removedRows.rowStart + 1);
-    this.height = Math.max(0, this.height - numberOfRowsRemoved);
-  }
-  removeColumns(removedColumns) {
-    for (let i = 0; i < this.height; i++) {
-      this.mapping[i].splice(removedColumns.columnStart, removedColumns.numberOfColumns);
-    }
-    const rightmostColumnRemoved = Math.min(this.width - 1, removedColumns.columnEnd);
-    const numberOfColumnsRemoved = Math.max(0, rightmostColumnRemoved - removedColumns.columnStart + 1);
-    this.width = Math.max(0, this.width - numberOfColumnsRemoved);
-  }
-  *getEntries(sheet) {
-    for (let y = 0; y < this.height; ++y) {
-      for (let x = 0; x < this.width; ++x) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield [(0, _Cell.simpleCellAddress)(sheet, x, y), vertex];
-        }
-      }
-    }
-  }
-  *verticesFromColumn(column) {
-    for (let y = 0; y < this.height; ++y) {
-      const vertex = this.getCellVertex(column, y);
-      if (vertex) {
-        yield vertex;
-      }
-    }
-  }
-  *verticesFromRow(row) {
-    for (let x = 0; x < this.width; ++x) {
-      const vertex = this.getCellVertex(x, row);
-      if (vertex) {
-        yield vertex;
-      }
-    }
-  }
-  *verticesFromColumnsSpan(columnsSpan) {
-    for (let x = columnsSpan.columnStart; x <= columnsSpan.columnEnd; ++x) {
-      for (let y = 0; y < this.height; ++y) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield vertex;
-        }
-      }
-    }
-  }
-  *verticesFromRowsSpan(rowsSpan) {
-    for (let x = 0; x < this.width; ++x) {
-      for (let y = rowsSpan.rowStart; y <= rowsSpan.rowEnd; ++y) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield vertex;
-        }
-      }
-    }
-  }
-  *entriesFromRowsSpan(rowsSpan) {
-    for (let x = 0; x < this.width; ++x) {
-      for (let y = rowsSpan.rowStart; y <= rowsSpan.rowEnd; ++y) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield [(0, _Cell.simpleCellAddress)(rowsSpan.sheet, x, y), vertex];
-        }
-      }
-    }
-  }
-  *entriesFromColumnsSpan(columnsSpan) {
-    for (let x = columnsSpan.columnStart; x <= columnsSpan.columnEnd; ++x) {
-      for (let y = 0; y < this.height; ++y) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield [(0, _Cell.simpleCellAddress)(columnsSpan.sheet, x, y), vertex];
-        }
-      }
-    }
-  }
-  *vertices() {
-    for (let y = 0; y < this.height; ++y) {
-      for (let x = 0; x < this.width; ++x) {
-        const vertex = this.getCellVertex(x, y);
-        if (vertex) {
-          yield vertex;
-        }
-      }
-    }
-  }
-  getCellVertex(x, y) {
-    var _a;
-    return (_a = this.mapping[y]) === null || _a === void 0 ? void 0 : _a[x];
-  }
-}
-exports.DenseStrategy = DenseStrategy;
-
-/***/ }),
-/* 125 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11463,7 +8062,7 @@ class InterpreterState {
 exports.InterpreterState = InterpreterState;
 
 /***/ }),
-/* 126 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11472,13 +8071,13 @@ exports.InterpreterState = InterpreterState;
 exports.__esModule = true;
 exports.FunctionPlugin = exports.FunctionArgumentType = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(127);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _parser = __webpack_require__(77);
+var _ArithmeticHelper = __webpack_require__(101);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -11791,7 +8390,7 @@ class FunctionPlugin {
 exports.FunctionPlugin = FunctionPlugin;
 
 /***/ }),
-/* 127 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11814,12 +8413,12 @@ exports.normalizeString = normalizeString;
 exports.numberCmp = numberCmp;
 exports.zeroIfEmpty = zeroIfEmpty;
 __webpack_require__(2);
-var _unorm = _interopRequireDefault(__webpack_require__(128));
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _StringHelper = __webpack_require__(129);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
+var _unorm = _interopRequireDefault(__webpack_require__(102));
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _StringHelper = __webpack_require__(103);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 /**
  * @license
@@ -12588,13 +9187,13 @@ function normalizeString(str, form) {
 }
 
 /***/ }),
-/* 128 */
+/* 102 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__128__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__102__;
 
 /***/ }),
-/* 129 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12616,6 +9215,3412 @@ function collatorFromConfig(config) {
     ignorePunctuation
   });
 }
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.TimeNumber = exports.RichNumber = exports.PercentNumber = exports.NumberType = exports.EmptyValue = exports.DateTimeNumber = exports.DateNumber = exports.CurrencyNumber = void 0;
+exports.cloneNumber = cloneNumber;
+exports.getFormatOfExtendedNumber = getFormatOfExtendedNumber;
+exports.getRawValue = getRawValue;
+exports.getTypeFormatOfExtendedNumber = getTypeFormatOfExtendedNumber;
+exports.getTypeOfExtendedNumber = getTypeOfExtendedNumber;
+exports.isExtendedNumber = isExtendedNumber;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+/**
+ * A symbol representing an empty cell value.
+ */
+const EmptyValue = Symbol('Empty value');
+exports.EmptyValue = EmptyValue;
+function getRawValue(num) {
+  if (num instanceof RichNumber) {
+    return num.val;
+  } else {
+    return num;
+  }
+}
+class RichNumber {
+  constructor(val, format) {
+    this.val = val;
+    this.format = format;
+  }
+  fromNumber(val) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    return new this.constructor(val);
+  }
+}
+exports.RichNumber = RichNumber;
+function cloneNumber(val, newVal) {
+  if (typeof val === 'number') {
+    return newVal;
+  } else {
+    const ret = val.fromNumber(newVal);
+    ret.format = val.format;
+    return ret;
+  }
+}
+class DateNumber extends RichNumber {
+  getDetailedType() {
+    return NumberType.NUMBER_DATE;
+  }
+}
+exports.DateNumber = DateNumber;
+class CurrencyNumber extends RichNumber {
+  getDetailedType() {
+    return NumberType.NUMBER_CURRENCY;
+  }
+}
+exports.CurrencyNumber = CurrencyNumber;
+class TimeNumber extends RichNumber {
+  getDetailedType() {
+    return NumberType.NUMBER_TIME;
+  }
+}
+exports.TimeNumber = TimeNumber;
+class DateTimeNumber extends RichNumber {
+  getDetailedType() {
+    return NumberType.NUMBER_DATETIME;
+  }
+}
+exports.DateTimeNumber = DateTimeNumber;
+class PercentNumber extends RichNumber {
+  getDetailedType() {
+    return NumberType.NUMBER_PERCENT;
+  }
+}
+exports.PercentNumber = PercentNumber;
+function isExtendedNumber(val) {
+  return typeof val === 'number' || val instanceof RichNumber;
+}
+var NumberType;
+exports.NumberType = NumberType;
+(function (NumberType) {
+  NumberType["NUMBER_RAW"] = "NUMBER_RAW";
+  NumberType["NUMBER_DATE"] = "NUMBER_DATE";
+  NumberType["NUMBER_TIME"] = "NUMBER_TIME";
+  NumberType["NUMBER_DATETIME"] = "NUMBER_DATETIME";
+  NumberType["NUMBER_CURRENCY"] = "NUMBER_CURRENCY";
+  NumberType["NUMBER_PERCENT"] = "NUMBER_PERCENT";
+})(NumberType || (exports.NumberType = NumberType = {}));
+function getTypeOfExtendedNumber(num) {
+  if (num instanceof RichNumber) {
+    return num.getDetailedType();
+  } else {
+    return NumberType.NUMBER_RAW;
+  }
+}
+function getFormatOfExtendedNumber(num) {
+  if (num instanceof RichNumber) {
+    return num.format;
+  } else {
+    return undefined;
+  }
+}
+function getTypeFormatOfExtendedNumber(num) {
+  if (num instanceof RichNumber) {
+    return {
+      type: num.getDetailedType(),
+      format: num.format
+    };
+  } else {
+    return {
+      type: NumberType.NUMBER_RAW
+    };
+  }
+}
+
+/***/ }),
+/* 105 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.RowsSpan = exports.ColumnsSpan = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+/*
+ * A class representing a set of rows in specific sheet
+ */
+class RowsSpan {
+  constructor(sheet, rowStart, rowEnd) {
+    this.sheet = sheet;
+    this.rowStart = rowStart;
+    this.rowEnd = rowEnd;
+    if (rowStart < 0) {
+      throw Error('Starting row cant be less than 0');
+    }
+    if (rowEnd < rowStart) {
+      throw Error('Row span cant end before start');
+    }
+  }
+  get numberOfRows() {
+    return this.rowEnd - this.rowStart + 1;
+  }
+  get start() {
+    return this.rowStart;
+  }
+  get end() {
+    return this.rowEnd;
+  }
+  static fromNumberOfRows(sheet, rowStart, numberOfRows) {
+    return new RowsSpan(sheet, rowStart, rowStart + numberOfRows - 1);
+  }
+  static fromRowStartAndEnd(sheet, rowStart, rowEnd) {
+    return new RowsSpan(sheet, rowStart, rowEnd);
+  }
+  *rows() {
+    for (let col = this.rowStart; col <= this.rowEnd; ++col) {
+      yield col;
+    }
+  }
+  intersect(otherSpan) {
+    if (this.sheet !== otherSpan.sheet) {
+      throw Error('Can\'t intersect spans from different sheets');
+    }
+    const start = Math.max(this.rowStart, otherSpan.rowStart);
+    const end = Math.min(this.rowEnd, otherSpan.rowEnd);
+    if (start > end) {
+      return null;
+    }
+    return new RowsSpan(this.sheet, start, end);
+  }
+  firstRow() {
+    return new RowsSpan(this.sheet, this.rowStart, this.rowStart);
+  }
+}
+/*
+ * A class representing a set of columns in specific sheet
+ */
+exports.RowsSpan = RowsSpan;
+class ColumnsSpan {
+  constructor(sheet, columnStart, columnEnd) {
+    this.sheet = sheet;
+    this.columnStart = columnStart;
+    this.columnEnd = columnEnd;
+    if (columnStart < 0) {
+      throw Error('Starting column cant be less than 0');
+    }
+    if (columnEnd < columnStart) {
+      throw Error('Column span cant end before start');
+    }
+  }
+  get numberOfColumns() {
+    return this.columnEnd - this.columnStart + 1;
+  }
+  get start() {
+    return this.columnStart;
+  }
+  get end() {
+    return this.columnEnd;
+  }
+  static fromNumberOfColumns(sheet, columnStart, numberOfColumns) {
+    return new ColumnsSpan(sheet, columnStart, columnStart + numberOfColumns - 1);
+  }
+  static fromColumnStartAndEnd(sheet, columnStart, columnEnd) {
+    return new ColumnsSpan(sheet, columnStart, columnEnd);
+  }
+  *columns() {
+    for (let col = this.columnStart; col <= this.columnEnd; ++col) {
+      yield col;
+    }
+  }
+  intersect(otherSpan) {
+    if (this.sheet !== otherSpan.sheet) {
+      throw Error('Can\'t intersect spans from different sheets');
+    }
+    const start = Math.max(this.columnStart, otherSpan.columnStart);
+    const end = Math.min(this.columnEnd, otherSpan.columnEnd);
+    if (start > end) {
+      return null;
+    }
+    return new ColumnsSpan(this.sheet, start, end);
+  }
+  firstColumn() {
+    return new ColumnsSpan(this.sheet, this.columnStart, this.columnStart);
+  }
+}
+exports.ColumnsSpan = ColumnsSpan;
+
+/***/ }),
+/* 106 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.Statistics = exports.StatType = exports.EmptyStatistics = void 0;
+var _EmptyStatistics = __webpack_require__(107);
+exports.EmptyStatistics = _EmptyStatistics.EmptyStatistics;
+var _Statistics = __webpack_require__(108);
+exports.Statistics = _Statistics.Statistics;
+var _StatType = __webpack_require__(109);
+exports.StatType = _StatType.StatType;
+
+/***/ }),
+/* 107 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.EmptyStatistics = void 0;
+var _Statistics = __webpack_require__(108);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/** Do not store stats in the memory. Stats are not needed on daily basis */
+class EmptyStatistics extends _Statistics.Statistics {
+  /** @inheritDoc */
+  incrementCriterionFunctionFullCacheUsed() {
+    // do nothing
+  }
+  /** @inheritDoc */
+  incrementCriterionFunctionPartialCacheUsed() {
+    // do nothing
+  }
+  /** @inheritDoc */
+  start(_name) {
+    // do nothing
+  }
+  /** @inheritDoc */
+  end(_name) {
+    // do nothing
+  }
+}
+exports.EmptyStatistics = EmptyStatistics;
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.Statistics = void 0;
+var _StatType = __webpack_require__(109);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Provides tracking performance statistics to the engine
+ */
+class Statistics {
+  constructor() {
+    this.stats = new Map([[_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, 0], [_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, 0]]);
+    this.startTimes = new Map();
+  }
+  incrementCriterionFunctionFullCacheUsed() {
+    var _a;
+    const newValue = ((_a = this.stats.get(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED)) !== null && _a !== void 0 ? _a : 0) + 1;
+    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, newValue);
+  }
+  incrementCriterionFunctionPartialCacheUsed() {
+    var _a;
+    const newValue = ((_a = this.stats.get(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED)) !== null && _a !== void 0 ? _a : 0) + 1;
+    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, newValue);
+  }
+  /**
+   * Resets statistics
+   */
+  reset() {
+    this.stats.clear();
+    this.startTimes.clear();
+    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_FULL_CACHE_USED, 0);
+    this.stats.set(_StatType.StatType.CRITERION_FUNCTION_PARTIAL_CACHE_USED, 0);
+  }
+  /**
+   * Starts tracking particular statistic.
+   *
+   * @param name - statistic to start tracking
+   */
+  start(name) {
+    if (this.startTimes.get(name)) {
+      throw Error(`Statistics ${name} already started`);
+    } else {
+      this.startTimes.set(name, Date.now());
+    }
+  }
+  /**
+   * Stops tracking particular statistic.
+   * Raise error if tracking statistic wasn't started.
+   *
+   * @param name - statistic to stop tracking
+   */
+  end(name) {
+    var _a;
+    const now = Date.now();
+    const startTime = this.startTimes.get(name);
+    if (startTime) {
+      let values = (_a = this.stats.get(name)) !== null && _a !== void 0 ? _a : 0;
+      values += now - startTime;
+      this.stats.set(name, values);
+      this.startTimes.delete(name);
+    } else {
+      throw Error(`Statistics ${name} not started`);
+    }
+  }
+  /**
+   * Measure given statistic as execution of given function.
+   *
+   * @param name - statistic to track
+   * @param func - function to call
+   * @returns result of the function call
+   */
+  measure(name, func) {
+    this.start(name);
+    const result = func();
+    this.end(name);
+    return result;
+  }
+  /**
+   * Returns the snapshot of current results
+   */
+  snapshot() {
+    return new Map(this.stats);
+  }
+}
+exports.Statistics = Statistics;
+
+/***/ }),
+/* 109 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.StatType = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+var StatType;
+exports.StatType = StatType;
+(function (StatType) {
+  /* build engine */
+  StatType["BUILD_ENGINE_TOTAL"] = "BUILD_ENGINE_TOTAL";
+  StatType["PARSER"] = "PARSER";
+  StatType["GRAPH_BUILD"] = "GRAPH_BUILD";
+  StatType["COLLECT_DEPENDENCIES"] = "COLLECT_DEPENDENCIES";
+  StatType["PROCESS_DEPENDENCIES"] = "PROCESS_DEPENDENCIES";
+  StatType["TOP_SORT"] = "TOP_SORT";
+  StatType["BUILD_COLUMN_INDEX"] = "BUILD_COLUMN_INDEX";
+  StatType["EVALUATION"] = "EVALUATION";
+  StatType["VLOOKUP"] = "VLOOKUP";
+  /* crud adjustments */
+  StatType["TRANSFORM_ASTS"] = "TRANSFORM_ASTS";
+  StatType["TRANSFORM_ASTS_POSTPONED"] = "TRANSFORM_ASTS_POSTPONED";
+  StatType["ADJUSTING_ADDRESS_MAPPING"] = "ADJUSTING_ADDRESS_MAPPING";
+  StatType["ADJUSTING_ARRAY_MAPPING"] = "ADJUSTING_ARRAY_MAPPING";
+  StatType["ADJUSTING_RANGES"] = "ADJUSTING_RANGES";
+  StatType["ADJUSTING_GRAPH"] = "ADJUSTING_GRAPH";
+  /* criterion cache */
+  StatType["CRITERION_FUNCTION_FULL_CACHE_USED"] = "CRITERION_FUNCTION_FULL_CACHE_USED";
+  StatType["CRITERION_FUNCTION_PARTIAL_CACHE_USED"] = "CRITERION_FUNCTION_PARTIAL_CACHE_USED";
+})(StatType || (exports.StatType = StatType = {}));
+
+/***/ }),
+/* 110 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.AddressMapping = void 0;
+var _errors = __webpack_require__(111);
+var _InterpreterValue = __webpack_require__(104);
+var _index = __webpack_require__(74);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class AddressMapping {
+  constructor(policy) {
+    this.policy = policy;
+    this.mapping = new Map();
+  }
+  /** @inheritDoc */
+  getCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    return sheetMapping.getCell(address);
+  }
+  fetchCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    const vertex = sheetMapping.getCell(address);
+    if (!vertex) {
+      throw Error('Vertex for address missing in AddressMapping');
+    }
+    return vertex;
+  }
+  strategyFor(sheetId) {
+    const strategy = this.mapping.get(sheetId);
+    if (strategy === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return strategy;
+  }
+  addSheet(sheetId, strategy) {
+    if (this.mapping.has(sheetId)) {
+      throw Error('Sheet already added');
+    }
+    this.mapping.set(sheetId, strategy);
+  }
+  autoAddSheet(sheetId, sheetBoundaries) {
+    const {
+      height,
+      width,
+      fill
+    } = sheetBoundaries;
+    const strategyConstructor = this.policy.call(fill);
+    this.addSheet(sheetId, new strategyConstructor(width, height));
+  }
+  getCellValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex === undefined) {
+      return _InterpreterValue.EmptyValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellValue(address);
+    } else {
+      return vertex.getCellValue();
+    }
+  }
+  getRawValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex instanceof _index.ValueCellVertex) {
+      return vertex.getValues().rawValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellRawValue(address);
+    } else {
+      return null;
+    }
+  }
+  /** @inheritDoc */
+  setCell(address, newVertex) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    sheetMapping.setCell(address, newVertex);
+  }
+  moveCell(source, destination) {
+    const sheetMapping = this.mapping.get(source.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized.');
+    }
+    if (source.sheet !== destination.sheet) {
+      throw Error('Cannot move cells between sheets.');
+    }
+    if (sheetMapping.has(destination)) {
+      throw new Error('Cannot move cell. Destination already occupied.');
+    }
+    const vertex = sheetMapping.getCell(source);
+    if (vertex === undefined) {
+      throw new Error('Cannot move cell. No cell with such address.');
+    }
+    this.setCell(destination, vertex);
+    this.removeCell(source);
+  }
+  removeCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    sheetMapping.removeCell(address);
+  }
+  /** @inheritDoc */
+  has(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      return false;
+    }
+    return sheetMapping.has(address);
+  }
+  /** @inheritDoc */
+  getHeight(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getHeight();
+  }
+  /** @inheritDoc */
+  getWidth(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (!sheetMapping) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getWidth();
+  }
+  addRows(sheet, row, numberOfRows) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addRows(row, numberOfRows);
+  }
+  removeRows(removedRows) {
+    const sheetMapping = this.mapping.get(removedRows.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedRows.sheet);
+    }
+    sheetMapping.removeRows(removedRows);
+  }
+  removeSheet(sheetId) {
+    this.mapping.delete(sheetId);
+  }
+  addColumns(sheet, column, numberOfColumns) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addColumns(column, numberOfColumns);
+  }
+  removeColumns(removedColumns) {
+    const sheetMapping = this.mapping.get(removedColumns.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedColumns.sheet);
+    }
+    sheetMapping.removeColumns(removedColumns);
+  }
+  *verticesFromRowsSpan(rowsSpan) {
+    yield* this.mapping.get(rowsSpan.sheet).verticesFromRowsSpan(rowsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  }
+
+  *verticesFromColumnsSpan(columnsSpan) {
+    yield* this.mapping.get(columnsSpan.sheet).verticesFromColumnsSpan(columnsSpan); // eslint-disable-line @typescript-eslint/no-non-null-assertion
+  }
+
+  *entriesFromRowsSpan(rowsSpan) {
+    yield* this.mapping.get(rowsSpan.sheet).entriesFromRowsSpan(rowsSpan);
+  }
+  *entriesFromColumnsSpan(columnsSpan) {
+    yield* this.mapping.get(columnsSpan.sheet).entriesFromColumnsSpan(columnsSpan);
+  }
+  *entries() {
+    for (const [sheet, mapping] of this.mapping.entries()) {
+      yield* mapping.getEntries(sheet);
+    }
+  }
+  *sheetEntries(sheet) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping !== undefined) {
+      yield* sheetMapping.getEntries(sheet);
+    } else {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+  }
+}
+exports.AddressMapping = AddressMapping;
+
+/***/ }),
+/* 111 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.UnableToParseError = exports.TargetLocationHasArrayError = exports.SourceLocationHasArrayError = exports.SheetsNotEqual = exports.SheetSizeLimitExceededError = exports.SheetNameAlreadyTakenError = exports.ProtectedFunctionTranslationError = exports.ProtectedFunctionError = exports.NothingToPasteError = exports.NotAFormulaError = exports.NoSheetWithNameError = exports.NoSheetWithIdError = exports.NoRelativeAddressesAllowedError = exports.NoOperationToUndoError = exports.NoOperationToRedoError = exports.NamedExpressionNameIsInvalidError = exports.NamedExpressionNameIsAlreadyTakenError = exports.NamedExpressionDoesNotExistError = exports.MissingTranslationError = exports.LanguageNotRegisteredError = exports.LanguageAlreadyRegisteredError = exports.InvalidArgumentsError = exports.InvalidAddressError = exports.FunctionPluginValidationError = exports.ExpectedValueOfTypeError = exports.ExpectedOneOfValuesError = exports.EvaluationSuspendedError = exports.ConfigValueTooSmallError = exports.ConfigValueTooBigError = exports.ConfigValueEmpty = exports.AliasAlreadyExisting = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+/**
+ * Error thrown when the sheet of a given ID does not exist.
+ */
+class NoSheetWithIdError extends Error {
+  constructor(sheetId) {
+    super(`There's no sheet with id = ${sheetId}`);
+  }
+}
+/**
+ * Error thrown when the sheet of a given name does not exist.
+ */
+exports.NoSheetWithIdError = NoSheetWithIdError;
+class NoSheetWithNameError extends Error {
+  constructor(sheetName) {
+    super(`There's no sheet with name '${sheetName}'`);
+  }
+}
+/**
+ * Error thrown when the sheet of a given name already exists.
+ */
+exports.NoSheetWithNameError = NoSheetWithNameError;
+class SheetNameAlreadyTakenError extends Error {
+  constructor(sheetName) {
+    super(`Sheet with name ${sheetName} already exists`);
+  }
+}
+/**
+ * Error thrown when loaded sheet size exceeds configured limits.
+ */
+exports.SheetNameAlreadyTakenError = SheetNameAlreadyTakenError;
+class SheetSizeLimitExceededError extends Error {
+  constructor() {
+    super('Sheet size limit exceeded');
+  }
+}
+/**
+ * Error thrown when the the provided string is not a valid formula, i.e does not start with "="
+ */
+exports.SheetSizeLimitExceededError = SheetSizeLimitExceededError;
+class NotAFormulaError extends Error {
+  constructor() {
+    super('This is not a formula');
+  }
+}
+/**
+ * Error thrown when the given address is invalid.
+ */
+exports.NotAFormulaError = NotAFormulaError;
+class InvalidAddressError extends Error {
+  constructor(address) {
+    super(`Address (row = ${address.row}, col = ${address.col}) is invalid`);
+  }
+}
+/**
+ * Error thrown when the given arguments are invalid
+ */
+exports.InvalidAddressError = InvalidAddressError;
+class InvalidArgumentsError extends Error {
+  constructor(expectedArguments) {
+    super(`Invalid arguments, expected ${expectedArguments}`);
+  }
+}
+/**
+ * Error thrown when the given sheets are not equal.
+ */
+exports.InvalidArgumentsError = InvalidArgumentsError;
+class SheetsNotEqual extends Error {
+  constructor(sheet1, sheet2) {
+    super(`Sheets ${sheet1} and ${sheet2} are not equal.`);
+  }
+}
+/**
+ * Error thrown when the given named expression already exists in the workbook and therefore it cannot be added.
+ */
+exports.SheetsNotEqual = SheetsNotEqual;
+class NamedExpressionNameIsAlreadyTakenError extends Error {
+  constructor(expressionName) {
+    super(`Name of Named Expression '${expressionName}' is already present`);
+  }
+}
+/**
+ * Error thrown when the name given for the named expression is invalid.
+ */
+exports.NamedExpressionNameIsAlreadyTakenError = NamedExpressionNameIsAlreadyTakenError;
+class NamedExpressionNameIsInvalidError extends Error {
+  constructor(expressionName) {
+    super(`Name of Named Expression '${expressionName}' is invalid`);
+  }
+}
+/**
+ * Error thrown when the given named expression does not exist.
+ */
+exports.NamedExpressionNameIsInvalidError = NamedExpressionNameIsInvalidError;
+class NamedExpressionDoesNotExistError extends Error {
+  constructor(expressionName) {
+    super(`Named Expression '${expressionName}' does not exist`);
+  }
+}
+/**
+ * Error thrown when there are no operations to be undone by the [[undo]] method.
+ */
+exports.NamedExpressionDoesNotExistError = NamedExpressionDoesNotExistError;
+class NoOperationToUndoError extends Error {
+  constructor() {
+    super('There is no operation to undo');
+  }
+}
+/**
+ * Error thrown when there are no operations to redo by the [[redo]] method.
+ */
+exports.NoOperationToUndoError = NoOperationToUndoError;
+class NoOperationToRedoError extends Error {
+  constructor() {
+    super('There is no operation to redo');
+  }
+}
+/**
+ * Error thrown when there is nothing to paste by the [[paste]] method.
+ */
+exports.NoOperationToRedoError = NoOperationToRedoError;
+class NothingToPasteError extends Error {
+  constructor() {
+    super('There is nothing to paste');
+  }
+}
+exports.NothingToPasteError = NothingToPasteError;
+function replacer(key, val) {
+  switch (typeof val) {
+    case 'function':
+    case 'symbol':
+      return val.toString();
+    case 'bigint':
+      return 'BigInt(' + val.toString() + ')';
+    default:
+      {
+        if (val instanceof RegExp) {
+          return 'RegExp(' + val.toString() + ')';
+        } else {
+          return val;
+        }
+      }
+  }
+}
+/**
+ * Error thrown when the given value cannot be parsed.
+ *
+ * Checks against the validity in:
+ *
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[setCellsContents]]
+ */
+class UnableToParseError extends Error {
+  constructor(value) {
+    super(`Unable to parse value: ${JSON.stringify(value, replacer, 4)}`);
+  }
+}
+/**
+ * Error thrown when the expected value type differs from the given value type.
+ * It also displays the expected type.
+ * This error might be thrown while setting or updating the [[ConfigParams]].
+ * The following methods accept [[ConfigParams]] as a parameter:
+ *
+ * @see [[buildEmpty]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[updateConfig]]
+ */
+exports.UnableToParseError = UnableToParseError;
+class ExpectedValueOfTypeError extends Error {
+  constructor(expectedType, paramName) {
+    super(`Expected value of type: ${expectedType} for config parameter: ${paramName}`);
+  }
+}
+/**
+ * Error thrown when supplied config parameter value is an empty string.
+ * This error might be thrown while setting or updating the [[ConfigParams]].
+ * The following methods accept [[ConfigParams]] as a parameter:
+ *
+ * @see [[buildEmpty]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[updateConfig]]
+ */
+exports.ExpectedValueOfTypeError = ExpectedValueOfTypeError;
+class ConfigValueEmpty extends Error {
+  constructor(paramName) {
+    super(`Config parameter ${paramName} cannot be empty.`);
+  }
+}
+/**
+ * Error thrown when supplied config parameter value is too small.
+ * This error might be thrown while setting or updating the [[ConfigParams]].
+ * The following methods accept [[ConfigParams]] as a parameter:
+ *
+ * @see [[buildEmpty]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[updateConfig]]
+ */
+exports.ConfigValueEmpty = ConfigValueEmpty;
+class ConfigValueTooSmallError extends Error {
+  constructor(paramName, minimum) {
+    super(`Config parameter ${paramName} should be at least ${minimum}`);
+  }
+}
+/**
+ * Error thrown when supplied config parameter value is too big.
+ * This error might be thrown while setting or updating the [[ConfigParams]].
+ * The following methods accept [[ConfigParams]] as a parameter:
+ *
+ * @see [[buildEmpty]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[updateConfig]]
+ */
+exports.ConfigValueTooSmallError = ConfigValueTooSmallError;
+class ConfigValueTooBigError extends Error {
+  constructor(paramName, maximum) {
+    super(`Config parameter ${paramName} should be at most ${maximum}`);
+  }
+}
+/**
+ * Error thrown when the value was expected to be set for a config parameter.
+ * It also displays the expected value.
+ * This error might be thrown while setting or updating the [[ConfigParams]].
+ * The following methods accept [[ConfigParams]] as a parameter:
+ *
+ * @see [[buildEmpty]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ * @see [[updateConfig]]
+ */
+exports.ConfigValueTooBigError = ConfigValueTooBigError;
+class ExpectedOneOfValuesError extends Error {
+  constructor(values, paramName) {
+    super(`Expected one of ${values} for config parameter: ${paramName}`);
+  }
+}
+/**
+ * Error thrown when computations become suspended.
+ * To perform any other action wait for the batch to complete or resume the evaluation.
+ * Relates to:
+ *
+ * @see [[batch]]
+ * @see [[suspendEvaluation]]
+ * @see [[resumeEvaluation]]
+ */
+exports.ExpectedOneOfValuesError = ExpectedOneOfValuesError;
+class EvaluationSuspendedError extends Error {
+  constructor() {
+    super('Computations are suspended');
+  }
+}
+/**
+ * Error thrown when translation is missing in translation package.
+ */
+exports.EvaluationSuspendedError = EvaluationSuspendedError;
+class MissingTranslationError extends Error {
+  constructor(key) {
+    super(`Translation for ${key} is missing in the translation package you're using.`);
+  }
+}
+/**
+ * Error thrown when trying to override protected translation.
+ *
+ * @see [[registerLanguage]]
+ * @see [[registerFunction]]
+ * @see [[registerFunctionPlugin]]
+ */
+exports.MissingTranslationError = MissingTranslationError;
+class ProtectedFunctionTranslationError extends Error {
+  constructor(key) {
+    super(`Cannot register translation for function with id: ${key}`);
+  }
+}
+/**
+ * Error thrown when trying to retrieve not registered language
+ *
+ * @see [[getLanguage]]
+ * @see [[unregisterLanguage]]
+ */
+exports.ProtectedFunctionTranslationError = ProtectedFunctionTranslationError;
+class LanguageNotRegisteredError extends Error {
+  constructor() {
+    super('Language not registered.');
+  }
+}
+/**
+ * Error thrown when trying to register already registered language
+ *
+ * @see [[registerLanguage]]
+ */
+exports.LanguageNotRegisteredError = LanguageNotRegisteredError;
+class LanguageAlreadyRegisteredError extends Error {
+  constructor() {
+    super('Language already registered.');
+  }
+}
+/**
+ * Error thrown when function plugin is invalid.
+ *
+ * @see [[registerFunction]]
+ * @see [[registerFunctionPlugin]]
+ * @see [[buildFromArray]]
+ * @see [[buildFromSheets]]
+ */
+exports.LanguageAlreadyRegisteredError = LanguageAlreadyRegisteredError;
+class FunctionPluginValidationError extends Error {
+  static functionNotDeclaredInPlugin(functionId, pluginName) {
+    return new FunctionPluginValidationError(`Function with id ${functionId} not declared in plugin ${pluginName}`);
+  }
+  static functionMethodNotFound(functionName, pluginName) {
+    return new FunctionPluginValidationError(`Function method ${functionName} not found in plugin ${pluginName}`);
+  }
+}
+/**
+ * Error thrown when trying to register, override or remove function with reserved id.
+ *
+ * @see [[registerFunctionPlugin]]
+ * @see [[registerFunction]]
+ * @see [[unregisterFunction]]
+ */
+exports.FunctionPluginValidationError = FunctionPluginValidationError;
+class ProtectedFunctionError extends Error {
+  static cannotRegisterFunctionWithId(functionId) {
+    return new ProtectedFunctionError(`Cannot register function with id ${functionId}`);
+  }
+  static cannotUnregisterFunctionWithId(functionId) {
+    return new ProtectedFunctionError(`Cannot unregister function with id ${functionId}`);
+  }
+  static cannotUnregisterProtectedPlugin() {
+    return new ProtectedFunctionError('Cannot unregister protected plugin');
+  }
+}
+/**
+ * Error thrown when selected source location has an array.
+ */
+exports.ProtectedFunctionError = ProtectedFunctionError;
+class SourceLocationHasArrayError extends Error {
+  constructor() {
+    super('Cannot perform this operation, source location has an array inside.');
+  }
+}
+/**
+ * Error thrown when selected target location has an array.
+ *
+ * @see [[addRows]]
+ * @see [[addColumns]]
+ * @see [[moveCells]]
+ * @see [[moveRows]]
+ * @see [[moveColumns]]
+ * @see [[paste]]
+ */
+exports.SourceLocationHasArrayError = SourceLocationHasArrayError;
+class TargetLocationHasArrayError extends Error {
+  constructor() {
+    super('Cannot perform this operation, target location has an array inside.');
+  }
+}
+/**
+ * Error thrown when named expression contains relative addresses.
+ *
+ * @see [[addNamedExpression]]
+ * @see [[changeNamedExpression]]
+ */
+exports.TargetLocationHasArrayError = TargetLocationHasArrayError;
+class NoRelativeAddressesAllowedError extends Error {
+  constructor() {
+    super('Relative addresses not allowed in named expressions.');
+  }
+}
+/**
+ * Error thrown when alias to a function is already defined.
+ *
+ * @see [[registerFunctionPlugin]]
+ * @see [[registerFunction]]
+ */
+exports.NoRelativeAddressesAllowedError = NoRelativeAddressesAllowedError;
+class AliasAlreadyExisting extends Error {
+  constructor(name, pluginName) {
+    super(`Alias id ${name} in plugin ${pluginName} already defined as a function or alias.`);
+  }
+}
+exports.AliasAlreadyExisting = AliasAlreadyExisting;
+
+/***/ }),
+/* 112 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ArrayMapping = void 0;
+__webpack_require__(2);
+var _Cell = __webpack_require__(73);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class ArrayMapping {
+  constructor() {
+    this.arrayMapping = new Map();
+  }
+  getArray(range) {
+    const array = this.getArrayByCorner(range.start);
+    if (array === null || array === void 0 ? void 0 : array.getRange().sameAs(range)) {
+      return array;
+    }
+    return;
+  }
+  getArrayByCorner(address) {
+    return this.arrayMapping.get((0, _Cell.addressKey)(address));
+  }
+  setArray(range, vertex) {
+    this.arrayMapping.set((0, _Cell.addressKey)(range.start), vertex);
+  }
+  removeArray(range) {
+    if (typeof range === 'string') {
+      this.arrayMapping.delete(range);
+    } else {
+      this.arrayMapping.delete((0, _Cell.addressKey)(range.start));
+    }
+  }
+  count() {
+    return this.arrayMapping.size;
+  }
+  *arraysInRows(rowsSpan) {
+    for (const [mtxKey, mtx] of this.arrayMapping.entries()) {
+      if (mtx.spansThroughSheetRows(rowsSpan.sheet, rowsSpan.rowStart, rowsSpan.rowEnd)) {
+        yield [mtxKey, mtx];
+      }
+    }
+  }
+  *arraysInCols(col) {
+    for (const [mtxKey, mtx] of this.arrayMapping.entries()) {
+      if (mtx.spansThroughSheetColumn(col.sheet, col.columnStart, col.columnEnd)) {
+        yield [mtxKey, mtx];
+      }
+    }
+  }
+  isFormulaArrayInRow(sheet, row) {
+    for (const mtx of this.arrayMapping.values()) {
+      if (mtx.spansThroughSheetRows(sheet, row)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  isFormulaArrayInAllRows(span) {
+    let result = true;
+    for (const row of span.rows()) {
+      if (!this.isFormulaArrayInRow(span.sheet, row)) {
+        result = false;
+      }
+    }
+    return result;
+  }
+  isFormulaArrayInColumn(sheet, column) {
+    for (const mtx of this.arrayMapping.values()) {
+      if (mtx.spansThroughSheetColumn(sheet, column)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  isFormulaArrayInAllColumns(span) {
+    let result = true;
+    for (const col of span.columns()) {
+      if (!this.isFormulaArrayInColumn(span.sheet, col)) {
+        result = false;
+      }
+    }
+    return result;
+  }
+  isFormulaArrayInRange(range) {
+    for (const mtx of this.arrayMapping.values()) {
+      if (mtx.getRange().doesOverlap(range)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  isFormulaArrayAtAddress(address) {
+    for (const mtx of this.arrayMapping.values()) {
+      if (mtx.getRange().addressInRange(address)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  moveArrayVerticesAfterRowByRows(sheet, row, numberOfRows) {
+    this.updateArrayVerticesInSheet(sheet, (key, vertex) => {
+      const range = vertex.getRange();
+      return row <= range.start.row ? [range.shifted(0, numberOfRows), vertex] : undefined;
+    });
+  }
+  moveArrayVerticesAfterColumnByColumns(sheet, column, numberOfColumns) {
+    this.updateArrayVerticesInSheet(sheet, (key, vertex) => {
+      const range = vertex.getRange();
+      return column <= range.start.col ? [range.shifted(numberOfColumns, 0), vertex] : undefined;
+    });
+  }
+  updateArrayVerticesInSheet(sheet, fn) {
+    const updated = Array();
+    for (const [key, vertex] of this.arrayMapping.entries()) {
+      if (vertex.sheet !== sheet) {
+        continue;
+      }
+      const result = fn(key, vertex);
+      if (result !== undefined) {
+        this.removeArray(key);
+        updated.push(result);
+      }
+    }
+    updated.forEach(([range, array]) => {
+      this.setArray(range, array);
+    });
+  }
+}
+exports.ArrayMapping = ArrayMapping;
+
+/***/ }),
+/* 113 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.collectAddressesDependentToRange = void 0;
+var _parser = __webpack_require__(77);
+var _FormulaCellVertex = __webpack_require__(114);
+var _RangeVertex = __webpack_require__(116);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+const collectAddressesDependentToRange = (functionRegistry, vertex, range, lazilyTransformingAstService, dependencyGraph) => {
+  if (vertex instanceof _RangeVertex.RangeVertex) {
+    const intersection = vertex.range.intersectionWith(range);
+    if (intersection !== undefined) {
+      return Array.from(intersection.addresses(dependencyGraph));
+    } else {
+      return [];
+    }
+  }
+  let formula;
+  let address;
+  if (vertex instanceof _FormulaCellVertex.FormulaVertex) {
+    formula = vertex.getFormula(lazilyTransformingAstService);
+    address = vertex.getAddress(lazilyTransformingAstService);
+  } else {
+    return [];
+  }
+  return (0, _parser.collectDependencies)(formula, functionRegistry).filter(d => d instanceof _parser.AddressDependency).map(d => d.dependency.toSimpleCellAddress(address)).filter(d => range.addressInRange(d));
+};
+exports.collectAddressesDependentToRange = collectAddressesDependentToRange;
+
+/***/ }),
+/* 114 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.FormulaVertex = exports.FormulaCellVertex = exports.ArrayVertex = void 0;
+var _AbsoluteCellRange = __webpack_require__(1);
+var _ArraySize = __webpack_require__(98);
+var _ArrayValue = __webpack_require__(115);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _Span = __webpack_require__(105);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class FormulaVertex {
+  constructor(formula, cellAddress, version) {
+    this.formula = formula;
+    this.cellAddress = cellAddress;
+    this.version = version;
+  }
+  get width() {
+    return 1;
+  }
+  get height() {
+    return 1;
+  }
+  static fromAst(formula, address, size, version) {
+    if (size.isScalar()) {
+      return new FormulaCellVertex(formula, address, version);
+    } else {
+      return new ArrayVertex(formula, address, size, version);
+    }
+  }
+  /**
+   * Returns formula stored in this vertex
+   */
+  getFormula(updatingService) {
+    this.ensureRecentData(updatingService);
+    return this.formula;
+  }
+  ensureRecentData(updatingService) {
+    if (this.version != updatingService.version()) {
+      const [newAst, newAddress, newVersion] = updatingService.applyTransformations(this.formula, this.cellAddress, this.version);
+      this.formula = newAst;
+      this.cellAddress = newAddress;
+      this.version = newVersion;
+    }
+  }
+  /**
+   * Returns address of the cell associated with vertex
+   */
+  getAddress(updatingService) {
+    this.ensureRecentData(updatingService);
+    return this.cellAddress;
+  }
+}
+exports.FormulaVertex = FormulaVertex;
+class ArrayVertex extends FormulaVertex {
+  constructor(formula, cellAddress, size, version = 0) {
+    super(formula, cellAddress, version);
+    if (size.isRef) {
+      this.array = new _ArrayValue.ErroredArray(new _Cell.CellError(_Cell.ErrorType.REF, _errorMessage.ErrorMessage.NoSpaceForArrayResult), _ArraySize.ArraySize.error());
+    } else {
+      this.array = new _ArrayValue.NotComputedArray(size);
+    }
+  }
+  get width() {
+    return this.array.width();
+  }
+  get height() {
+    return this.array.height();
+  }
+  get sheet() {
+    return this.cellAddress.sheet;
+  }
+  get leftCorner() {
+    return this.cellAddress;
+  }
+  setCellValue(value) {
+    if (value instanceof _Cell.CellError) {
+      this.setErrorValue(value);
+      return value;
+    }
+    const array = _ArrayValue.ArrayValue.fromInterpreterValue(value);
+    array.resize(this.array.size);
+    this.array = array;
+    return value;
+  }
+  getCellValue() {
+    if (this.array instanceof _ArrayValue.NotComputedArray) {
+      throw Error('Array not computed yet.');
+    }
+    return this.array.simpleRangeValue();
+  }
+  valueOrUndef() {
+    if (this.array instanceof _ArrayValue.NotComputedArray) {
+      return undefined;
+    }
+    return this.array.simpleRangeValue();
+  }
+  getArrayCellValue(address) {
+    const col = address.col - this.cellAddress.col;
+    const row = address.row - this.cellAddress.row;
+    try {
+      return this.array.get(col, row);
+    } catch (e) {
+      return new _Cell.CellError(_Cell.ErrorType.REF);
+    }
+  }
+  getArrayCellRawValue(address) {
+    const val = this.getArrayCellValue(address);
+    if (val instanceof _Cell.CellError || val === _InterpreterValue.EmptyValue) {
+      return undefined;
+    } else {
+      return (0, _InterpreterValue.getRawValue)(val);
+    }
+  }
+  setArrayCellValue(address, value) {
+    const col = address.col - this.cellAddress.col;
+    const row = address.row - this.cellAddress.row;
+    if (this.array instanceof _ArrayValue.ArrayValue) {
+      this.array.set(col, row, value);
+    }
+  }
+  setNoSpace() {
+    this.array = new _ArrayValue.ErroredArray(new _Cell.CellError(_Cell.ErrorType.SPILL, _errorMessage.ErrorMessage.NoSpaceForArrayResult), _ArraySize.ArraySize.error());
+    return this.getCellValue();
+  }
+  getRange() {
+    return _AbsoluteCellRange.AbsoluteCellRange.spanFrom(this.cellAddress, this.width, this.height);
+  }
+  getRangeOrUndef() {
+    return _AbsoluteCellRange.AbsoluteCellRange.spanFromOrUndef(this.cellAddress, this.width, this.height);
+  }
+  setAddress(address) {
+    this.cellAddress = address;
+  }
+  setFormula(newFormula) {
+    this.formula = newFormula;
+  }
+  spansThroughSheetRows(sheet, startRow, endRow = startRow) {
+    return this.cellAddress.sheet === sheet && this.cellAddress.row <= endRow && startRow < this.cellAddress.row + this.height;
+  }
+  spansThroughSheetColumn(sheet, col, columnEnd = col) {
+    return this.cellAddress.sheet === sheet && this.cellAddress.col <= columnEnd && col < this.cellAddress.col + this.width;
+  }
+  isComputed() {
+    return !(this.array instanceof _ArrayValue.NotComputedArray);
+  }
+  columnsFromArray() {
+    return _Span.ColumnsSpan.fromNumberOfColumns(this.cellAddress.sheet, this.cellAddress.col, this.width);
+  }
+  rowsFromArray() {
+    return _Span.RowsSpan.fromNumberOfRows(this.cellAddress.sheet, this.cellAddress.row, this.height);
+  }
+  /**
+   * No-op as array vertices are transformed eagerly.
+   */
+  ensureRecentData(_updatingService) {}
+  isLeftCorner(address) {
+    return (0, _Cell.equalSimpleCellAddress)(this.cellAddress, address);
+  }
+  setErrorValue(error) {
+    this.array = new _ArrayValue.ErroredArray(error, this.array.size);
+  }
+}
+/**
+ * Represents vertex which keeps formula
+ */
+exports.ArrayVertex = ArrayVertex;
+class FormulaCellVertex extends FormulaVertex {
+  constructor( /** Formula in AST format */
+  formula, /** Address which this vertex represents */
+  address, version) {
+    super(formula, address, version);
+  }
+  valueOrUndef() {
+    return this.cachedCellValue;
+  }
+  /**
+   * Sets computed cell value stored in this vertex
+   */
+  setCellValue(cellValue) {
+    this.cachedCellValue = cellValue;
+    return this.cachedCellValue;
+  }
+  /**
+   * Returns cell value stored in vertex
+   */
+  getCellValue() {
+    if (this.cachedCellValue !== undefined) {
+      return this.cachedCellValue;
+    } else {
+      throw Error('Value of the formula cell is not computed.');
+    }
+  }
+  isComputed() {
+    return this.cachedCellValue !== undefined;
+  }
+}
+exports.FormulaCellVertex = FormulaCellVertex;
+
+/***/ }),
+/* 115 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.NotComputedArray = exports.ErroredArray = exports.ArrayValue = void 0;
+__webpack_require__(2);
+var _ArraySize = __webpack_require__(98);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class NotComputedArray {
+  constructor(size) {
+    this.size = size;
+  }
+  width() {
+    return this.size.width;
+  }
+  height() {
+    return this.size.height;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  get(col, row) {
+    throw Error('Array not computed yet.');
+  }
+  simpleRangeValue() {
+    throw Error('Array not computed yet.');
+  }
+}
+exports.NotComputedArray = NotComputedArray;
+class ArrayValue {
+  constructor(array) {
+    this.size = new _ArraySize.ArraySize(array.length > 0 ? array[0].length : 0, array.length);
+    this.array = array;
+  }
+  static fromInterpreterValue(value) {
+    if (value instanceof _SimpleRangeValue.SimpleRangeValue) {
+      return new ArrayValue(value.data);
+    } else {
+      return new ArrayValue([[value]]);
+    }
+  }
+  simpleRangeValue() {
+    return _SimpleRangeValue.SimpleRangeValue.onlyValues(this.array);
+  }
+  addRows(aboveRow, numberOfRows) {
+    this.array.splice(aboveRow, 0, ...this.nullArrays(numberOfRows, this.width()));
+    this.size.height += numberOfRows;
+  }
+  addColumns(aboveColumn, numberOfColumns) {
+    for (let i = 0; i < this.height(); i++) {
+      this.array[i].splice(aboveColumn, 0, ...new Array(numberOfColumns).fill(_InterpreterValue.EmptyValue));
+    }
+    this.size.width += numberOfColumns;
+  }
+  removeRows(startRow, endRow) {
+    if (this.outOfBound(0, startRow) || this.outOfBound(0, endRow)) {
+      throw Error('Array index out of bound');
+    }
+    const numberOfRows = endRow - startRow + 1;
+    this.array.splice(startRow, numberOfRows);
+    this.size.height -= numberOfRows;
+  }
+  removeColumns(leftmostColumn, rightmostColumn) {
+    if (this.outOfBound(leftmostColumn, 0) || this.outOfBound(rightmostColumn, 0)) {
+      throw Error('Array index out of bound');
+    }
+    const numberOfColumns = rightmostColumn - leftmostColumn + 1;
+    for (const row of this.array) {
+      row.splice(leftmostColumn, numberOfColumns);
+    }
+    this.size.width -= numberOfColumns;
+  }
+  nullArrays(count, size) {
+    const result = [];
+    for (let i = 0; i < count; ++i) {
+      result.push(new Array(size).fill(_InterpreterValue.EmptyValue));
+    }
+    return result;
+  }
+  get(col, row) {
+    if (this.outOfBound(col, row)) {
+      throw Error('Array index out of bound');
+    }
+    return this.array[row][col];
+  }
+  set(col, row, value) {
+    if (this.outOfBound(col, row)) {
+      throw Error('Array index out of bound');
+    }
+    this.array[row][col] = value;
+  }
+  width() {
+    return this.size.width;
+  }
+  height() {
+    return this.size.height;
+  }
+  raw() {
+    return this.array;
+  }
+  resize(newSize) {
+    if (this.height() < newSize.height && isFinite(newSize.height)) {
+      this.addRows(this.height(), newSize.height - this.height());
+    }
+    if (this.height() > newSize.height) {
+      throw Error('Resizing to smaller array');
+    }
+    if (this.width() < newSize.width && isFinite(newSize.width)) {
+      this.addColumns(this.width(), newSize.width - this.width());
+    }
+    if (this.width() > newSize.width) {
+      throw Error('Resizing to smaller array');
+    }
+  }
+  outOfBound(col, row) {
+    return col < 0 || row < 0 || row > this.size.height - 1 || col > this.size.width - 1;
+  }
+}
+exports.ArrayValue = ArrayValue;
+class ErroredArray {
+  constructor(error, size) {
+    this.error = error;
+    this.size = size;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  get(col, row) {
+    return this.error;
+  }
+  width() {
+    return this.size.width;
+  }
+  height() {
+    return this.size.height;
+  }
+  simpleRangeValue() {
+    return this.error;
+  }
+}
+exports.ErroredArray = ErroredArray;
+
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.RangeVertex = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+/**
+ * Represents vertex bound to range
+ */
+class RangeVertex {
+  constructor(range) {
+    this.range = range;
+    this.functionCache = new Map();
+    this.criterionFunctionCache = new Map();
+    this.dependentCacheRanges = new Set();
+    this.bruteForce = false;
+  }
+  get start() {
+    return this.range.start;
+  }
+  get end() {
+    return this.range.end;
+  }
+  get sheet() {
+    return this.range.start.sheet;
+  }
+  /**
+   * Returns cached value stored for given function
+   *
+   * @param functionName - name of the function
+   */
+  getFunctionValue(functionName) {
+    return this.functionCache.get(functionName);
+  }
+  /**
+   * Stores cached value for given function
+   *
+   * @param functionName - name of the function
+   * @param value - cached value
+   */
+  setFunctionValue(functionName, value) {
+    this.functionCache.set(functionName, value);
+  }
+  /**
+   * Returns cached value for given cache key and criterion text representation
+   *
+   * @param cacheKey - key to retrieve from the cache
+   * @param criterionString - criterion text (ex. '<=5')
+   */
+  getCriterionFunctionValue(cacheKey, criterionString) {
+    var _a;
+    return (_a = this.getCriterionFunctionValues(cacheKey).get(criterionString)) === null || _a === void 0 ? void 0 : _a[0];
+  }
+  /**
+   * Returns all cached values stored for given criterion function
+   *
+   * @param cacheKey - key to retrieve from the cache
+   */
+  getCriterionFunctionValues(cacheKey) {
+    var _a;
+    return (_a = this.criterionFunctionCache.get(cacheKey)) !== null && _a !== void 0 ? _a : new Map();
+  }
+  /**
+   * Stores all values for given criterion function
+   *
+   * @param cacheKey - key to store in the cache
+   * @param values - map with values
+   */
+  setCriterionFunctionValues(cacheKey, values) {
+    this.criterionFunctionCache.set(cacheKey, values);
+  }
+  addDependentCacheRange(dependentRange) {
+    if (dependentRange !== this) {
+      this.dependentCacheRanges.add(dependentRange);
+    }
+  }
+  /**
+   * Clears function cache
+   */
+  clearCache() {
+    this.functionCache.clear();
+    this.criterionFunctionCache.clear();
+    this.dependentCacheRanges.forEach(range => range.criterionFunctionCache.clear());
+    this.dependentCacheRanges.clear();
+  }
+  /**
+   * Returns start of the range (it's top-left corner)
+   */
+  getStart() {
+    return this.start;
+  }
+  /**
+   * Returns end of the range (it's bottom-right corner)
+   */
+  getEnd() {
+    return this.end;
+  }
+}
+exports.RangeVertex = RangeVertex;
+
+/***/ }),
+/* 117 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.Graph = void 0;
+__webpack_require__(2);
+var _TopSort = __webpack_require__(118);
+var _ProcessableValue = __webpack_require__(119);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Provides directed graph structure.
+ *
+ * Idea for performance improvement:
+ * - use Set<Node>[] instead of NodeId[][] for edgesSparseArray
+ */
+class Graph {
+  constructor(dependencyQuery) {
+    this.dependencyQuery = dependencyQuery;
+    /**
+     * A sparse array. The value nodesSparseArray[n] exists if and only if node n is in the graph.
+     * @private
+     */
+    this.nodesSparseArray = [];
+    /**
+     * A sparse array. The value edgesSparseArray[n] exists if and only if node n is in the graph.
+     * The edgesSparseArray[n] is also a sparse array. It may contain removed nodes. To make sure check nodesSparseArray.
+     * @private
+     */
+    this.edgesSparseArray = [];
+    /**
+     * A mapping from node to its id. The value nodesIds.get(node) exists if and only if node is in the graph.
+     * @private
+     */
+    this.nodesIds = new Map();
+    /**
+     * A ProcessableValue object.
+     * @private
+     */
+    this.dirtyAndVolatileNodeIds = new _ProcessableValue.ProcessableValue({
+      dirty: [],
+      volatile: []
+    }, r => this.processDirtyAndVolatileNodeIds(r));
+    /**
+     * A set of node ids. The value infiniteRangeIds.get(nodeId) exists if and only if node is in the graph.
+     * @private
+     */
+    this.infiniteRangeIds = new Set();
+    /**
+     * A dense array. It may contain duplicates and removed nodes.
+     * @private
+     */
+    this.changingWithStructureNodeIds = [];
+    this.nextId = 0;
+  }
+  /**
+   * Iterate over all nodes the in graph
+   */
+  getNodes() {
+    return this.nodesSparseArray.filter(node => node !== undefined);
+  }
+  /**
+   * Checks whether a node is present in graph
+   *
+   * @param node - node to check
+   */
+  hasNode(node) {
+    return this.nodesIds.has(node);
+  }
+  /**
+   * Checks whether exists edge between nodes. If one or both of nodes are not present in graph, returns false.
+   *
+   * @param fromNode - node from which edge is outcoming
+   * @param toNode - node to which edge is incoming
+   */
+  existsEdge(fromNode, toNode) {
+    const fromId = this.getNodeId(fromNode);
+    const toId = this.getNodeId(toNode);
+    if (fromId === undefined || toId === undefined) {
+      return false;
+    }
+    return this.edgesSparseArray[fromId].includes(toId);
+  }
+  /**
+   * Returns nodes adjacent to given node. May contain removed nodes.
+   *
+   * @param node - node to which adjacent nodes we want to retrieve
+   *
+   * Idea for performance improvement:
+   * - return an array instead of set
+   */
+  adjacentNodes(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      throw this.missingNodeError(node);
+    }
+    return new Set(this.edgesSparseArray[id].filter(id => id !== undefined).map(id => this.nodesSparseArray[id]));
+  }
+  /**
+   * Returns number of nodes adjacent to given node. Contrary to adjacentNodes(), this method returns only nodes that are present in graph.
+   *
+   * @param node - node to which adjacent nodes we want to retrieve
+   */
+  adjacentNodesCount(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      throw this.missingNodeError(node);
+    }
+    return this.fixEdgesArrayForNode(id).length;
+  }
+  /**
+   * Adds node to a graph
+   *
+   * @param node - a node to be added
+   */
+  addNodeAndReturnId(node) {
+    const idOfExistingNode = this.nodesIds.get(node);
+    if (idOfExistingNode !== undefined) {
+      return idOfExistingNode;
+    }
+    const newId = this.nextId;
+    this.nextId++;
+    this.nodesSparseArray[newId] = node;
+    this.edgesSparseArray[newId] = [];
+    this.nodesIds.set(node, newId);
+    return newId;
+  }
+  /**
+   * Adds edge between nodes.
+   *
+   * The nodes had to be added to the graph before, or the error will be raised
+   *
+   * @param fromNode - node from which edge is outcoming
+   * @param toNode - node to which edge is incoming
+   */
+  addEdge(fromNode, toNode) {
+    const fromId = this.getNodeIdIfNotNumber(fromNode);
+    const toId = this.getNodeIdIfNotNumber(toNode);
+    if (fromId === undefined) {
+      throw this.missingNodeError(fromNode);
+    }
+    if (toId === undefined) {
+      throw this.missingNodeError(toNode);
+    }
+    if (this.edgesSparseArray[fromId].includes(toId)) {
+      return;
+    }
+    this.edgesSparseArray[fromId].push(toId);
+  }
+  /**
+   * Removes node from graph
+   */
+  removeNode(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      throw this.missingNodeError(node);
+    }
+    if (this.edgesSparseArray[id].length > 0) {
+      this.edgesSparseArray[id].forEach(adjacentId => this.dirtyAndVolatileNodeIds.rawValue.dirty.push(adjacentId));
+      this.dirtyAndVolatileNodeIds.markAsModified();
+    }
+    const dependencies = this.removeDependencies(node);
+    delete this.nodesSparseArray[id];
+    delete this.edgesSparseArray[id];
+    this.infiniteRangeIds.delete(id);
+    this.nodesIds.delete(node);
+    return dependencies;
+  }
+  /**
+   * Removes edge between nodes.
+   */
+  removeEdge(fromNode, toNode) {
+    const fromId = this.getNodeIdIfNotNumber(fromNode);
+    const toId = this.getNodeIdIfNotNumber(toNode);
+    if (fromId === undefined) {
+      throw this.missingNodeError(fromNode);
+    }
+    if (toId === undefined) {
+      throw this.missingNodeError(toNode);
+    }
+    const indexOfToId = this.edgesSparseArray[fromId].indexOf(toId);
+    if (indexOfToId === -1) {
+      throw new Error('Edge does not exist');
+    }
+    delete this.edgesSparseArray[fromId][indexOfToId];
+  }
+  /**
+   * Removes edge between nodes if it exists.
+   */
+  removeEdgeIfExists(fromNode, toNode) {
+    const fromId = this.getNodeId(fromNode);
+    const toId = this.getNodeId(toNode);
+    if (fromId === undefined) {
+      return;
+    }
+    if (toId === undefined) {
+      return;
+    }
+    const indexOfToId = this.edgesSparseArray[fromId].indexOf(toId);
+    if (indexOfToId === -1) {
+      return;
+    }
+    delete this.edgesSparseArray[fromId][indexOfToId];
+  }
+  /**
+   * Sorts the whole graph topologically. Nodes that are on cycles are kept separate.
+   */
+  topSortWithScc() {
+    return this.getTopSortedWithSccSubgraphFrom(this.getNodes(), () => true, () => {});
+  }
+  /**
+   * Sorts the graph topologically. Nodes that are on cycles are kept separate.
+   *
+   * @param modifiedNodes - seed for computation. The algorithm assumes that only these nodes have changed since the last run.
+   * @param operatingFunction - recomputes value of a node, and returns whether a change occurred
+   * @param onCycle - action to be performed when node is on cycle
+   */
+  getTopSortedWithSccSubgraphFrom(modifiedNodes, operatingFunction, onCycle) {
+    const topSortAlgorithm = new _TopSort.TopSort(this.nodesSparseArray, this.edgesSparseArray);
+    const modifiedNodesIds = modifiedNodes.map(node => this.getNodeId(node)).filter(id => id !== undefined);
+    return topSortAlgorithm.getTopSortedWithSccSubgraphFrom(modifiedNodesIds, operatingFunction, onCycle);
+  }
+  /**
+   * Marks node as volatile.
+   */
+  markNodeAsVolatile(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      return;
+    }
+    this.dirtyAndVolatileNodeIds.rawValue.volatile.push(id);
+    this.dirtyAndVolatileNodeIds.markAsModified();
+  }
+  /**
+   * Marks node as dirty.
+   */
+  markNodeAsDirty(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      return;
+    }
+    this.dirtyAndVolatileNodeIds.rawValue.dirty.push(id);
+    this.dirtyAndVolatileNodeIds.markAsModified();
+  }
+  /**
+   * Returns an array of nodes that are marked as dirty and/or volatile.
+   */
+  getDirtyAndVolatileNodes() {
+    return this.dirtyAndVolatileNodeIds.getProcessedValue();
+  }
+  /**
+   * Clears dirty nodes.
+   */
+  clearDirtyNodes() {
+    this.dirtyAndVolatileNodeIds.rawValue.dirty = [];
+    this.dirtyAndVolatileNodeIds.markAsModified();
+  }
+  /**
+   * Marks node as changingWithStructure.
+   */
+  markNodeAsChangingWithStructure(node) {
+    const id = this.getNodeId(node);
+    if (id === undefined) {
+      return;
+    }
+    this.changingWithStructureNodeIds.push(id);
+  }
+  /**
+   * Marks all nodes marked as changingWithStructure as dirty.
+   */
+  markChangingWithStructureNodesAsDirty() {
+    if (this.changingWithStructureNodeIds.length <= 0) {
+      return;
+    }
+    this.dirtyAndVolatileNodeIds.rawValue.dirty = [...this.dirtyAndVolatileNodeIds.rawValue.dirty, ...this.changingWithStructureNodeIds];
+    this.dirtyAndVolatileNodeIds.markAsModified();
+  }
+  /**
+   * Marks node as infinite range.
+   */
+  markNodeAsInfiniteRange(node) {
+    const id = this.getNodeIdIfNotNumber(node);
+    if (id === undefined) {
+      return;
+    }
+    this.infiniteRangeIds.add(id);
+  }
+  /**
+   * Returns an array of nodes marked as infinite ranges
+   */
+  getInfiniteRanges() {
+    return [...this.infiniteRangeIds].map(id => ({
+      node: this.nodesSparseArray[id],
+      id
+    }));
+  }
+  /**
+   * Returns the internal id of a node.
+   */
+  getNodeId(node) {
+    return this.nodesIds.get(node);
+  }
+  /**
+   *
+   */
+  getNodeIdIfNotNumber(node) {
+    return typeof node === 'number' ? node : this.nodesIds.get(node);
+  }
+  /**
+   * Removes invalid neighbors of a given node from the edges array and returns adjacent nodes for the input node.
+   */
+  fixEdgesArrayForNode(id) {
+    const adjacentNodeIds = this.edgesSparseArray[id];
+    this.edgesSparseArray[id] = adjacentNodeIds.filter(adjacentId => adjacentId !== undefined && this.nodesSparseArray[adjacentId]);
+    return this.edgesSparseArray[id];
+  }
+  /**
+   * Removes edges from the given node to its dependencies based on the dependencyQuery function.
+   */
+  removeDependencies(node) {
+    const dependencies = this.dependencyQuery(node);
+    dependencies.forEach(([_, dependency]) => {
+      this.removeEdgeIfExists(dependency, node);
+    });
+    return dependencies;
+  }
+  /**
+   * processFn for dirtyAndVolatileNodeIds ProcessableValue instance
+   * @private
+   */
+  processDirtyAndVolatileNodeIds({
+    dirty,
+    volatile
+  }) {
+    return [...new Set([...dirty, ...volatile])].map(id => this.nodesSparseArray[id]).filter(node => node !== undefined);
+  }
+  /**
+   * Returns error for missing node.
+   */
+  missingNodeError(node) {
+    return new Error(`Unknown node ${node}`);
+  }
+}
+exports.Graph = Graph;
+
+/***/ }),
+/* 118 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.TopSort = void 0;
+__webpack_require__(2);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+// node status life cycle: undefined -> ON_STACK -> PROCESSED -> POPPED
+var NodeVisitStatus;
+(function (NodeVisitStatus) {
+  NodeVisitStatus[NodeVisitStatus["ON_STACK"] = 0] = "ON_STACK";
+  NodeVisitStatus[NodeVisitStatus["PROCESSED"] = 1] = "PROCESSED";
+  NodeVisitStatus[NodeVisitStatus["POPPED"] = 2] = "POPPED";
+})(NodeVisitStatus || (NodeVisitStatus = {}));
+/**
+ * An algorithm class. Provides an iterative implementation of Tarjan's algorithm for finding strongly connected components
+ */
+class TopSort {
+  constructor(nodesSparseArray = [], edgesSparseArray = []) {
+    this.nodesSparseArray = nodesSparseArray;
+    this.edgesSparseArray = edgesSparseArray;
+    this.entranceTime = [];
+    this.low = [];
+    this.parent = [];
+    this.inSCC = [];
+    this.nodeStatus = [];
+    this.order = [];
+    this.sccNonSingletons = [];
+    this.timeCounter = 0;
+  }
+  /**
+   * An iterative implementation of Tarjan's algorithm for finding strongly connected components.
+   * Returns vertices in order of topological sort, but vertices that are on cycles are kept separate.
+   *
+   * @param modifiedNodes - seed for computation. During engine init run, all of the vertices of grap. In recomputation run, changed vertices.
+   * @param operatingFunction - recomputes value of a node, and returns whether a change occured
+   * @param onCycle - action to be performed when node is on cycle
+   */
+  getTopSortedWithSccSubgraphFrom(modifiedNodeIds, operatingFunction, onCycle) {
+    const modifiedNodeIdsReversed = modifiedNodeIds.reverse();
+    modifiedNodeIdsReversed.forEach(id => this.runDFS(id));
+    return this.postprocess(modifiedNodeIdsReversed, onCycle, operatingFunction);
+  }
+  /**
+   * Returns adjacent nodes of a given node.
+   */
+  getAdjacentNodeIds(id) {
+    return this.edgesSparseArray[id].filter(adjacentId => adjacentId !== undefined && this.nodesSparseArray[adjacentId]);
+  }
+  /**
+   * Runs DFS starting from a given node.
+   */
+  runDFS(v) {
+    if (this.nodeStatus[v] !== undefined) {
+      return;
+    }
+    this.nodeStatus[v] = NodeVisitStatus.ON_STACK;
+    const DFSstack = [v];
+    const SCCstack = [];
+    while (DFSstack.length > 0) {
+      const u = DFSstack[DFSstack.length - 1];
+      switch (this.nodeStatus[u]) {
+        case NodeVisitStatus.ON_STACK:
+          {
+            this.handleOnStack(u, SCCstack, DFSstack);
+            break;
+          }
+        case NodeVisitStatus.PROCESSED:
+          {
+            // leaving this DFS subtree
+            this.handleProcessed(u, SCCstack, DFSstack);
+            break;
+          }
+        case NodeVisitStatus.POPPED:
+          {
+            // it's a 'shadow' copy, we already processed this vertex and can ignore it
+            DFSstack.pop();
+            break;
+          }
+      }
+    }
+  }
+  /**
+   * Handles a node that is on stack.
+   */
+  handleOnStack(u, SCCstack, DFSstack) {
+    this.entranceTime[u] = this.timeCounter;
+    this.low[u] = this.timeCounter;
+    this.timeCounter++;
+    SCCstack.push(u);
+    this.getAdjacentNodeIds(u).forEach(t => {
+      if (this.entranceTime[t] === undefined) {
+        DFSstack.push(t);
+        this.parent[t] = u;
+        this.nodeStatus[t] = NodeVisitStatus.ON_STACK;
+      }
+    });
+    this.nodeStatus[u] = NodeVisitStatus.PROCESSED;
+  }
+  /**
+   * Handles a node that is already processed.
+   */
+  handleProcessed(u, SCCstack, DFSstack) {
+    let uLow = this.entranceTime[u];
+    this.getAdjacentNodeIds(u).forEach(t => {
+      if (this.inSCC[t]) {
+        return;
+      }
+      uLow = this.parent[t] === u ? Math.min(uLow, this.low[t]) : Math.min(uLow, this.entranceTime[t]);
+    });
+    this.low[u] = uLow;
+    if (uLow === this.entranceTime[u]) {
+      const currentSCC = [];
+      do {
+        currentSCC.push(SCCstack[SCCstack.length - 1]);
+        SCCstack.pop();
+      } while (currentSCC[currentSCC.length - 1] !== u);
+      currentSCC.forEach(t => {
+        this.inSCC[t] = true;
+      });
+      this.order.push(...currentSCC);
+      if (currentSCC.length > 1) {
+        currentSCC.forEach(t => {
+          this.sccNonSingletons[t] = true;
+        });
+      }
+    }
+    DFSstack.pop();
+    this.nodeStatus[u] = NodeVisitStatus.POPPED;
+  }
+  /**
+   * Postprocesses the result of Tarjan's algorithm.
+   */
+  postprocess(modifiedNodeIds, onCycle, operatingFunction) {
+    const shouldBeUpdatedMapping = [];
+    modifiedNodeIds.forEach(t => {
+      shouldBeUpdatedMapping[t] = true;
+    });
+    const sorted = [];
+    const cycled = [];
+    this.order.reverse();
+    this.order.forEach(t => {
+      const adjacentNodes = this.getAdjacentNodeIds(t);
+      // The following line is a potential performance bottleneck.
+      // Array.includes() is O(n) operation, which makes the whole algorithm O(n^2).
+      // Idea for improvement: use Set<T>[] instead of number[][] for edgesSparseArray.
+      if (this.sccNonSingletons[t] || adjacentNodes.includes(t)) {
+        cycled.push(this.nodesSparseArray[t]);
+        onCycle(this.nodesSparseArray[t]);
+        adjacentNodes.forEach(s => shouldBeUpdatedMapping[s] = true);
+      } else {
+        sorted.push(this.nodesSparseArray[t]);
+        if (shouldBeUpdatedMapping[t] && operatingFunction(this.nodesSparseArray[t])) {
+          adjacentNodes.forEach(s => shouldBeUpdatedMapping[s] = true);
+        }
+      }
+    });
+    return {
+      sorted,
+      cycled
+    };
+  }
+}
+exports.TopSort = TopSort;
+
+/***/ }),
+/* 119 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ProcessableValue = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+class ProcessableValue {
+  constructor(rawValue, processFn) {
+    this.rawValue = rawValue;
+    this.processFn = processFn;
+    this.processedValue = null;
+  }
+  getProcessedValue() {
+    if (this.processedValue === null) {
+      this.processedValue = this.processFn(this.rawValue);
+    }
+    return this.processedValue;
+  }
+  markAsModified() {
+    this.processedValue = null;
+  }
+}
+exports.ProcessableValue = ProcessableValue;
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.RangeMapping = void 0;
+__webpack_require__(2);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Mapping from address ranges to range vertices
+ */
+class RangeMapping {
+  constructor() {
+    /** Map in which actual data is stored. */
+    this.rangeMapping = new Map();
+  }
+  getMappingSize(sheet) {
+    var _a, _b;
+    return (_b = (_a = this.rangeMapping.get(sheet)) === null || _a === void 0 ? void 0 : _a.size) !== null && _b !== void 0 ? _b : 0;
+  }
+  /**
+   * Saves range vertex
+   *
+   * @param vertex - vertex to save
+   */
+  setRange(vertex) {
+    let sheetMap = this.rangeMapping.get(vertex.getStart().sheet);
+    if (sheetMap === undefined) {
+      sheetMap = new Map();
+      this.rangeMapping.set(vertex.getStart().sheet, sheetMap);
+    }
+    const key = keyFromAddresses(vertex.getStart(), vertex.getEnd());
+    sheetMap.set(key, vertex);
+  }
+  removeRange(vertex) {
+    const sheet = vertex.getStart().sheet;
+    const sheetMap = this.rangeMapping.get(sheet);
+    if (sheetMap === undefined) {
+      return;
+    }
+    const key = keyFromAddresses(vertex.getStart(), vertex.getEnd());
+    sheetMap.delete(key);
+    if (sheetMap.size === 0) {
+      this.rangeMapping.delete(sheet);
+    }
+  }
+  /**
+   * Returns associated vertex for given range
+   *
+   * @param start - top-left corner of the range
+   * @param end - bottom-right corner of the range
+   */
+  getRange(start, end) {
+    const sheetMap = this.rangeMapping.get(start.sheet);
+    const key = keyFromAddresses(start, end);
+    return sheetMap === null || sheetMap === void 0 ? void 0 : sheetMap.get(key);
+  }
+  fetchRange(start, end) {
+    const maybeRange = this.getRange(start, end);
+    if (!maybeRange) {
+      throw Error('Range does not exist');
+    }
+    return maybeRange;
+  }
+  truncateRanges(span, coordinate) {
+    const verticesToRemove = Array();
+    const updated = Array();
+    const verticesWithChangedSize = Array();
+    const sheet = span.sheet;
+    for (const [key, vertex] of this.entriesFromSheet(span.sheet)) {
+      const range = vertex.range;
+      if (span.start <= coordinate(vertex.range.end)) {
+        range.removeSpan(span);
+        if (range.shouldBeRemoved()) {
+          this.removeByKey(sheet, key);
+          verticesToRemove.push(vertex);
+        } else {
+          updated.push([key, vertex]);
+        }
+        verticesWithChangedSize.push(vertex);
+      }
+    }
+    const verticesToMerge = [];
+    updated.sort((left, right) => compareBy(left[1], right[1], coordinate));
+    for (const [oldKey, vertex] of updated) {
+      const newKey = keyFromRange(vertex.range);
+      if (newKey === oldKey) {
+        continue;
+      }
+      const existingVertex = this.getByKey(sheet, newKey);
+      this.removeByKey(sheet, oldKey);
+      if (existingVertex !== undefined && vertex != existingVertex) {
+        verticesToMerge.push([existingVertex, vertex]);
+      } else {
+        this.setRange(vertex);
+      }
+    }
+    return {
+      verticesToRemove,
+      verticesToMerge,
+      verticesWithChangedSize
+    };
+  }
+  moveAllRangesInSheetAfterRowByRows(sheet, row, numberOfRows) {
+    return this.updateVerticesFromSheet(sheet, (key, vertex) => {
+      if (row <= vertex.start.row) {
+        vertex.range.shiftByRows(numberOfRows);
+        return {
+          changedSize: false,
+          vertex: vertex
+        };
+      } else if (row > vertex.start.row && row <= vertex.end.row) {
+        vertex.range.expandByRows(numberOfRows);
+        return {
+          changedSize: true,
+          vertex: vertex
+        };
+      } else {
+        return undefined;
+      }
+    });
+  }
+  moveAllRangesInSheetAfterColumnByColumns(sheet, column, numberOfColumns) {
+    return this.updateVerticesFromSheet(sheet, (key, vertex) => {
+      if (column <= vertex.start.col) {
+        vertex.range.shiftByColumns(numberOfColumns);
+        return {
+          changedSize: false,
+          vertex: vertex
+        };
+      } else if (column > vertex.start.col && column <= vertex.end.col) {
+        vertex.range.expandByColumns(numberOfColumns);
+        return {
+          changedSize: true,
+          vertex: vertex
+        };
+      } else {
+        return undefined;
+      }
+    });
+  }
+  moveRangesInsideSourceRange(sourceRange, toRight, toBottom, toSheet) {
+    this.updateVerticesFromSheet(sourceRange.sheet, (key, vertex) => {
+      if (sourceRange.containsRange(vertex.range)) {
+        vertex.range.shiftByColumns(toRight);
+        vertex.range.shiftByRows(toBottom);
+        vertex.range.moveToSheet(toSheet);
+        return {
+          changedSize: false,
+          vertex: vertex
+        };
+      } else {
+        return undefined;
+      }
+    });
+  }
+  removeRangesInSheet(sheet) {
+    if (this.rangeMapping.has(sheet)) {
+      const ranges = this.rangeMapping.get(sheet).values();
+      this.rangeMapping.delete(sheet);
+      return ranges;
+    }
+    return [][Symbol.iterator]();
+  }
+  *rangesInSheet(sheet) {
+    const sheetMap = this.rangeMapping.get(sheet);
+    if (!sheetMap) {
+      return;
+    }
+    yield* sheetMap.values();
+  }
+  *rangeVerticesContainedInRange(sourceRange) {
+    for (const rangeVertex of this.rangesInSheet(sourceRange.sheet)) {
+      if (sourceRange.containsRange(rangeVertex.range)) {
+        yield rangeVertex;
+      }
+    }
+  }
+  /**
+   * Finds smaller range does have own vertex.
+   *
+   * @param range
+   */
+  findSmallerRange(range) {
+    if (range.height() > 1 && Number.isFinite(range.height())) {
+      const valuesRangeEndRowLess = (0, _Cell.simpleCellAddress)(range.end.sheet, range.end.col, range.end.row - 1);
+      const rowLessVertex = this.getRange(range.start, valuesRangeEndRowLess);
+      if (rowLessVertex !== undefined) {
+        const restRange = _AbsoluteCellRange.AbsoluteCellRange.fromSimpleCellAddresses((0, _Cell.simpleCellAddress)(range.start.sheet, range.start.col, range.end.row), range.end);
+        return {
+          smallerRangeVertex: rowLessVertex,
+          restRange
+        };
+      }
+    }
+    return {
+      restRange: range
+    };
+  }
+  *entriesFromSheet(sheet) {
+    const sheetMap = this.rangeMapping.get(sheet);
+    if (!sheetMap) {
+      return;
+    }
+    yield* sheetMap.entries();
+  }
+  removeByKey(sheet, key) {
+    this.rangeMapping.get(sheet).delete(key);
+  }
+  getByKey(sheet, key) {
+    var _a;
+    return (_a = this.rangeMapping.get(sheet)) === null || _a === void 0 ? void 0 : _a.get(key);
+  }
+  updateVerticesFromSheet(sheet, fn) {
+    const updated = Array();
+    for (const [key, vertex] of this.entriesFromSheet(sheet)) {
+      const result = fn(key, vertex);
+      if (result !== undefined) {
+        this.removeByKey(sheet, key);
+        updated.push(result);
+      }
+    }
+    updated.forEach(entry => {
+      this.setRange(entry.vertex);
+    });
+    return {
+      verticesWithChangedSize: updated.filter(entry => entry.changedSize).map(entry => entry.vertex)
+    };
+  }
+}
+exports.RangeMapping = RangeMapping;
+function keyFromAddresses(start, end) {
+  return `${start.col},${start.row},${end.col},${end.row}`;
+}
+function keyFromRange(range) {
+  return keyFromAddresses(range.start, range.end);
+}
+const compareBy = (left, right, coordinate) => {
+  const leftStart = coordinate(left.range.start);
+  const rightStart = coordinate(left.range.start);
+  if (leftStart === rightStart) {
+    const leftEnd = coordinate(left.range.end);
+    const rightEnd = coordinate(right.range.end);
+    return leftEnd - rightEnd;
+  } else {
+    return leftStart - rightStart;
+  }
+};
+
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.SheetMapping = void 0;
+var _errors = __webpack_require__(111);
+var _i18n = __webpack_require__(122);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+function canonicalize(sheetDisplayName) {
+  return sheetDisplayName.toLowerCase();
+}
+class Sheet {
+  constructor(id, displayName) {
+    this.id = id;
+    this.displayName = displayName;
+  }
+  get canonicalName() {
+    return canonicalize(this.displayName);
+  }
+}
+class SheetMapping {
+  constructor(languages) {
+    this.languages = languages;
+    this.mappingFromCanonicalName = new Map();
+    this.mappingFromId = new Map();
+    this.lastSheetId = -1;
+    this.fetch = sheetName => {
+      const sheet = this.mappingFromCanonicalName.get(canonicalize(sheetName));
+      if (sheet === undefined) {
+        throw new _errors.NoSheetWithNameError(sheetName);
+      }
+      return sheet.id;
+    };
+    this.get = sheetName => {
+      var _a;
+      return (_a = this.mappingFromCanonicalName.get(canonicalize(sheetName))) === null || _a === void 0 ? void 0 : _a.id;
+    };
+    this.fetchDisplayName = sheetId => {
+      return this.fetchSheetById(sheetId).displayName;
+    };
+    this.sheetNamePrefix = languages.getUITranslation(_i18n.UIElement.NEW_SHEET_PREFIX);
+  }
+  addSheet(newSheetDisplayName = `${this.sheetNamePrefix}${this.lastSheetId + 2}`) {
+    const newSheetCanonicalName = canonicalize(newSheetDisplayName);
+    if (this.mappingFromCanonicalName.has(newSheetCanonicalName)) {
+      throw new _errors.SheetNameAlreadyTakenError(newSheetDisplayName);
+    }
+    this.lastSheetId++;
+    const sheet = new Sheet(this.lastSheetId, newSheetDisplayName);
+    this.store(sheet);
+    return sheet.id;
+  }
+  removeSheet(sheetId) {
+    const sheet = this.fetchSheetById(sheetId);
+    if (sheetId == this.lastSheetId) {
+      --this.lastSheetId;
+    }
+    this.mappingFromCanonicalName.delete(sheet.canonicalName);
+    this.mappingFromId.delete(sheet.id);
+  }
+  getDisplayName(sheetId) {
+    var _a;
+    return (_a = this.mappingFromId.get(sheetId)) === null || _a === void 0 ? void 0 : _a.displayName;
+  }
+  *displayNames() {
+    for (const sheet of this.mappingFromCanonicalName.values()) {
+      yield sheet.displayName;
+    }
+  }
+  numberOfSheets() {
+    return this.mappingFromCanonicalName.size;
+  }
+  hasSheetWithId(sheetId) {
+    return this.mappingFromId.has(sheetId);
+  }
+  hasSheetWithName(sheetName) {
+    return this.mappingFromCanonicalName.has(canonicalize(sheetName));
+  }
+  renameSheet(sheetId, newDisplayName) {
+    const sheet = this.fetchSheetById(sheetId);
+    const currentDisplayName = sheet.displayName;
+    if (currentDisplayName === newDisplayName) {
+      return undefined;
+    }
+    const sheetWithThisCanonicalName = this.mappingFromCanonicalName.get(canonicalize(newDisplayName));
+    if (sheetWithThisCanonicalName !== undefined && sheetWithThisCanonicalName.id !== sheet.id) {
+      throw new _errors.SheetNameAlreadyTakenError(newDisplayName);
+    }
+    const currentCanonicalName = sheet.canonicalName;
+    this.mappingFromCanonicalName.delete(currentCanonicalName);
+    sheet.displayName = newDisplayName;
+    this.store(sheet);
+    return currentDisplayName;
+  }
+  sheetNames() {
+    return Array.from(this.mappingFromId.values()).map(s => s.displayName);
+  }
+  store(sheet) {
+    this.mappingFromId.set(sheet.id, sheet);
+    this.mappingFromCanonicalName.set(sheet.canonicalName, sheet);
+  }
+  fetchSheetById(sheetId) {
+    const sheet = this.mappingFromId.get(sheetId);
+    if (sheet === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheet;
+  }
+}
+exports.SheetMapping = SheetMapping;
+
+/***/ }),
+/* 122 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.UIElement = void 0;
+var _TranslationPackage = __webpack_require__(123);
+exports.buildTranslationPackage = _TranslationPackage.buildTranslationPackage;
+exports.TranslationPackage = _TranslationPackage.TranslationPackage;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+var UIElement;
+exports.UIElement = UIElement;
+(function (UIElement) {
+  UIElement["NEW_SHEET_PREFIX"] = "NEW_SHEET_PREFIX";
+})(UIElement || (exports.UIElement = UIElement = {}));
+
+/***/ }),
+/* 123 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.TranslationPackage = void 0;
+exports.buildTranslationPackage = buildTranslationPackage;
+__webpack_require__(2);
+var _Cell = __webpack_require__(73);
+var _errors = __webpack_require__(111);
+var _index = __webpack_require__(122);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class TranslationPackage {
+  constructor(functions, errors, ui) {
+    this.functions = functions;
+    this.errors = errors;
+    this.ui = ui;
+    this._protectedTranslations = {
+      'VERSION': 'VERSION'
+    };
+    this.checkUI();
+    this.checkErrors();
+    this.checkFunctionTranslations(this.functions);
+    Object.assign(this.functions, this._protectedTranslations);
+  }
+  extendFunctions(additionalFunctionTranslations) {
+    this.checkFunctionTranslations(additionalFunctionTranslations);
+    Object.assign(this.functions, additionalFunctionTranslations);
+  }
+  buildFunctionMapping() {
+    return Object.keys(this.functions).reduce((ret, key) => {
+      ret[this.functions[key]] = key;
+      return ret;
+    }, {});
+  }
+  buildErrorMapping() {
+    return Object.keys(this.errors).reduce((ret, key) => {
+      ret[this.errors[key]] = key;
+      return ret;
+    }, {});
+  }
+  isFunctionTranslated(key) {
+    return this.functions[key] !== undefined;
+  }
+  getFunctionTranslations(functionIds) {
+    const translations = [];
+    for (const functionId of functionIds) {
+      if (this.isFunctionTranslated(functionId)) {
+        translations.push(this.functions[functionId]);
+      }
+    }
+    return translations;
+  }
+  getFunctionTranslation(key) {
+    const val = this.functions[key];
+    if (val === undefined) {
+      throw new _errors.MissingTranslationError(`functions.${key}`);
+    } else {
+      return val;
+    }
+  }
+  getMaybeFunctionTranslation(key) {
+    return this.functions[key];
+  }
+  getErrorTranslation(key) {
+    if (key === _Cell.ErrorType.LIC) {
+      return `#${_Cell.ErrorType.LIC}!`;
+    }
+    const val = this.errors[key];
+    if (val === undefined) {
+      throw new _errors.MissingTranslationError(`errors.${key}`);
+    } else {
+      return val;
+    }
+  }
+  getUITranslation(key) {
+    const val = this.ui[key];
+    if (val === undefined) {
+      throw new _errors.MissingTranslationError(`ui.${key}`);
+    } else {
+      return val;
+    }
+  }
+  checkUI() {
+    for (const key of Object.values(_index.UIElement)) {
+      if (!(key in this.ui)) {
+        throw new _errors.MissingTranslationError(`ui.${key}`);
+      }
+    }
+  }
+  checkErrors() {
+    for (const key of Object.values(_Cell.ErrorType)) {
+      if (!(key in this.errors) && key !== _Cell.ErrorType.LIC) {
+        throw new _errors.MissingTranslationError(`errors.${key}`);
+      }
+    }
+  }
+  checkFunctionTranslations(functions) {
+    const functionNames = new Set(Object.getOwnPropertyNames(functions));
+    for (const protectedTranslation of Object.getOwnPropertyNames(this._protectedTranslations)) {
+      if (functionNames.has(protectedTranslation)) {
+        throw new _errors.ProtectedFunctionTranslationError(protectedTranslation);
+      }
+    }
+  }
+}
+exports.TranslationPackage = TranslationPackage;
+function buildTranslationPackage(rawTranslationPackage) {
+  return new TranslationPackage(Object.assign({}, rawTranslationPackage.functions), Object.assign({}, rawTranslationPackage.errors), Object.assign({}, rawTranslationPackage.ui));
+}
+
+/***/ }),
+/* 124 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ImmutableAddressMapping = void 0;
+var _errors = __webpack_require__(111);
+var _InterpreterValue = __webpack_require__(104);
+var _index = __webpack_require__(74);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class ImmutableAddressMapping extends _index.AddressMapping {
+  constructor(policy, immutableMapping) {
+    super(policy);
+    this.policy = policy;
+    this.immutableMapping = immutableMapping;
+  }
+  getCellId(address) {
+    return this.getCell(address).id;
+  }
+  setCellId(address, id) {
+    const vertex = this.getCell(address);
+    if (vertex) vertex.id = id;
+  }
+  getColId(address) {
+    return this.immutableMapping.getColId(address);
+  }
+  getRowId(address) {
+    return this.immutableMapping.getRowId(address);
+  }
+  /** @inheritDoc */
+  getCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    return sheetMapping.getCell(address);
+  }
+  fetchCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(address.sheet);
+    }
+    const vertex = sheetMapping.getCell(address);
+    if (!vertex) {
+      throw Error('Vertex for address missing in AddressMapping');
+    }
+    return vertex;
+  }
+  addSheet(sheetId, strategy) {
+    if (this.mapping.has(sheetId)) {
+      throw Error('Sheet already added');
+    }
+    this.mapping.set(sheetId, strategy);
+  }
+  autoAddSheet(sheetId, sheetBoundaries) {
+    const {
+      height,
+      width,
+      fill
+    } = sheetBoundaries;
+    const strategyConstructor = this.policy.call(fill);
+    this.addSheet(sheetId, new strategyConstructor(width, height));
+  }
+  getCellValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex === undefined) {
+      return _InterpreterValue.EmptyValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellValue(address);
+    } else {
+      return vertex.getCellValue();
+    }
+  }
+  getRawValue(address) {
+    const vertex = this.getCell(address);
+    if (vertex instanceof _index.ValueCellVertex) {
+      return vertex.getValues().rawValue;
+    } else if (vertex instanceof _index.ArrayVertex) {
+      return vertex.getArrayCellRawValue(address);
+    } else {
+      return null;
+    }
+  }
+  /** @inheritDoc */
+  setCell(address, newVertex) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    // PERF: Optimize this using LazilyTransformingAstService version
+    if (newVertex.id === undefined) newVertex.id = this.immutableMapping.getCellId(address);
+    sheetMapping.setCell(address, newVertex);
+  }
+  moveCell(source, destination) {
+    const sheetMapping = this.mapping.get(source.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized.');
+    }
+    if (source.sheet !== destination.sheet) {
+      throw Error('Cannot move cells between sheets.');
+    }
+    if (sheetMapping.has(destination)) {
+      throw new Error('Cannot move cell. Destination already occupied.');
+    }
+    const vertex = sheetMapping.getCell(source);
+    if (vertex === undefined) {
+      throw new Error('Cannot move cell. No cell with such address.');
+    }
+    this.setCell(destination, vertex);
+    this.removeCell(source);
+  }
+  removeCell(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (!sheetMapping) {
+      throw Error('Sheet not initialized');
+    }
+    sheetMapping.removeCell(address);
+  }
+  /** @inheritDoc */
+  has(address) {
+    const sheetMapping = this.mapping.get(address.sheet);
+    if (sheetMapping === undefined) {
+      return false;
+    }
+    return sheetMapping.has(address);
+  }
+  /** @inheritDoc */
+  getHeight(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getHeight();
+  }
+  /** @inheritDoc */
+  getWidth(sheetId) {
+    const sheetMapping = this.mapping.get(sheetId);
+    if (!sheetMapping) {
+      throw new _errors.NoSheetWithIdError(sheetId);
+    }
+    return sheetMapping.getWidth();
+  }
+  addRows(sheet, row, numberOfRows) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addRows(row, numberOfRows);
+  }
+  removeRows(removedRows) {
+    const sheetMapping = this.mapping.get(removedRows.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedRows.sheet);
+    }
+    sheetMapping.removeRows(removedRows);
+  }
+  removeSheet(sheetId) {
+    this.mapping.delete(sheetId);
+  }
+  addColumns(sheet, column, numberOfColumns) {
+    const sheetMapping = this.mapping.get(sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(sheet);
+    }
+    sheetMapping.addColumns(column, numberOfColumns);
+  }
+  removeColumns(removedColumns) {
+    const sheetMapping = this.mapping.get(removedColumns.sheet);
+    if (sheetMapping === undefined) {
+      throw new _errors.NoSheetWithIdError(removedColumns.sheet);
+    }
+    sheetMapping.removeColumns(removedColumns);
+  }
+}
+exports.ImmutableAddressMapping = ImmutableAddressMapping;
+
+/***/ }),
+/* 125 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.EmptyCellVertex = void 0;
+var _InterpreterValue = __webpack_require__(104);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Represents singleton vertex bound to all empty cells
+ */
+class EmptyCellVertex {
+  constructor() {}
+  /**
+   * Retrieves cell value bound to that singleton
+   */
+  getCellValue() {
+    return _InterpreterValue.EmptyValue;
+  }
+}
+exports.EmptyCellVertex = EmptyCellVertex;
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ValueCellVertex = void 0;
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+/**
+ * Represents vertex which keeps static cell value
+ */
+class ValueCellVertex {
+  /** Static cell value. */
+  constructor(parsedValue, rawValue) {
+    this.parsedValue = parsedValue;
+    this.rawValue = rawValue;
+  }
+  getValues() {
+    return {
+      parsedValue: this.parsedValue,
+      rawValue: this.rawValue
+    };
+  }
+  setValues(values) {
+    this.parsedValue = values.parsedValue;
+    this.rawValue = values.rawValue;
+  }
+  /**
+   * Returns cell value stored in vertex
+   */
+  getCellValue() {
+    return this.parsedValue;
+  }
+  setCellValue(_cellValue) {
+    throw Error('SetCellValue is deprecated for ValueCellVertex');
+  }
+}
+exports.ValueCellVertex = ValueCellVertex;
+
+/***/ }),
+/* 127 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.ParsingErrorVertex = void 0;
+var _Cell = __webpack_require__(73);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+class ParsingErrorVertex {
+  constructor(errors, rawInput) {
+    this.errors = errors;
+    this.rawInput = rawInput;
+  }
+  getCellValue() {
+    return _Cell.CellError.parsingError();
+  }
+  getFormula() {
+    return this.rawInput;
+  }
+}
+exports.ParsingErrorVertex = ParsingErrorVertex;
+
+/***/ }),
+/* 128 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.SparseStrategy = void 0;
+var _Cell = __webpack_require__(73);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Mapping from cell addresses to vertices
+ *
+ * Uses Map to store addresses, having minimal memory usage for sparse sheets but not necessarily constant set/lookup.
+ */
+class SparseStrategy {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    /**
+     * Map of Maps in which actual data is stored.
+     *
+     * Key of map in first level is column number.
+     * Key of map in second level is row number.
+     */
+    this.mapping = new Map();
+  }
+  /** @inheritDoc */
+  getCell(address) {
+    var _a;
+    return (_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.get(address.row);
+  }
+  /** @inheritDoc */
+  setCell(address, newVertex) {
+    this.width = Math.max(this.width, address.col + 1);
+    this.height = Math.max(this.height, address.row + 1);
+    let colMapping = this.mapping.get(address.col);
+    if (!colMapping) {
+      colMapping = new Map();
+      this.mapping.set(address.col, colMapping);
+    }
+    colMapping.set(address.row, newVertex);
+  }
+  /** @inheritDoc */
+  has(address) {
+    var _a;
+    return !!((_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.get(address.row));
+  }
+  /** @inheritDoc */
+  getHeight() {
+    return this.height;
+  }
+  /** @inheritDoc */
+  getWidth() {
+    return this.width;
+  }
+  removeCell(address) {
+    var _a;
+    (_a = this.mapping.get(address.col)) === null || _a === void 0 ? void 0 : _a.delete(address.row);
+  }
+  addRows(row, numberOfRows) {
+    this.mapping.forEach(rowMapping => {
+      const tmpMapping = new Map();
+      rowMapping.forEach((vertex, rowNumber) => {
+        if (rowNumber >= row) {
+          tmpMapping.set(rowNumber + numberOfRows, vertex);
+          rowMapping.delete(rowNumber);
+        }
+      });
+      tmpMapping.forEach((vertex, rowNumber) => {
+        rowMapping.set(rowNumber, vertex);
+      });
+    });
+    this.height += numberOfRows;
+  }
+  addColumns(column, numberOfColumns) {
+    const tmpMapping = new Map();
+    this.mapping.forEach((rowMapping, colNumber) => {
+      if (colNumber >= column) {
+        tmpMapping.set(colNumber + numberOfColumns, rowMapping);
+        this.mapping.delete(colNumber);
+      }
+    });
+    tmpMapping.forEach((rowMapping, colNumber) => {
+      this.mapping.set(colNumber, rowMapping);
+    });
+    this.width += numberOfColumns;
+  }
+  removeRows(removedRows) {
+    this.mapping.forEach(rowMapping => {
+      const tmpMapping = new Map();
+      rowMapping.forEach((vertex, rowNumber) => {
+        if (rowNumber >= removedRows.rowStart) {
+          rowMapping.delete(rowNumber);
+          if (rowNumber > removedRows.rowEnd) {
+            tmpMapping.set(rowNumber - removedRows.numberOfRows, vertex);
+          }
+        }
+      });
+      tmpMapping.forEach((vertex, rowNumber) => {
+        rowMapping.set(rowNumber, vertex);
+      });
+    });
+    const rightmostRowRemoved = Math.min(this.height - 1, removedRows.rowEnd);
+    const numberOfRowsRemoved = Math.max(0, rightmostRowRemoved - removedRows.rowStart + 1);
+    this.height = Math.max(0, this.height - numberOfRowsRemoved);
+  }
+  removeColumns(removedColumns) {
+    const tmpMapping = new Map();
+    this.mapping.forEach((rowMapping, colNumber) => {
+      if (colNumber >= removedColumns.columnStart) {
+        this.mapping.delete(colNumber);
+        if (colNumber > removedColumns.columnEnd) {
+          tmpMapping.set(colNumber - removedColumns.numberOfColumns, rowMapping);
+        }
+      }
+    });
+    tmpMapping.forEach((rowMapping, colNumber) => {
+      this.mapping.set(colNumber, rowMapping);
+    });
+    const rightmostColumnRemoved = Math.min(this.width - 1, removedColumns.columnEnd);
+    const numberOfColumnsRemoved = Math.max(0, rightmostColumnRemoved - removedColumns.columnStart + 1);
+    this.width = Math.max(0, this.width - numberOfColumnsRemoved);
+  }
+  *getEntries(sheet) {
+    for (const [colNumber, col] of this.mapping) {
+      for (const [rowNumber, value] of col) {
+        yield [(0, _Cell.simpleCellAddress)(sheet, colNumber, rowNumber), value];
+      }
+    }
+  }
+  *verticesFromColumn(column) {
+    const colMapping = this.mapping.get(column);
+    if (colMapping === undefined) {
+      return;
+    }
+    for (const [_, vertex] of colMapping) {
+      yield vertex;
+    }
+  }
+  *verticesFromRow(row) {
+    for (const colMapping of this.mapping.values()) {
+      const rowVertex = colMapping.get(row);
+      if (rowVertex !== undefined) {
+        yield rowVertex;
+      }
+    }
+  }
+  *verticesFromColumnsSpan(columnsSpan) {
+    for (const column of columnsSpan.columns()) {
+      const colMapping = this.mapping.get(column);
+      if (colMapping === undefined) {
+        continue;
+      }
+      for (const [_, vertex] of colMapping) {
+        yield vertex;
+      }
+    }
+  }
+  *verticesFromRowsSpan(rowsSpan) {
+    for (const colMapping of this.mapping.values()) {
+      for (const row of rowsSpan.rows()) {
+        const rowVertex = colMapping.get(row);
+        if (rowVertex !== undefined) {
+          yield rowVertex;
+        }
+      }
+    }
+  }
+  *entriesFromRowsSpan(rowsSpan) {
+    for (const [col, colMapping] of this.mapping.entries()) {
+      for (const row of rowsSpan.rows()) {
+        const rowVertex = colMapping.get(row);
+        if (rowVertex !== undefined) {
+          yield [(0, _Cell.simpleCellAddress)(rowsSpan.sheet, col, row), rowVertex];
+        }
+      }
+    }
+  }
+  *entriesFromColumnsSpan(columnsSpan) {
+    for (const col of columnsSpan.columns()) {
+      const colMapping = this.mapping.get(col);
+      if (colMapping !== undefined) {
+        for (const [row, vertex] of colMapping.entries()) {
+          yield [(0, _Cell.simpleCellAddress)(columnsSpan.sheet, col, row), vertex];
+        }
+      }
+    }
+  }
+  *vertices() {
+    for (const [_, col] of this.mapping) {
+      for (const [_, value] of col) {
+        if (value !== undefined) {
+          yield value;
+        }
+      }
+    }
+  }
+}
+exports.SparseStrategy = SparseStrategy;
+
+/***/ }),
+/* 129 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.DenseStrategy = void 0;
+__webpack_require__(2);
+var _Cell = __webpack_require__(73);
+/**
+ * @license
+ * Copyright (c) 2023 Handsoncode. All rights reserved.
+ */
+
+/**
+ * Mapping from cell addresses to vertices
+ *
+ * Uses Array to store addresses, having minimal memory usage for dense sheets and constant set/lookup.
+ */
+class DenseStrategy {
+  /**
+   * @param width - width of the stored sheet
+   * @param height - height of the stored sheet
+   */
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.mapping = new Array(height);
+    for (let i = 0; i < height; i++) {
+      this.mapping[i] = new Array(width);
+    }
+  }
+  /** @inheritDoc */
+  getCell(address) {
+    return this.getCellVertex(address.col, address.row);
+  }
+  /** @inheritDoc */
+  setCell(address, newVertex) {
+    this.width = Math.max(this.width, address.col + 1);
+    this.height = Math.max(this.height, address.row + 1);
+    const rowMapping = this.mapping[address.row];
+    if (!rowMapping) {
+      this.mapping[address.row] = new Array(this.width);
+    }
+    this.mapping[address.row][address.col] = newVertex;
+  }
+  /** @inheritDoc */
+  has(address) {
+    const row = this.mapping[address.row];
+    if (!row) {
+      return false;
+    }
+    return !!row[address.col];
+  }
+  /** @inheritDoc */
+  getHeight() {
+    return this.height;
+  }
+  /** @inheritDoc */
+  getWidth() {
+    return this.width;
+  }
+  removeCell(address) {
+    if (this.mapping[address.row] !== undefined) {
+      delete this.mapping[address.row][address.col];
+    }
+  }
+  addRows(row, numberOfRows) {
+    const newRows = [];
+    for (let i = 0; i < numberOfRows; i++) {
+      newRows.push(new Array(this.width));
+    }
+    this.mapping.splice(row, 0, ...newRows);
+    this.height += numberOfRows;
+  }
+  addColumns(column, numberOfColumns) {
+    for (let i = 0; i < this.height; i++) {
+      this.mapping[i].splice(column, 0, ...new Array(numberOfColumns));
+    }
+    this.width += numberOfColumns;
+  }
+  removeRows(removedRows) {
+    this.mapping.splice(removedRows.rowStart, removedRows.numberOfRows);
+    const rightmostRowRemoved = Math.min(this.height - 1, removedRows.rowEnd);
+    const numberOfRowsRemoved = Math.max(0, rightmostRowRemoved - removedRows.rowStart + 1);
+    this.height = Math.max(0, this.height - numberOfRowsRemoved);
+  }
+  removeColumns(removedColumns) {
+    for (let i = 0; i < this.height; i++) {
+      this.mapping[i].splice(removedColumns.columnStart, removedColumns.numberOfColumns);
+    }
+    const rightmostColumnRemoved = Math.min(this.width - 1, removedColumns.columnEnd);
+    const numberOfColumnsRemoved = Math.max(0, rightmostColumnRemoved - removedColumns.columnStart + 1);
+    this.width = Math.max(0, this.width - numberOfColumnsRemoved);
+  }
+  *getEntries(sheet) {
+    for (let y = 0; y < this.height; ++y) {
+      for (let x = 0; x < this.width; ++x) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield [(0, _Cell.simpleCellAddress)(sheet, x, y), vertex];
+        }
+      }
+    }
+  }
+  *verticesFromColumn(column) {
+    for (let y = 0; y < this.height; ++y) {
+      const vertex = this.getCellVertex(column, y);
+      if (vertex) {
+        yield vertex;
+      }
+    }
+  }
+  *verticesFromRow(row) {
+    for (let x = 0; x < this.width; ++x) {
+      const vertex = this.getCellVertex(x, row);
+      if (vertex) {
+        yield vertex;
+      }
+    }
+  }
+  *verticesFromColumnsSpan(columnsSpan) {
+    for (let x = columnsSpan.columnStart; x <= columnsSpan.columnEnd; ++x) {
+      for (let y = 0; y < this.height; ++y) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield vertex;
+        }
+      }
+    }
+  }
+  *verticesFromRowsSpan(rowsSpan) {
+    for (let x = 0; x < this.width; ++x) {
+      for (let y = rowsSpan.rowStart; y <= rowsSpan.rowEnd; ++y) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield vertex;
+        }
+      }
+    }
+  }
+  *entriesFromRowsSpan(rowsSpan) {
+    for (let x = 0; x < this.width; ++x) {
+      for (let y = rowsSpan.rowStart; y <= rowsSpan.rowEnd; ++y) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield [(0, _Cell.simpleCellAddress)(rowsSpan.sheet, x, y), vertex];
+        }
+      }
+    }
+  }
+  *entriesFromColumnsSpan(columnsSpan) {
+    for (let x = columnsSpan.columnStart; x <= columnsSpan.columnEnd; ++x) {
+      for (let y = 0; y < this.height; ++y) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield [(0, _Cell.simpleCellAddress)(columnsSpan.sheet, x, y), vertex];
+        }
+      }
+    }
+  }
+  *vertices() {
+    for (let y = 0; y < this.height; ++y) {
+      for (let x = 0; x < this.width; ++x) {
+        const vertex = this.getCellVertex(x, y);
+        if (vertex) {
+          yield vertex;
+        }
+      }
+    }
+  }
+  getCellVertex(x, y) {
+    var _a;
+    return (_a = this.mapping[y]) === null || _a === void 0 ? void 0 : _a[x];
+  }
+}
+exports.DenseStrategy = DenseStrategy;
 
 /***/ }),
 /* 130 */
@@ -12661,7 +12666,7 @@ var _ArgumentSanitization = __webpack_require__(132);
 var _DateTimeDefault = __webpack_require__(133);
 var _DateTimeHelper = __webpack_require__(134);
 var _ChooseAddressMappingPolicy = __webpack_require__(135);
-var _errors = __webpack_require__(106);
+var _errors = __webpack_require__(111);
 var _format = __webpack_require__(136);
 var _licenseKeyValidator = __webpack_require__(138);
 var _HyperFormula = __webpack_require__(140);
@@ -12910,7 +12915,7 @@ exports.validateNumberToBeAtLeast = validateNumberToBeAtLeast;
 exports.validateNumberToBeAtMost = validateNumberToBeAtMost;
 __webpack_require__(2);
 var _Config = __webpack_require__(131);
-var _errors = __webpack_require__(106);
+var _errors = __webpack_require__(111);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -13220,7 +13225,7 @@ exports.roundToNearestSecond = roundToNearestSecond;
 exports.timeToNumber = timeToNumber;
 exports.toBasisEU = toBasisEU;
 exports.truncateDayInMonth = truncateDayInMonth;
-var _InterpreterValue = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -13549,8 +13554,8 @@ function toBasisEU(date) {
 
 exports.__esModule = true;
 exports.DenseSparseChooseBasedOnThreshold = exports.AlwaysSparse = exports.AlwaysDense = void 0;
-var _DenseStrategy = __webpack_require__(124);
-var _SparseStrategy = __webpack_require__(123);
+var _DenseStrategy = __webpack_require__(129);
+var _SparseStrategy = __webpack_require__(128);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -14049,20 +14054,20 @@ function checkKeySchema(v) {
 
 exports.__esModule = true;
 exports.HyperFormula = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
+var _AbsoluteCellRange = __webpack_require__(1);
 var _ArgumentSanitization = __webpack_require__(132);
 var _BuildEngineFactory = __webpack_require__(141);
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _CellContentParser = __webpack_require__(142);
 var _Config = __webpack_require__(131);
 var _DateTimeHelper = __webpack_require__(134);
 var _Destroy = __webpack_require__(173);
 var _Emitter = __webpack_require__(174);
-var _errors = __webpack_require__(106);
-var _i18n = __webpack_require__(117);
+var _errors = __webpack_require__(111);
+var _i18n = __webpack_require__(122);
 var _FunctionRegistry = __webpack_require__(160);
 var _Operations = __webpack_require__(146);
-var _parser2 = __webpack_require__(78);
+var _parser2 = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -18239,7 +18244,7 @@ HyperFormula.version = "2.6.0";
  *
  * @category Static Properties
  */
-HyperFormula.buildDate = "15/12/2023 16:17:14";
+HyperFormula.buildDate = "18/12/2023 00:59:59";
 /**
  * A release date.
  *
@@ -18263,19 +18268,19 @@ HyperFormula.registeredLanguages = new Map();
 
 exports.__esModule = true;
 exports.BuildEngineFactory = void 0;
-var _ArraySize = __webpack_require__(1);
+var _ArraySize = __webpack_require__(98);
 var _CellContentParser = __webpack_require__(142);
 var _ClipboardOperations = __webpack_require__(143);
 var _Config = __webpack_require__(131);
 var _CrudOperations = __webpack_require__(144);
 var _DateTimeHelper = __webpack_require__(134);
-var _DependencyGraph = __webpack_require__(75);
-var _errors = __webpack_require__(106);
+var _DependencyGraph = __webpack_require__(74);
+var _errors = __webpack_require__(111);
 var _Evaluator = __webpack_require__(157);
 var _Exporter = __webpack_require__(158);
 var _GraphBuilder = __webpack_require__(159);
-var _i18n = __webpack_require__(117);
-var _ArithmeticHelper = __webpack_require__(127);
+var _i18n = __webpack_require__(122);
+var _ArithmeticHelper = __webpack_require__(101);
 var _FunctionRegistry = __webpack_require__(160);
 var _Interpreter = __webpack_require__(162);
 var _LazilyTransformingAstService = __webpack_require__(164);
@@ -18283,10 +18288,10 @@ var _SearchStrategy = __webpack_require__(166);
 var _NamedExpressions = __webpack_require__(145);
 var _NumberLiteralHelper = __webpack_require__(171);
 var _Operations = __webpack_require__(146);
-var _parser = __webpack_require__(78);
+var _parser = __webpack_require__(77);
 var _Serialization = __webpack_require__(172);
 var _Sheet = __webpack_require__(155);
-var _statistics = __webpack_require__(101);
+var _statistics = __webpack_require__(106);
 var _UndoRedo = __webpack_require__(156);
 /**
  * @license
@@ -18391,12 +18396,12 @@ exports.CellContentParser = exports.CellContent = void 0;
 exports.isBoolean = isBoolean;
 exports.isError = isError;
 exports.isFormula = isFormula;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _DateTimeHelper = __webpack_require__(134);
-var _errorMessage = __webpack_require__(90);
-var _errors = __webpack_require__(106);
-var _ArithmeticHelper = __webpack_require__(127);
-var _InterpreterValue = __webpack_require__(99);
+var _errorMessage = __webpack_require__(89);
+var _errors = __webpack_require__(111);
+var _ArithmeticHelper = __webpack_require__(101);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -18570,9 +18575,9 @@ exports.CellContentParser = CellContentParser;
 exports.__esModule = true;
 exports.ClipboardOperations = exports.ClipboardCellType = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _errors = __webpack_require__(106);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _errors = __webpack_require__(111);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -18674,14 +18679,14 @@ exports.ClipboardOperations = ClipboardOperations;
 exports.__esModule = true;
 exports.CrudOperations = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
 var _CellContentParser = __webpack_require__(142);
-var _errors = __webpack_require__(106);
+var _errors = __webpack_require__(111);
 var _NamedExpressions = __webpack_require__(145);
 var _Operations = __webpack_require__(146);
 var _Sheet = __webpack_require__(155);
-var _Span = __webpack_require__(100);
+var _Span = __webpack_require__(105);
 var _UndoRedo = __webpack_require__(156);
 /**
  * @license
@@ -19204,9 +19209,9 @@ function isNonnegativeInteger(x) {
 exports.__esModule = true;
 exports.doesContainRelativeReferences = exports.NamedExpressions = exports.InternalNamedExpression = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _parser = __webpack_require__(78);
-var _parserConsts = __webpack_require__(83);
+var _Cell = __webpack_require__(73);
+var _parser = __webpack_require__(77);
+var _parserConsts = __webpack_require__(82);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -19519,15 +19524,15 @@ exports.RemoveRowsCommand = exports.RemoveColumnsCommand = exports.Operations = 
 exports.normalizeAddedIndexes = normalizeAddedIndexes;
 exports.normalizeRemovedIndexes = normalizeRemovedIndexes;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _absolutizeDependencies = __webpack_require__(77);
-var _ArraySize = __webpack_require__(1);
-var _Cell = __webpack_require__(74);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _absolutizeDependencies = __webpack_require__(76);
+var _ArraySize = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
 var _CellContentParser = __webpack_require__(142);
 var _ClipboardOperations = __webpack_require__(143);
-var _ContentChanges = __webpack_require__(97);
-var _DependencyGraph = __webpack_require__(75);
-var _FormulaCellVertex = __webpack_require__(109);
+var _ContentChanges = __webpack_require__(96);
+var _DependencyGraph = __webpack_require__(74);
+var _FormulaCellVertex = __webpack_require__(114);
 var _AddColumnsTransformer = __webpack_require__(147);
 var _AddRowsTransformer = __webpack_require__(149);
 var _CleanOutOfScopeDependenciesTransformer = __webpack_require__(150);
@@ -19535,13 +19540,13 @@ var _MoveCellsTransformer = __webpack_require__(151);
 var _RemoveColumnsTransformer = __webpack_require__(152);
 var _RemoveRowsTransformer = __webpack_require__(153);
 var _RemoveSheetTransformer = __webpack_require__(154);
-var _errors = __webpack_require__(106);
-var _InterpreterValue = __webpack_require__(99);
+var _errors = __webpack_require__(111);
+var _InterpreterValue = __webpack_require__(104);
 var _NamedExpressions = __webpack_require__(145);
-var _parser = __webpack_require__(78);
+var _parser = __webpack_require__(77);
 var _Sheet = __webpack_require__(155);
-var _Span = __webpack_require__(100);
-var _statistics = __webpack_require__(101);
+var _Span = __webpack_require__(105);
+var _statistics = __webpack_require__(106);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20392,7 +20397,7 @@ function isRowOrColumnRange(leftCorner, width, height) {
 
 exports.__esModule = true;
 exports.AddColumnsTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -20509,8 +20514,8 @@ exports.AddColumnsTransformer = AddColumnsTransformer;
 
 exports.__esModule = true;
 exports.Transformer = void 0;
-var _Cell = __webpack_require__(74);
-var _parser = __webpack_require__(78);
+var _Cell = __webpack_require__(73);
+var _parser = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -20656,7 +20661,7 @@ exports.Transformer = Transformer;
 
 exports.__esModule = true;
 exports.AddRowsTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -20772,7 +20777,7 @@ exports.AddRowsTransformer = AddRowsTransformer;
 
 exports.__esModule = true;
 exports.CleanOutOfScopeDependenciesTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -20814,9 +20819,9 @@ exports.CleanOutOfScopeDependenciesTransformer = CleanOutOfScopeDependenciesTran
 
 exports.__esModule = true;
 exports.MoveCellsTransformer = exports.DependentFormulaTransformer = void 0;
-var _Cell = __webpack_require__(74);
-var _parser = __webpack_require__(78);
-var _RowAddress = __webpack_require__(82);
+var _Cell = __webpack_require__(73);
+var _parser = __webpack_require__(77);
+var _RowAddress = __webpack_require__(81);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -20946,7 +20951,7 @@ exports.DependentFormulaTransformer = DependentFormulaTransformer;
 
 exports.__esModule = true;
 exports.RemoveColumnsTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -21090,7 +21095,7 @@ exports.RemoveColumnsTransformer = RemoveColumnsTransformer;
 
 exports.__esModule = true;
 exports.RemoveRowsTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -21234,7 +21239,7 @@ exports.RemoveRowsTransformer = RemoveRowsTransformer;
 
 exports.__esModule = true;
 exports.RemoveSheetTransformer = void 0;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Transformer = __webpack_require__(148);
 /**
  * @license
@@ -21289,7 +21294,7 @@ exports.RemoveSheetTransformer = RemoveSheetTransformer;
 exports.__esModule = true;
 exports.findBoundaries = findBoundaries;
 exports.validateAsSheet = validateAsSheet;
-var _errors = __webpack_require__(106);
+var _errors = __webpack_require__(111);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -21347,7 +21352,7 @@ function findBoundaries(sheet) {
 exports.__esModule = true;
 exports.UndoRedo = exports.SetSheetContentUndoEntry = exports.SetRowOrderUndoEntry = exports.SetColumnOrderUndoEntry = exports.SetCellContentsUndoEntry = exports.RenameSheetUndoEntry = exports.RemoveSheetUndoEntry = exports.RemoveRowsUndoEntry = exports.RemoveNamedExpressionUndoEntry = exports.RemoveColumnsUndoEntry = exports.PasteUndoEntry = exports.MoveRowsUndoEntry = exports.MoveColumnsUndoEntry = exports.MoveCellsUndoEntry = exports.ClearSheetUndoEntry = exports.ChangeNamedExpressionUndoEntry = exports.BatchUndoEntry = exports.BaseUndoEntry = exports.AddSheetUndoEntry = exports.AddRowsUndoEntry = exports.AddNamedExpressionUndoEntry = exports.AddColumnsUndoEntry = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _Operations = __webpack_require__(146);
 /**
  * @license
@@ -22014,16 +22019,16 @@ exports.UndoRedo = UndoRedo;
 exports.__esModule = true;
 exports.Evaluator = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _absolutizeDependencies = __webpack_require__(77);
-var _Cell = __webpack_require__(74);
-var _ContentChanges = __webpack_require__(97);
-var _DependencyGraph = __webpack_require__(75);
-var _FormulaCellVertex = __webpack_require__(109);
-var _InterpreterState = __webpack_require__(125);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-var _statistics = __webpack_require__(101);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _absolutizeDependencies = __webpack_require__(76);
+var _Cell = __webpack_require__(73);
+var _ContentChanges = __webpack_require__(96);
+var _DependencyGraph = __webpack_require__(74);
+var _FormulaCellVertex = __webpack_require__(114);
+var _InterpreterState = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+var _statistics = __webpack_require__(106);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22153,13 +22158,13 @@ exports.Evaluator = Evaluator;
 exports.__esModule = true;
 exports.Exporter = exports.ExportedNamedExpressionChange = exports.ExportedCellChange = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _CellValue = __webpack_require__(130);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
 var _NamedExpressions = __webpack_require__(145);
-var _addressRepresentationConverters = __webpack_require__(79);
+var _addressRepresentationConverters = __webpack_require__(78);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22277,13 +22282,13 @@ exports.Exporter = Exporter;
 
 exports.__esModule = true;
 exports.SimpleStrategy = exports.GraphBuilder = void 0;
-var _absolutizeDependencies = __webpack_require__(77);
-var _ArraySize = __webpack_require__(1);
-var _Cell = __webpack_require__(74);
+var _absolutizeDependencies = __webpack_require__(76);
+var _ArraySize = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
 var _CellContentParser = __webpack_require__(142);
-var _DependencyGraph = __webpack_require__(75);
-var _InterpreterValue = __webpack_require__(99);
-var _statistics = __webpack_require__(101);
+var _DependencyGraph = __webpack_require__(74);
+var _InterpreterValue = __webpack_require__(104);
+var _statistics = __webpack_require__(106);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22397,7 +22402,7 @@ exports.SimpleStrategy = SimpleStrategy;
 exports.__esModule = true;
 exports.FunctionRegistry = void 0;
 __webpack_require__(2);
-var _errors = __webpack_require__(106);
+var _errors = __webpack_require__(111);
 var _HyperFormula = __webpack_require__(140);
 var _VersionPlugin = __webpack_require__(161);
 /**
@@ -22632,7 +22637,7 @@ FunctionRegistry._protectedPlugins = new Map([['VERSION', _VersionPlugin.Version
 exports.__esModule = true;
 exports.VersionPlugin = void 0;
 var _HyperFormula = __webpack_require__(140);
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -22676,17 +22681,17 @@ VersionPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.Interpreter = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _ArrayValue = __webpack_require__(110);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _Ast = __webpack_require__(86);
-var _ArithmeticHelper = __webpack_require__(127);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _ArrayValue = __webpack_require__(115);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _Ast = __webpack_require__(85);
+var _ArithmeticHelper = __webpack_require__(101);
 var _Criterion = __webpack_require__(163);
 var _FunctionRegistry = __webpack_require__(160);
-var _InterpreterState = __webpack_require__(125);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
+var _InterpreterState = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23090,7 +23095,7 @@ function wrapperForRootVertex(val, vertex) {
 
 exports.__esModule = true;
 exports.buildCriterionLambda = exports.buildCriterion = exports.CriterionType = exports.CriterionBuilder = void 0;
-var _InterpreterValue = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23285,7 +23290,7 @@ exports.__esModule = true;
 exports.LazilyTransformingAstService = void 0;
 __webpack_require__(2);
 var _CombinedTransformer = __webpack_require__(165);
-var _statistics = __webpack_require__(101);
+var _statistics = __webpack_require__(106);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23463,8 +23468,8 @@ exports.ColumnBinarySearch = ColumnBinarySearch;
 
 exports.__esModule = true;
 exports.AdvancedFind = void 0;
-var _InterpreterValue = __webpack_require__(99);
-var _ArithmeticHelper = __webpack_require__(127);
+var _InterpreterValue = __webpack_require__(104);
+var _ArithmeticHelper = __webpack_require__(101);
 var _binarySearch = __webpack_require__(169);
 /**
  * @license
@@ -23529,8 +23534,8 @@ exports.compare = compare;
 exports.findLastMatchingIndex = findLastMatchingIndex;
 exports.findLastOccurrenceInOrderedArray = findLastOccurrenceInOrderedArray;
 exports.findLastOccurrenceInOrderedRange = findLastOccurrenceInOrderedRange;
-var _Cell = __webpack_require__(74);
-var _InterpreterValue = __webpack_require__(99);
+var _Cell = __webpack_require__(73);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -23652,13 +23657,13 @@ function compare(left, right) {
 exports.__esModule = true;
 exports.ColumnIndex = void 0;
 exports.findInOrderedArray = findInOrderedArray;
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _AddRowsTransformer = __webpack_require__(149);
 var _RemoveRowsTransformer = __webpack_require__(153);
-var _ArithmeticHelper = __webpack_require__(127);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-var _statistics = __webpack_require__(101);
+var _ArithmeticHelper = __webpack_require__(101);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+var _statistics = __webpack_require__(106);
 var _ColumnBinarySearch = __webpack_require__(167);
 /**
  * @license
@@ -23968,9 +23973,9 @@ exports.NumberLiteralHelper = NumberLiteralHelper;
 
 exports.__esModule = true;
 exports.Serialization = void 0;
-var _Cell = __webpack_require__(74);
-var _DependencyGraph = __webpack_require__(75);
-var _parser = __webpack_require__(78);
+var _Cell = __webpack_require__(73);
+var _DependencyGraph = __webpack_require__(74);
+var _parser = __webpack_require__(77);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24630,10 +24635,10 @@ exports.default = _default;
 
 
 exports.__esModule = true;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 exports.FunctionPlugin = _FunctionPlugin.FunctionPlugin;
 exports.FunctionArgumentType = _FunctionPlugin.FunctionArgumentType;
-var _InterpreterValue = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
 exports.EmptyValue = _InterpreterValue.EmptyValue;
 
 /***/ }),
@@ -24741,10 +24746,10 @@ exports.StatisticalAggregationPlugin = _StatisticalAggregationPlugin.Statistical
 
 exports.__esModule = true;
 exports.AddressPlugin = void 0;
-var _addressRepresentationConverters = __webpack_require__(79);
-var _FunctionPlugin = __webpack_require__(126);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _addressRepresentationConverters = __webpack_require__(78);
+var _FunctionPlugin = __webpack_require__(100);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -24839,14 +24844,14 @@ AddressPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.ArrayPlugin = void 0;
 __webpack_require__(2);
-var _ArraySize = __webpack_require__(1);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(127);
-var _InterpreterState = __webpack_require__(125);
-var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(126);
+var _ArraySize = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _parser = __webpack_require__(77);
+var _ArithmeticHelper = __webpack_require__(101);
+var _InterpreterState = __webpack_require__(99);
+var _SimpleRangeValue = __webpack_require__(97);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25001,7 +25006,7 @@ ArrayPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.AbsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25031,9 +25036,9 @@ AbsPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.BitShiftPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25106,7 +25111,7 @@ function validate(result) {
 
 exports.__esModule = true;
 exports.BitwiseLogicOperationsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25166,9 +25171,9 @@ BitwiseLogicOperationsPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.BooleanPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25429,9 +25434,9 @@ BooleanPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.CharPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25480,9 +25485,9 @@ CharPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.CodePlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25529,8 +25534,8 @@ CodePlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.CountBlankPlugin = void 0;
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25573,8 +25578,8 @@ CountBlankPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.CountUniquePlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -25629,12 +25634,12 @@ CountUniquePlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.DateTimePlugin = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
+var _Cell = __webpack_require__(73);
 var _DateTimeHelper = __webpack_require__(134);
-var _errorMessage = __webpack_require__(90);
+var _errorMessage = __webpack_require__(89);
 var _format = __webpack_require__(136);
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26395,7 +26400,7 @@ const workdayPatterns = new Map([[1, '0000011'], [2, '1000001'], [3, '1100000'],
 
 exports.__esModule = true;
 exports.DegreesPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26425,7 +26430,7 @@ DegreesPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.DeltaPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26458,7 +26463,7 @@ DeltaPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.ExpPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -26497,10 +26502,10 @@ ExpPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.FinancialPlugin = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27344,10 +27349,10 @@ function npvCore(rate, args) {
 
 exports.__esModule = true;
 exports.FormulaTextPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _index = __webpack_require__(177);
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27391,7 +27396,7 @@ FormulaTextPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.HyperlinkPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27427,13 +27432,13 @@ HyperlinkPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.InformationPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _FormulaCellVertex = __webpack_require__(109);
-var _errorMessage = __webpack_require__(90);
-var _parser = __webpack_require__(78);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _FormulaCellVertex = __webpack_require__(114);
+var _errorMessage = __webpack_require__(89);
+var _parser = __webpack_require__(77);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27879,7 +27884,7 @@ InformationPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.IsEvenPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27909,7 +27914,7 @@ IsEvenPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.IsOddPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27939,7 +27944,7 @@ IsOddPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.LogarithmPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -27992,7 +27997,7 @@ LogarithmPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.PI = exports.MathConstantsPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28033,13 +28038,13 @@ MathConstantsPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.MatrixPlugin = void 0;
 __webpack_require__(2);
-var _ArraySize = __webpack_require__(1);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _parser = __webpack_require__(78);
-var _InterpreterState = __webpack_require__(125);
-var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(126);
+var _ArraySize = __webpack_require__(98);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _parser = __webpack_require__(77);
+var _InterpreterState = __webpack_require__(99);
+var _SimpleRangeValue = __webpack_require__(97);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28299,9 +28304,9 @@ MatrixPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.MedianPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28403,8 +28408,8 @@ MedianPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.ModuloPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -28443,15 +28448,15 @@ ModuloPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.NumericAggregationPlugin = void 0;
 __webpack_require__(2);
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _errors = __webpack_require__(106);
-var _parser = __webpack_require__(78);
-var _ArithmeticHelper = __webpack_require__(127);
-var _InterpreterValue = __webpack_require__(99);
-var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(126);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _errors = __webpack_require__(111);
+var _parser = __webpack_require__(77);
+var _ArithmeticHelper = __webpack_require__(101);
+var _InterpreterValue = __webpack_require__(104);
+var _SimpleRangeValue = __webpack_require__(97);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29076,7 +29081,7 @@ function numbersBooleans(arg) {
 
 exports.__esModule = true;
 exports.PowerPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29108,7 +29113,7 @@ PowerPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.RadiansPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29138,10 +29143,10 @@ RadiansPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.RadixConversionPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _format = __webpack_require__(136);
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29459,9 +29464,9 @@ function twoComplementToDecimal(value, base) {
 
 exports.__esModule = true;
 exports.RandomPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29523,9 +29528,9 @@ exports.__esModule = true;
 exports.RoundingPlugin = void 0;
 exports.findNextEvenNumber = findNextEvenNumber;
 exports.findNextOddNumber = findNextOddNumber;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29788,7 +29793,7 @@ RoundingPlugin.aliases = {
 
 exports.__esModule = true;
 exports.SqrtPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -29819,11 +29824,11 @@ SqrtPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.ConditionalAggregationPlugin = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _CriterionFunctionCompute = __webpack_require__(212);
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30054,10 +30059,10 @@ ConditionalAggregationPlugin.implementedFunctions = {
 exports.__esModule = true;
 exports.CriterionFunctionCompute = exports.Condition = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _generatorUtils = __webpack_require__(213);
-var _InterpreterValue = __webpack_require__(99);
+var _InterpreterValue = __webpack_require__(104);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30255,10 +30260,10 @@ function first(iterable) {
 
 exports.__esModule = true;
 exports.SumprodPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30316,9 +30321,9 @@ SumprodPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.TextPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -30653,9 +30658,9 @@ TextPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.TrigonometryPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 var _MathConstantsPlugin = __webpack_require__(200);
 /**
  * @license
@@ -30884,14 +30889,14 @@ TrigonometryPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.LookupPlugin = void 0;
-var _AbsoluteCellRange = __webpack_require__(73);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _AbsoluteCellRange = __webpack_require__(1);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _RowSearchStrategy = __webpack_require__(218);
-var _statistics = __webpack_require__(101);
-var _ArithmeticHelper = __webpack_require__(127);
-var _SimpleRangeValue = __webpack_require__(98);
-var _FunctionPlugin = __webpack_require__(126);
+var _statistics = __webpack_require__(106);
+var _ArithmeticHelper = __webpack_require__(101);
+var _SimpleRangeValue = __webpack_require__(97);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -31112,10 +31117,10 @@ exports.RowSearchStrategy = RowSearchStrategy;
 
 exports.__esModule = true;
 exports.RomanPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -31367,7 +31372,7 @@ function absorb(valAcc, token, lower, upper) {
 
 exports.__esModule = true;
 exports.SimpleArithmerticPlugin = void 0;
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -31574,11 +31579,11 @@ SimpleArithmerticPlugin.implementedFunctions = {
 
 exports.__esModule = true;
 exports.StatisticalPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
 var _bessel = __webpack_require__(222);
 var _jstat = __webpack_require__(223);
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -33838,9 +33843,9 @@ function corrcoeff(arr1, arr2) {
 
 exports.__esModule = true;
 exports.MathPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -34224,10 +34229,10 @@ function binaryLCM(a, b) {
 
 exports.__esModule = true;
 exports.ComplexPlugin = void 0;
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _ArithmeticHelper = __webpack_require__(127);
-var _FunctionPlugin = __webpack_require__(126);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _ArithmeticHelper = __webpack_require__(101);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
@@ -34573,11 +34578,11 @@ function power(arg, n) {
 exports.__esModule = true;
 exports.StatisticalAggregationPlugin = void 0;
 __webpack_require__(2);
-var _Cell = __webpack_require__(74);
-var _errorMessage = __webpack_require__(90);
-var _InterpreterValue = __webpack_require__(99);
+var _Cell = __webpack_require__(73);
+var _errorMessage = __webpack_require__(89);
+var _InterpreterValue = __webpack_require__(104);
 var _jstat = __webpack_require__(223);
-var _FunctionPlugin = __webpack_require__(126);
+var _FunctionPlugin = __webpack_require__(100);
 /**
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.

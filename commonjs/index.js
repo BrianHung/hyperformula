@@ -2,6 +2,10 @@
 
 exports.__esModule = true;
 exports.default = void 0;
+var _AbsoluteCellRange = require("./AbsoluteCellRange");
+exports.AbsoluteCellRange = _AbsoluteCellRange.AbsoluteCellRange;
+exports.AbsoluteColumnRange = _AbsoluteCellRange.AbsoluteColumnRange;
+exports.AbsoluteRowRange = _AbsoluteCellRange.AbsoluteRowRange;
 var _ArraySize = require("./ArraySize");
 exports.ArraySize = _ArraySize.ArraySize;
 var _Cell = require("./Cell");
@@ -21,6 +25,7 @@ var _DependencyGraph = require("./DependencyGraph");
 exports.ImmutableAddressMapping = _DependencyGraph.ImmutableAddressMapping;
 exports.AddressMapping = _DependencyGraph.AddressMapping;
 exports.RangeMapping = _DependencyGraph.RangeMapping;
+exports.RangeVertex = _DependencyGraph.RangeVertex;
 var _errors = require("./errors");
 exports.ConfigValueTooBigError = _errors.ConfigValueTooBigError;
 exports.ConfigValueTooSmallError = _errors.ConfigValueTooSmallError;

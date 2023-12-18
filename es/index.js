@@ -2,12 +2,13 @@
  * @license
  * Copyright (c) 2023 Handsoncode. All rights reserved.
  */
+import { AbsoluteCellRange, AbsoluteColumnRange, AbsoluteRowRange } from './AbsoluteCellRange';
 import { ArraySize } from './ArraySize';
 import { CellError, CellType, CellValueDetailedType, CellValueType, ErrorType } from './Cell';
 import { DetailedCellError } from './CellValue';
 import { Config } from './Config';
 import { AlwaysDense, AlwaysSparse, DenseSparseChooseBasedOnThreshold } from './DependencyGraph/AddressMapping/ChooseAddressMappingPolicy';
-import { ImmutableAddressMapping, AddressMapping, RangeMapping } from './DependencyGraph';
+import { ImmutableAddressMapping, AddressMapping, RangeMapping, RangeVertex } from './DependencyGraph';
 import { ConfigValueTooBigError, ConfigValueTooSmallError, EvaluationSuspendedError, ExpectedOneOfValuesError, ExpectedValueOfTypeError, FunctionPluginValidationError, InvalidAddressError, InvalidArgumentsError, LanguageAlreadyRegisteredError, LanguageNotRegisteredError, MissingTranslationError, NamedExpressionDoesNotExistError, NamedExpressionNameIsAlreadyTakenError, NamedExpressionNameIsInvalidError, NoOperationToRedoError, NoOperationToUndoError, NoRelativeAddressesAllowedError, NoSheetWithIdError, NoSheetWithNameError, NotAFormulaError, NothingToPasteError, ProtectedFunctionTranslationError, SheetNameAlreadyTakenError, SheetSizeLimitExceededError, SourceLocationHasArrayError, TargetLocationHasArrayError, UnableToParseError } from './errors';
 import { ExportedCellChange, ExportedNamedExpressionChange } from './Exporter';
 import { HyperFormula } from './HyperFormula';
@@ -71,4 +72,4 @@ for (const pluginName of Object.getOwnPropertyNames(plugins)) {
   }
 }
 export default HyperFormulaNS;
-export { AlwaysDense, AlwaysSparse, DenseSparseChooseBasedOnThreshold, HyperFormula, CellType, CellValueType, CellValueDetailedType, ErrorType, ExportedCellChange, ExportedNamedExpressionChange, DetailedCellError, CellError, ConfigValueTooBigError, ConfigValueTooSmallError, EvaluationSuspendedError, ExpectedOneOfValuesError, ExpectedValueOfTypeError, ArraySize, FunctionPlugin, FunctionArgumentType, FunctionPluginValidationError, InvalidAddressError, InvalidArgumentsError, LanguageAlreadyRegisteredError, LanguageNotRegisteredError, MissingTranslationError, NamedExpressionDoesNotExistError, NamedExpressionNameIsAlreadyTakenError, NamedExpressionNameIsInvalidError, NoOperationToRedoError, NoOperationToUndoError, NoRelativeAddressesAllowedError, NoSheetWithIdError, NoSheetWithNameError, NotAFormulaError, NothingToPasteError, ProtectedFunctionTranslationError, SimpleRangeValue, EmptyValue, SheetNameAlreadyTakenError, SheetSizeLimitExceededError, SourceLocationHasArrayError, TargetLocationHasArrayError, UnableToParseError, ImmutableAddressMapping, AddressMapping, RangeMapping };
+export { AlwaysDense, AlwaysSparse, DenseSparseChooseBasedOnThreshold, HyperFormula, CellType, CellValueType, CellValueDetailedType, ErrorType, ExportedCellChange, ExportedNamedExpressionChange, DetailedCellError, CellError, ConfigValueTooBigError, ConfigValueTooSmallError, EvaluationSuspendedError, ExpectedOneOfValuesError, ExpectedValueOfTypeError, ArraySize, FunctionPlugin, FunctionArgumentType, FunctionPluginValidationError, InvalidAddressError, InvalidArgumentsError, LanguageAlreadyRegisteredError, LanguageNotRegisteredError, MissingTranslationError, NamedExpressionDoesNotExistError, NamedExpressionNameIsAlreadyTakenError, NamedExpressionNameIsInvalidError, NoOperationToRedoError, NoOperationToUndoError, NoRelativeAddressesAllowedError, NoSheetWithIdError, NoSheetWithNameError, NotAFormulaError, NothingToPasteError, ProtectedFunctionTranslationError, SimpleRangeValue, EmptyValue, SheetNameAlreadyTakenError, SheetSizeLimitExceededError, SourceLocationHasArrayError, TargetLocationHasArrayError, UnableToParseError, ImmutableAddressMapping, AddressMapping, RangeMapping, AbsoluteCellRange, AbsoluteColumnRange, AbsoluteRowRange, RangeVertex };
