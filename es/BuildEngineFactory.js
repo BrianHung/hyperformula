@@ -66,7 +66,7 @@ export class BuildEngineFactory {
         addressMapping.autoAddSheet(sheetId, boundaries);
       }
     }
-    const parser = new ParserWithCaching(config, functionRegistry, sheetMapping.get, addressMapping.immutableReferenceMapping);
+    const parser = new ParserWithCaching(config, functionRegistry, sheetMapping.get, addressMapping.immutableMapping);
     lazilyTransformingAstService.parser = parser;
     const unparser = new Unparser(config, buildLexerConfig(config), sheetMapping.fetchDisplayName, namedExpressions, addressMapping);
     const dateTimeHelper = new DateTimeHelper(config);

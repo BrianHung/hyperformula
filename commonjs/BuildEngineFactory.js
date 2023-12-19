@@ -71,7 +71,7 @@ class BuildEngineFactory {
         addressMapping.autoAddSheet(sheetId, boundaries);
       }
     }
-    const parser = new _parser.ParserWithCaching(config, functionRegistry, sheetMapping.get, addressMapping.immutableReferenceMapping);
+    const parser = new _parser.ParserWithCaching(config, functionRegistry, sheetMapping.get, addressMapping.immutableMapping);
     lazilyTransformingAstService.parser = parser;
     const unparser = new _parser.Unparser(config, (0, _parser.buildLexerConfig)(config), sheetMapping.fetchDisplayName, namedExpressions, addressMapping);
     const dateTimeHelper = new _DateTimeHelper.DateTimeHelper(config);

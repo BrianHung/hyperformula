@@ -313,7 +313,7 @@ describe('parser with engine', () => {
   const cellMap = new Map()
   cellMap.set('00000000-0000-0000-0000-000000000000', { id: '00000000-0000-0000-0000-000000000000', row: '00000000-0000-0000-0000-000000000000', col: '00000000-0000-0000-0000-000000000000' })
 
-  const refMapping = new ImmutableReferenceMapping({
+  const refMapping = new ImmutableReferenceMappingTestImpl({
     cells: cellMap,
     rows: rowMap,
     cols: colMap,
