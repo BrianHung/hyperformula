@@ -51,18 +51,18 @@ class ImmutableReferenceMappingTestImpl {
     return cell === null || cell === void 0 ? void 0 : cell.id;
   }
   getRowIndex(id) {
-    const index = this.sortedRows.findIndex(row => row.id === id);
-    if (index === -1) return undefined;
+    const row = this.sortedRows.findIndex(row => row.id === id);
+    if (row === -1) return undefined;
     return {
-      index,
+      row,
       sheet: 0
     };
   }
   getColIndex(id) {
-    const index = this.sortedCols.findIndex(row => row.id === id);
-    if (index === -1) return undefined;
+    const col = this.sortedCols.findIndex(row => row.id === id);
+    if (col === -1) return undefined;
     return {
-      index,
+      col,
       sheet: 0
     };
   }
@@ -75,8 +75,8 @@ class ImmutableReferenceMappingTestImpl {
     if (row.sheet !== col.sheet) throw Error();
     return {
       sheet: 0,
-      row: row.index,
-      col: col.index
+      row: row.row,
+      col: col.col
     };
   }
 }
@@ -94,8 +94,8 @@ class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImpl {
       col: c
     }) => {
       var _a, _b;
-      const row = (_a = this.getRowIndex(r)) === null || _a === void 0 ? void 0 : _a.index;
-      const col = (_b = this.getColIndex(c)) === null || _b === void 0 ? void 0 : _b.index;
+      const row = (_a = this.getRowIndex(r)) === null || _a === void 0 ? void 0 : _a.row;
+      const col = (_b = this.getColIndex(c)) === null || _b === void 0 ? void 0 : _b.col;
       if (row === undefined || col === undefined) return;
       this.cellsToId.set((0, _Cell.addressKey)({
         sheet: 0,

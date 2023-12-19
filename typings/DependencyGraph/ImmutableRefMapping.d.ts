@@ -10,14 +10,8 @@ export interface ImmutableIdMapping {
     getCellId(address: SimpleCellAddress): string | undefined;
 }
 export interface ImmutableReferenceMapping {
-    getRowIndex(id: string): {
-        sheet: number;
-        index: number;
-    } | undefined;
-    getColIndex(id: string): {
-        sheet: number;
-        index: number;
-    } | undefined;
+    getRowIndex(id: string): SimpleRowAddress | undefined;
+    getColIndex(id: string): SimpleColAddress | undefined;
     getCellAddress(id: string): SimpleCellAddress | undefined;
 }
 /**
@@ -61,14 +55,8 @@ export declare class ImmutableReferenceMappingTestImpl implements ImmutableRefer
     getRowId({ sheet, row }: SimpleRowAddress): string;
     getColId({ sheet, col }: SimpleColAddress): string;
     getCellId(address: SimpleCellAddress): string | undefined;
-    getRowIndex(id: string): {
-        sheet: number;
-        index: number;
-    } | undefined;
-    getColIndex(id: string): {
-        sheet: number;
-        index: number;
-    } | undefined;
+    getRowIndex(id: string): SimpleRowAddress | undefined;
+    getColIndex(id: string): SimpleColAddress | undefined;
     getCellAddress(id: string): SimpleCellAddress | undefined;
 }
 /**

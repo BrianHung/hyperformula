@@ -13,8 +13,8 @@ export interface ImmutableIdMapping {
 }
 
 export interface ImmutableReferenceMapping {
-  getRowIndex(id: string): { sheet: number, index: number } | undefined,
-  getColIndex(id: string): { sheet: number, index: number } | undefined,
+  getRowIndex(id: string): SimpleRowAddress | undefined,
+  getColIndex(id: string): SimpleColAddress | undefined,
   getCellAddress(id: string): SimpleCellAddress | undefined,
 }
 
@@ -66,16 +66,16 @@ export class ImmutableReferenceMappingTestImpl implements ImmutableReferenceMapp
     return cell?.id
   }
 
-  getRowIndex(id: string): { sheet: number, index: number } | undefined {
-    const index = this.sortedRows.findIndex(row => row.id === id)
-    if (index === -1) return undefined
-    return { index, sheet: 0 }
+  getRowIndex(id: string): SimpleRowAddress | undefined {
+    const row = this.sortedRows.findIndex(row => row.id === id)
+    if (row === -1) return undefined
+    return { row, sheet: 0 }
   }
 
-  getColIndex(id: string): { sheet: number, index: number } | undefined {
-    const index = this.sortedCols.findIndex(row => row.id === id)
-    if (index === -1) return undefined
-    return { index, sheet: 0 }
+  getColIndex(id: string): SimpleColAddress | undefined {
+    const col = this.sortedCols.findIndex(row => row.id === id)
+    if (col === -1) return undefined
+    return { col, sheet: 0 }
   }
 
   public getCellAddress(id: string): SimpleCellAddress | undefined {
@@ -85,7 +85,7 @@ export class ImmutableReferenceMappingTestImpl implements ImmutableReferenceMapp
     const col = this.getColIndex(cell.col)
     if (row === undefined || col === undefined) return undefined
     if (row.sheet !== col.sheet) throw Error()
-    return { sheet: 0, row: row.index, col: col.index }
+    return { sheet: 0, row: row.row, col: col.col }
   }
 }
 
@@ -99,8 +99,8 @@ export class ImmutableIdMappingTestImpl extends ImmutableReferenceMappingTestImp
   constructor(props: any) {
     super(props)
     this.cells.forEach(({ id, row: r, col: c }) => {
-      const row = this.getRowIndex(r)?.index
-      const col = this.getColIndex(c)?.index
+      const row = this.getRowIndex(r)?.row
+      const col = this.getColIndex(c)?.col
       if (row === undefined || col === undefined) return
       this.cellsToId.set(addressKey({ sheet: 0, row, col }), id)
     })

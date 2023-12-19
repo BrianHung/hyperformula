@@ -675,7 +675,7 @@
  * <https://www.gnu.org/licenses/why-not-lgpl.html>.
  * 
  * Version: 2.6.0
- * Release date: 19/09/2023 (built at 18/12/2023 16:45:27)
+ * Release date: 19/09/2023 (built at 18/12/2023 21:35:50)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -4412,7 +4412,7 @@ const colAddressFromImmutableReference = (immutableReferenceMapping, stringAddre
   const [match, colId, absoluteCol, showSheet] = result;
   const address = immutableReferenceMapping.getColIndex(colId);
   if (address === undefined) return undefined;
-  const col = address.index;
+  const col = address.col;
   let sheet = address.sheet;
   if (sheet === baseAddress.sheet && showSheet !== 'true') {
     sheet = undefined;
@@ -4444,9 +4444,9 @@ exports.rowAddressFromString = rowAddressFromString;
 const rowAddressFromImmutableReference = (immutableReferenceMapping, stringAddress, baseAddress) => {
   const result = immutableRowRegex.exec(stringAddress);
   const [match, rowId, absoluteRow, showSheet] = result;
-  const address = immutableReferenceMapping.getColIndex(rowId);
+  const address = immutableReferenceMapping.getRowIndex(rowId);
   if (address === undefined) return undefined;
-  const row = address.index;
+  const row = address.row;
   let sheet = address.sheet;
   if (sheet === baseAddress.sheet && showSheet !== 'true') {
     sheet = undefined;
@@ -18244,7 +18244,7 @@ HyperFormula.version = "2.6.0";
  *
  * @category Static Properties
  */
-HyperFormula.buildDate = "18/12/2023 16:45:27";
+HyperFormula.buildDate = "18/12/2023 21:35:50";
 /**
  * A release date.
  *

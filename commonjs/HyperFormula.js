@@ -4192,7 +4192,7 @@ HyperFormula.version = "2.6.0";
  *
  * @category Static Properties
  */
-HyperFormula.buildDate = "18/12/2023 16:45:22";
+HyperFormula.buildDate = "18/12/2023 21:35:46";
 /**
  * A release date.
  *

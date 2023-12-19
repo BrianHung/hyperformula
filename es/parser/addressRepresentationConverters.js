@@ -96,7 +96,7 @@ export const colAddressFromImmutableReference = (immutableReferenceMapping, stri
   const [match, colId, absoluteCol, showSheet] = result;
   const address = immutableReferenceMapping.getColIndex(colId);
   if (address === undefined) return undefined;
-  const col = address.index;
+  const col = address.col;
   let sheet = address.sheet;
   if (sheet === baseAddress.sheet && showSheet !== 'true') {
     sheet = undefined;
@@ -126,9 +126,9 @@ export const rowAddressFromString = (sheetMapping, stringAddress, baseAddress) =
 export const rowAddressFromImmutableReference = (immutableReferenceMapping, stringAddress, baseAddress) => {
   const result = immutableRowRegex.exec(stringAddress);
   const [match, rowId, absoluteRow, showSheet] = result;
-  const address = immutableReferenceMapping.getColIndex(rowId);
+  const address = immutableReferenceMapping.getRowIndex(rowId);
   if (address === undefined) return undefined;
-  const row = address.index;
+  const row = address.row;
   let sheet = address.sheet;
   if (sheet === baseAddress.sheet && showSheet !== 'true') {
     sheet = undefined;
